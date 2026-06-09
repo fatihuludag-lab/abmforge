@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from abmforge.core.model import Model
 
 from abmforge.scheduling.base import Scheduler
 
@@ -8,7 +12,13 @@ from abmforge.scheduling.base import Scheduler
 class StagedActivation(Scheduler):
     """Activate agents through named stages."""
 
-    def __init__(self, model, stages: Sequence[str], *, shuffle: bool = False) -> None:
+    def __init__(
+        self,
+        model: Model,
+        stages: Sequence[str],
+        *,
+        shuffle: bool = False,
+    ) -> None:
         super().__init__(model)
         self.stages = list(stages)
         self.shuffle = shuffle

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from numpy.random import Generator
@@ -50,4 +50,4 @@ class Agent:
         if not hasattr(self.model.world, "neighbors"):
             raise RuntimeError("The current world does not implement neighbors().")
 
-        return self.model.world.neighbors(self, **kwargs)
+        return cast(list[Agent], self.model.world.neighbors(self, **kwargs))
