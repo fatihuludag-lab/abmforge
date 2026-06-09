@@ -1,106 +1,160 @@
 # ABMForge
 
-ABMForge is an early-stage, installable Python framework for agent-based simulation.
-The first release focuses on a small but usable core:
+ABMForge is a lightweight, reproducible, experiment-native agent-based modeling framework for Python.
 
-- `Model`
-- `Agent`
-- `AgentCollection`
-- deterministic RNG via model-level seed
-- `GridWorld`
-- basic event queue
-- `Recorder` and `Dataset`
-- `Scenario`
-- a minimal CLI
+It is designed for researchers, educators, and model developers who want agent-based simulations that are easy to write, easy to reproduce, and easy to turn into analyzable datasets.
 
-> Status: `0.1.0a1` alpha. Public APIs may still change before `1.0.0`.
+## Why ABMForge?
+
+ABMForge focuses on three ideas:
+
+1. **Reproducible by default**  
+   Models use deterministic random number generation through model-level seeds.
+
+2. **Experiment-native**  
+   Simulations are organized around scenarios, runs, parameters, and recorded outputs.
+
+3. **Dataset-first**  
+   Model, agent, event, lifecycle, and run metadata can be exported for analysis.
+
+ABMForge is not intended to be a clone of Mesa or NetLogo. Its long-term goal is to support reproducible computational experiments for ABM research.
 
 ## Installation
 
-For users, once published:
+From GitHub:
 
 ```bash
-pip install abmforge
-```
-
-For local development:
-
-```bash
-git clone https://github.com/your-org/abmforge.git
+git clone https://github.com/fatihuludag-lab/abmforge.git
 cd abmforge
-python -m venv .venv
-source .venv/bin/activate
 pip install -e ".[dev]"
-pytest
-```
-
-On Windows:
-
-```powershell
-python -m venv .venv
-.venv\Scripts\activate
-pip install -e ".[dev]"
-pytest
-```
-
-## First model
-
-```python
+Quick example
 from abmforge import Agent, Model, Scenario
+from abmforge.scheduling import RandomActivation
 
 
 class Person(Agent):
-    def step(self) -> None:
+    def step(self):
         self.wealth += 1
 
 
 class WealthModel(Model):
-    def setup(self) -> None:
+    def setup(self):
         self.agents.create(Person, n=100, wealth=0)
-        self.record.metric("total_wealth", lambda m: m.agents.sum("wealth"))
+        self.scheduler = RandomActivation(self)
+        self.record.metric("total_wealth", lambda model: model.agents.sum("wealth"))
 
-    def step(self) -> None:
-        self.agents.shuffle_do("step")
+    def step(self):
+        self.scheduler.step()
 
 
 scenario = Scenario(model=WealthModel, seed=42, steps=10)
 result = scenario.run()
 
 print(result.dataset.model_records)
-```
+Core concepts
 
-## Design goals
+ABMForge currently includes:
 
-ABMForge is intended to become:
+Agent
+Model
+AgentCollection
+GridWorld
+NetworkSpace
+Scheduler strategies:
+SequentialActivation
+RandomActivation
+SimultaneousActivation
+StagedActivation
+Event queue
+Recorder
+Dataset
+Scenario
+Experiment
+Examples
 
-1. **Installable**: small core package with optional extras.
-2. **Reproducible**: every run records seed, parameters, status, and timing.
-3. **Experiment-native**: scenarios and experiments are first-class concepts.
-4. **Extensible**: future storage, visualization, distributed, and GIS features should be plugins.
-5. **Different from Mesa**: dataset-first recording, event ownership, snapshot/replay, and future object/columnar backends.
+The repository includes classic ABM examples:
 
-## Optional extras
+python examples/schelling/run.py
+python examples/sir_epidemic/run.py
 
-```bash
-pip install "abmforge[data]"   # pandas, polars, pyarrow
-pip install "abmforge[viz]"    # matplotlib
-pip install "abmforge[docs]"   # mkdocs
-pip install "abmforge[dev]"    # pytest, ruff, mypy, build, twine
-```
+Current examples:
 
-## CLI
+Schelling segregation model
+Spatial SIR epidemic model
+Wealth model
+Dataset export
 
-```bash
-abmforge --version
-abmforge info
-```
+ABMForge can export run outputs as JSON/JSONL or CSV.
 
-## Project status
+result.dataset.write_json("outputs/my_run")
+result.dataset.write_csv("outputs/my_run")
 
-This is the first alpha release. The package is intentionally small. The next milestones are:
+Generated output folders are ignored by Git through outputs/.
 
-- `0.2.0`: stronger ABM examples and grid utilities
-- `0.3.0`: event ownership and richer lifecycle hooks
-- `0.4.0`: dataset export and storage backend interface
-- `0.5.0`: experiment runner and parameter grids
-- `1.0.0`: stable public API
+Reproducibility
+
+A typical ABMForge run records:
+
+run ID
+scenario name
+model name
+parameters
+seed
+run status
+start and end timestamps
+number of steps
+model-level records
+agent-level records
+event records
+lifecycle records
+Development
+
+Install development dependencies:
+
+pip install -e ".[dev]"
+
+Run checks:
+
+ruff format src tests examples
+ruff check src tests examples
+mypy src
+pytest
+python -m build
+Roadmap
+
+Near-term priorities:
+
+stronger scheduler API
+more example models
+parameter sweeps
+reproducibility manifest
+Parquet/Arrow export
+event causality logs
+snapshot and replay support
+documentation site
+Positioning
+
+ABMForge aims to differentiate through:
+
+reproducible scenario-based runs
+dataset-first outputs
+explicit event ownership
+research-friendly experiment workflows
+lightweight Python-first design
+Contributing
+
+Contributions are welcome. Good first areas include:
+
+examples
+documentation
+tests
+schedulers
+spaces
+export formats
+reproducibility tools
+
+Please run the full test suite before opening a pull request.
+
+License
+
+See LICENSE.
