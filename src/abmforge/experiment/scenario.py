@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import platform
+import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -35,6 +37,9 @@ class Scenario:
             seed=run_seed,
             status="running",
             started_at=started_at,
+            python_version=sys.version,
+            platform=platform.platform(),
+            abmforge_version="0.1.0a1",
         )
 
         try:
