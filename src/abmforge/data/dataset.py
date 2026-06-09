@@ -159,6 +159,31 @@ class Dataset:
 
         return output_dir
 
+    def write_manifest(self, path: str | Path) -> Path:
+        """Write a reproducibility manifest for the dataset."""
+        output_path = Path(path)
+
+        if output_path.suffix != ".json":
+            output_path.mkdir(parents=True, exist_ok=True)
+            output_path = output_path / "manifest.json"
+        else:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        manifest = {
+            "run_id": self.run_id,
+            "runs": self.runs,
+            "n_model_records": len(self.model_records),
+            "n_agent_records": len(self.agent_records),
+            "n_event_records": len(self.event_records),
+            "n_lifecycle_records": len(self.lifecycle_records),
+        }
+
+        output_path.write_text(
+            json.dumps(manifest, indent=2, default=str),
+            encoding="utf-8",
+        )
+        return output_path
+
     @staticmethod
     def _write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
         with path.open("w", encoding="utf-8") as f:
