@@ -6,6 +6,13 @@ from abmforge.core.model import Model
 from abmforge.experiment.experiment import Experiment, ExperimentResult
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.scenario import Scenario
+from abmforge.scheduling import (
+    RandomActivation,
+    Scheduler,
+    SequentialActivation,
+    SimultaneousActivation,
+    StagedActivation,
+)
 from abmforge.time.event import Event
 from abmforge.time.queue import EventQueue
 from abmforge.world.grid import GridWorld
@@ -23,5 +30,10 @@ __all__ = [
     "Model",
     "RunResult",
     "Scenario",
+    "Scheduler",
+    "SequentialActivation",
+    "RandomActivation",
+    "SimultaneousActivation",
+    "StagedActivation",
     "__version__",
 ]
