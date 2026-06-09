@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import json
 from importlib import import_module
 from pathlib import Path
@@ -145,9 +146,38 @@ class Dataset:
         self._write_jsonl(output_dir / "lifecycle_records.jsonl", self.lifecycle_records)
         return output_dir
 
+    def write_csv(self, path: str | Path) -> Path:
+        """Write dataset tables to a directory as CSV files."""
+        output_dir = Path(path)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        self._write_csv(output_dir / "runs.csv", self.runs)
+        self._write_csv(output_dir / "model_records.csv", self.model_records)
+        self._write_csv(output_dir / "agent_records.csv", self.agent_records)
+        self._write_csv(output_dir / "event_records.csv", self.event_records)
+        self._write_csv(output_dir / "lifecycle_records.csv", self.lifecycle_records)
+
+        return output_dir
+
     @staticmethod
     def _write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
         with path.open("w", encoding="utf-8") as f:
             for record in records:
                 f.write(json.dumps(record, default=str))
                 f.write("\n")
+
+    @staticmethod
+    def _write_csv(path: Path, records: list[dict[str, Any]]) -> None:
+        """Write records to a CSV file.
+
+        Empty tables are written as empty files.
+        """
+        if not records:
+            path.write_text("", encoding="utf-8")
+            return
+
+        fieldnames = sorted({key for record in records for key in record})
+        with path.open("w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(records)
