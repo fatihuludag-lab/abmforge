@@ -4,6 +4,7 @@ from abmforge.core.agent import Agent
 from abmforge.core.collection import AgentCollection
 from abmforge.core.model import Model
 from abmforge.experiment.experiment import Experiment, ExperimentResult
+from abmforge.experiment.parameter_grid import ParameterGrid
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.scenario import Scenario
 from abmforge.scheduling import (
@@ -30,6 +31,7 @@ __all__ = [
     "GridWorld",
     "Model",
     "NetworkSpace",
+    "ParameterGrid",
     "RunResult",
     "Scenario",
     "Scheduler",
