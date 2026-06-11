@@ -3,7 +3,7 @@
 ## Development setup
 
 ```bash
-git clone https://github.com/your-org/abmforge.git
+git clone https://github.com/fatihuludag-lab/abmforge.git
 cd abmforge
 python -m venv .venv
 source .venv/bin/activate
