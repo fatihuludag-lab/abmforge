@@ -7,6 +7,7 @@ from abmforge.experiment.experiment import Experiment, ExperimentResult
 from abmforge.experiment.parameter_grid import ParameterGrid
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.scenario import Scenario
+from abmforge.replay import read_snapshot, write_snapshot
 from abmforge.scheduling import (
     RandomActivation,
     Scheduler,
@@ -45,5 +46,7 @@ __all__ = [
     "plot_grid",
     "plot_multiple_runs",
     "plot_timeseries",
+    "read_snapshot",
+    "write_snapshot",
     "__version__",
 ]
