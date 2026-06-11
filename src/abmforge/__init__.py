@@ -16,6 +16,7 @@ from abmforge.scheduling import (
 )
 from abmforge.time.event import Event
 from abmforge.time.queue import EventQueue
+from abmforge.world.continuous import ContinuousSpace
 from abmforge.world.grid import GridWorld
 from abmforge.world.network import NetworkSpace
 
@@ -24,6 +25,7 @@ __version__ = "0.1.0a1"
 __all__ = [
     "Agent",
     "AgentCollection",
+    "ContinuousSpace",
     "Event",
     "EventQueue",
     "Experiment",
