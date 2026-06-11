@@ -66,10 +66,10 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-org/abmforge"
-Documentation = "https://your-org.github.io/abmforge"
-Repository = "https://github.com/your-org/abmforge"
-Issues = "https://github.com/your-org/abmforge/issues"
+Homepage = "https://github.com/fatihuludag-lab/abmforge"
+Repository = "https://github.com/fatihuludag-lab/abmforge"
+Issues = "https://github.com/fatihuludag-lab/abmforge/issues"
+Documentation = "https://fatihuludag-lab.github.io/abmforge"
 
 [project.scripts]
 abmforge = "abmforge.cli.main:main"
