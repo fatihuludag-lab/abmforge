@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import csv
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from abmforge.core.model import Model
@@ -42,6 +44,66 @@ class ExperimentResult:
         """Append a run result."""
         self.results.append(result)
 
+    def statuses(self) -> dict[str, int]:
+        """Return run counts grouped by status."""
+        counts: dict[str, int] = {}
+        for result in self.results:
+            counts[result.status] = counts.get(result.status, 0) + 1
+        return counts
+
+    def summary(self) -> dict[str, object]:
+        """Return a compact summary of experiment results."""
+        return {
+            "run_count": self.run_count,
+            "successful_count": len(self.successful()),
+            "failed_count": self.failed_count,
+            "statuses": self.statuses(),
+        }
+
+    def run_records(self) -> list[dict[str, object]]:
+        """Return combined run metadata records from all runs."""
+        records: list[dict[str, object]] = []
+        for result in self.results:
+            records.extend(result.dataset.runs)
+        return records
+
+    def model_records(self) -> list[dict[str, object]]:
+        """Return combined model-level records from all runs."""
+        records: list[dict[str, object]] = []
+        for result in self.results:
+            records.extend(result.dataset.model_records)
+        return records
+
+    def agent_records(self) -> list[dict[str, object]]:
+        """Return combined agent-level records from all runs."""
+        records: list[dict[str, object]] = []
+        for result in self.results:
+            records.extend(result.dataset.agent_records)
+        return records
+
+    def write_csv(self, path: str | Path) -> Path:
+        """Write combined experiment records as CSV files."""
+        output_dir = Path(path)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        self._write_csv(output_dir / "runs.csv", self.run_records())
+        self._write_csv(output_dir / "model_records.csv", self.model_records())
+        self._write_csv(output_dir / "agent_records.csv", self.agent_records())
+
+        return output_dir
+
+    @staticmethod
+    def _write_csv(path: Path, records: list[dict[str, object]]) -> None:
+        if not records:
+            path.write_text("", encoding="utf-8")
+            return
+
+        fieldnames = sorted({key for record in records for key in record})
+        with path.open("w", newline="", encoding="utf-8") as file:
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(records)
+
 
 class Experiment:
     """Experiment runner for scenarios or parameter-grid model runs."""
@@ -76,9 +138,11 @@ class Experiment:
         if self.model is None:
             raise ValueError("model must be provided when scenarios are not explicit.")
 
-        grid: Iterable[dict[str, Any]] = ParameterGrid(self.parameters) if self.parameters else [{}]
-        scenarios: list[Scenario] = []
+        grid: Iterable[dict[str, Any]] = (
+            ParameterGrid(self.parameters) if self.parameters else [{}]
+        )
 
+        scenarios: list[Scenario] = []
         for parameter_set in grid:
             for seed in self.seeds:
                 scenarios.append(

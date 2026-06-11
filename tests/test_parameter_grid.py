@@ -73,16 +73,14 @@ def test_experiment_runs_all_scenarios():
 
 
 def test_experiment_still_supports_explicit_scenarios():
-    scenarios = [
-        Experiment(
-            model=DummyModel,
-            parameters={"a": [1]},
-            seeds=[1],
-            steps=1,
-        ).scenarios()[0]
-    ]
+    scenario = Experiment(
+        model=DummyModel,
+        parameters={"a": [1]},
+        seeds=[1],
+        steps=1,
+    ).scenarios()[0]
 
-    experiment = Experiment(scenarios=scenarios)
+    experiment = Experiment(scenarios=[scenario])
     result = experiment.run()
 
     assert result.run_count == 1
