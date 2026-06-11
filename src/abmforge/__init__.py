@@ -1,5 +1,6 @@
 """ABMForge public API."""
 
+from abmforge.analysis import SensitivityAnalysis
 from abmforge.core.agent import Agent
 from abmforge.core.collection import AgentCollection
 from abmforge.core.model import Model
@@ -40,6 +41,7 @@ __all__ = [
     "RunResult",
     "Scenario",
     "Scheduler",
+    "SensitivityAnalysis",
     "SequentialActivation",
     "SimultaneousActivation",
     "StagedActivation",
