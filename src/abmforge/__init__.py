@@ -16,6 +16,7 @@ from abmforge.scheduling import (
 )
 from abmforge.time.event import Event
 from abmforge.time.queue import EventQueue
+from abmforge.visualization import plot_grid, plot_multiple_runs, plot_timeseries
 from abmforge.world.continuous import ContinuousSpace
 from abmforge.world.grid import GridWorld
 from abmforge.world.network import NetworkSpace
@@ -41,5 +42,8 @@ __all__ = [
     "SequentialActivation",
     "SimultaneousActivation",
     "StagedActivation",
+    "plot_grid",
+    "plot_multiple_runs",
+    "plot_timeseries",
     "__version__",
 ]
