@@ -138,9 +138,7 @@ class Experiment:
         if self.model is None:
             raise ValueError("model must be provided when scenarios are not explicit.")
 
-        grid: Iterable[dict[str, Any]] = (
-            ParameterGrid(self.parameters) if self.parameters else [{}]
-        )
+        grid: Iterable[dict[str, Any]] = ParameterGrid(self.parameters) if self.parameters else [{}]
 
         scenarios: list[Scenario] = []
         for parameter_set in grid:
