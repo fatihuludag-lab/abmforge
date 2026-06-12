@@ -2,48 +2,64 @@
 
 ABMForge is a lightweight, reproducible, experiment-native agent-based modeling framework for Python.
 
-It is designed for researchers, educators, and model developers who want agent-based simulations that are easy to write, easy to reproduce, and easy to turn into analyzable datasets.
+It is designed for researchers, educators, model developers, and Python users who want to build agent-based simulations that are easy to write, easy to reproduce, easy to analyze, and easy to extend.
 
 ## Why ABMForge?
 
-ABMForge focuses on three ideas:
+ABMForge focuses on four principles:
 
 1. **Reproducible by default**  
-   Models use deterministic random number generation through model-level seeds.
+   Model runs can be controlled with deterministic seeds and reproducibility metadata.
 
 2. **Experiment-native**  
-   Simulations are organized around scenarios, runs, parameters, and recorded outputs.
+   Simulations are organized around scenarios, parameter grids, multi-seed experiments, and run results.
 
 3. **Dataset-first**  
-   Model, agent, event, lifecycle, and run metadata can be exported for analysis.
+   Model-level, agent-level, event-level, lifecycle, and run metadata can be recorded and exported.
 
-ABMForge is not intended to be a clone of Mesa or NetLogo. Its long-term goal is to support reproducible computational experiments for ABM research.
+4. **Python-first and lightweight**  
+   The core is intentionally small, typed, and easy to inspect.
+
+ABMForge is not intended to be a clone of Mesa, NetLogo, or AgentPy. Its goal is to provide a research-friendly ABM workflow centered on reproducibility, experiments, datasets, and extensibility.
 
 ## Installation
 
-From GitHub:
+Clone the repository and install in editable mode:
 
 ```bash
 git clone https://github.com/fatihuludag-lab/abmforge.git
 cd abmforge
 pip install -e ".[dev]"
-Quick example
+```
+
+Optional extras:
+
+```bash
+pip install -e ".[viz]"
+pip install -e ".[analysis]"
+pip install -e ".[docs]"
+pip install -e ".[all]"
+```
+
+## Quick example
+
+```python
 from abmforge import Agent, Model, Scenario
 from abmforge.scheduling import RandomActivation
 
 
 class Person(Agent):
-    def step(self):
+    def step(self) -> None:
         self.wealth += 1
 
 
 class WealthModel(Model):
-    def setup(self):
+    def setup(self) -> None:
         self.agents.create(Person, n=100, wealth=0)
         self.scheduler = RandomActivation(self)
         self.record.metric("total_wealth", lambda model: model.agents.sum("wealth"))
 
-    def step(self):
+    def step(self) -> None:
         self.scheduler.step()
 
 
@@ -51,110 +67,258 @@ scenario = Scenario(model=WealthModel, seed=42, steps=10)
 result = scenario.run()
 
 print(result.dataset.model_records)
-Core concepts
+```
 
-ABMForge currently includes:
+## Core concepts
 
-Agent
-Model
-AgentCollection
-GridWorld
-NetworkSpace
-Scheduler strategies:
-SequentialActivation
-RandomActivation
-SimultaneousActivation
-StagedActivation
-Event queue
-Recorder
-Dataset
-Scenario
-Experiment
-Examples
+ABMForge currently provides:
 
-The repository includes classic ABM examples:
+- `Agent`
+- `Model`
+- `AgentCollection`
+- `Scenario`
+- `Experiment`
+- `ParameterGrid`
+- `ExperimentResult`
+- `Recorder`
+- `Dataset`
+- `Event`
+- `EventQueue`
 
-python examples/schelling/run.py
-python examples/sir_epidemic/run.py
+## Spaces
 
-Current examples:
+ABMForge supports multiple environment types:
 
-Schelling segregation model
-Spatial SIR epidemic model
-Wealth model
-Dataset export
+- `GridWorld`
+- `NetworkSpace`
+- `ContinuousSpace`
+- `GISSpace`
 
-ABMForge can export run outputs as JSON/JSONL or CSV.
+## Scheduling
 
-result.dataset.write_json("outputs/my_run")
-result.dataset.write_csv("outputs/my_run")
+Available activation strategies:
 
-Generated output folders are ignored by Git through outputs/.
+- `SequentialActivation`
+- `RandomActivation`
+- `SimultaneousActivation`
+- `StagedActivation`
 
-Reproducibility
+## Experiments
 
-A typical ABMForge run records:
+ABMForge can run parameter sweeps and repeated-seed experiments:
 
-run ID
-scenario name
-model name
-parameters
-seed
-run status
-start and end timestamps
-number of steps
-model-level records
-agent-level records
-event records
-lifecycle records
-Development
+```python
+from abmforge import Experiment
+
+experiment = Experiment(
+    model=WealthModel,
+    parameters={
+        "initial_wealth": [0, 10],
+        "growth": [1, 2],
+    },
+    seeds=[1, 2, 3],
+    steps=100,
+)
+
+result = experiment.run()
+
+print(result.summary())
+result.write_csv("outputs/experiment")
+```
+
+## Dataset export
+
+A run dataset can be exported as JSON/JSONL or CSV:
+
+```python
+result.dataset.write_json("outputs/run_json")
+result.dataset.write_csv("outputs/run_csv")
+result.dataset.write_manifest("outputs/run_manifest")
+```
+
+Experiment results can also be exported:
+
+```python
+experiment_result.write_csv("outputs/experiment")
+```
+
+## Reproducibility
+
+ABMForge records run metadata such as:
+
+- run ID
+- scenario name
+- model name
+- parameters
+- seed
+- status
+- start and end timestamps
+- executed steps
+- stop reason
+- Python version
+- platform information
+- ABMForge version
+
+Snapshot helpers are also available:
+
+```python
+from abmforge import read_snapshot, write_snapshot
+
+snapshot = model.snapshot()
+write_snapshot(snapshot, "outputs/snapshot.json")
+
+loaded = read_snapshot("outputs/snapshot.json")
+```
+
+## Visualization
+
+Visualization helpers are optional and require matplotlib:
+
+```bash
+pip install -e ".[viz]"
+```
+
+Available helpers:
+
+```python
+from abmforge import plot_grid, plot_multiple_runs, plot_timeseries
+
+plot_timeseries(result.dataset, metric="infected")
+plot_multiple_runs(experiment_result, metric="mean_wealth")
+plot_grid(model.world)
+```
+
+## Sensitivity analysis
+
+ABMForge includes a lightweight sensitivity analysis helper:
+
+```python
+from abmforge import SensitivityAnalysis
+
+analysis = SensitivityAnalysis(experiment_result, metric="total_wealth")
+print(analysis.summary())
+```
+
+Optional SALib integration is also available:
+
+```bash
+pip install -e ".[analysis]"
+```
+
+```python
+from abmforge import SALibProblem, sample_sobol, analyze_sobol
+
+problem = SALibProblem(
+    bounds={
+        "density": (0.4, 0.9),
+        "homophily": (0.1, 0.8),
+    }
+)
+
+samples = sample_sobol(problem, n=128, seed=42)
+```
+
+## Examples
+
+The repository includes several examples:
+
+```bash
+python3 examples/wealth_model/run.py
+python3 examples/schelling/run.py
+python3 examples/sir_epidemic/run.py
+python3 examples/sugarscape/run.py
+python3 examples/parameter_sweep/run.py
+python3 examples/gis_space/run.py
+```
+
+Current example gallery:
+
+- Wealth model
+- Schelling segregation
+- Spatial SIR epidemic
+- Sugarscape
+- Parameter sweep
+- GISSpace distance and GeoJSON export
+
+## Development
 
 Install development dependencies:
 
+```bash
 pip install -e ".[dev]"
+```
 
-Run checks:
+Run local checks:
 
+```bash
 ruff format src tests examples
 ruff check src tests examples
 mypy src
 pytest
-python -m build
-Roadmap
+python3 -m build
+```
+
+## Project status
+
+ABMForge is currently an alpha-stage framework.
+
+The current focus is:
+
+- stabilizing public APIs
+- improving documentation
+- strengthening CI
+- expanding examples
+- preparing a clean v0.2.0 release
+
+## Roadmap
 
 Near-term priorities:
 
-stronger scheduler API
-more example models
-parameter sweeps
-reproducibility manifest
-Parquet/Arrow export
-event causality logs
-snapshot and replay support
-documentation site
-Positioning
+- API stabilization
+- documentation site
+- example smoke tests in CI
+- coverage reporting
+- benchmark suite
+- stronger replay support
+- plugin architecture
+
+## Positioning
 
 ABMForge aims to differentiate through:
 
-reproducible scenario-based runs
-dataset-first outputs
-explicit event ownership
-research-friendly experiment workflows
-lightweight Python-first design
-Contributing
+- reproducible scenario-based runs
+- dataset-first outputs
+- experiment-native workflows
+- explicit event ownership
+- multiple space types
+- optional visualization and analysis helpers
+- lightweight Python-first design
 
-Contributions are welcome. Good first areas include:
+## Contributing
 
-examples
-documentation
-tests
-schedulers
-spaces
-export formats
-reproducibility tools
+Contributions are welcome.
 
-Please run the full test suite before opening a pull request.
+Good first areas include:
 
-License
+- documentation
+- examples
+- tests
+- schedulers
+- spaces
+- export formats
+- visualization helpers
+- analysis tools
 
-See LICENSE.
+Before opening a pull request, please run:
+
+```bash
+ruff format src tests examples
+ruff check src tests examples
+mypy src
+pytest
+python3 -m build
+```
+
+## License
+
+ABMForge is distributed under the Apache-2.0 license. See `LICENSE`.
