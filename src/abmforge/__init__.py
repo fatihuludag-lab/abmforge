@@ -1,6 +1,13 @@
 """ABMForge public API."""
 
-from abmforge.analysis import SensitivityAnalysis
+from abmforge.analysis import (
+    SALibProblem,
+    SensitivityAnalysis,
+    analyze_morris,
+    analyze_sobol,
+    sample_morris,
+    sample_sobol,
+)
 from abmforge.core.agent import Agent
 from abmforge.core.collection import AgentCollection
 from abmforge.core.model import Model
@@ -50,5 +57,10 @@ __all__ = [
     "plot_timeseries",
     "read_snapshot",
     "write_snapshot",
+    "SALibProblem",
+    "analyze_morris",
+    "analyze_sobol",
+    "sample_morris",
+    "sample_sobol",
     "__version__",
 ]

@@ -4,14 +4,19 @@ from typing import Any
 
 
 def _require_matplotlib() -> Any:
+    """Import matplotlib lazily.
+
+    Visualization helpers are optional and should not require matplotlib
+    to be installed unless they are actually used.
+    """
     try:
-        import matplotlib.pyplot as plt
+        from importlib import import_module
+
+        return import_module("matplotlib.pyplot")
     except ModuleNotFoundError as exc:
         raise ModuleNotFoundError(
             "Visualization helpers require matplotlib. Install it with: pip install matplotlib"
         ) from exc
-
-    return plt
 
 
 def plot_timeseries(
