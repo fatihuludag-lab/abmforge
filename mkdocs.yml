@@ -18,4 +18,5 @@ nav:
   - GISSpace: gis.md
   - Examples: examples.md
   - API Reference: api.md
+  - API Stability: api-stability.md
   - Contributing: contributing.md
