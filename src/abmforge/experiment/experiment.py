@@ -1,7 +1,13 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+import csv
+from collections.abc import Iterable, Iterator
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
 
+from abmforge.core.model import Model
+from abmforge.experiment.parameter_grid import ParameterGrid
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.scenario import Scenario
 
@@ -10,7 +16,13 @@ from abmforge.experiment.scenario import Scenario
 class ExperimentResult:
     """Result of running multiple scenarios."""
 
-    results: list[RunResult]
+    results: list[RunResult] = field(default_factory=list)
+
+    def __iter__(self) -> Iterator[RunResult]:
+        return iter(self.results)
+
+    def __len__(self) -> int:
+        return len(self.results)
 
     @property
     def run_count(self) -> int:
@@ -20,13 +32,141 @@ class ExperimentResult:
     def failed_count(self) -> int:
         return sum(1 for result in self.results if result.status == "failed")
 
+    def successful(self) -> list[RunResult]:
+        """Return successful runs."""
+        return [result for result in self.results if result.status == "completed"]
+
+    def failed(self) -> list[RunResult]:
+        """Return failed runs."""
+        return [result for result in self.results if result.status == "failed"]
+
+    def append(self, result: RunResult) -> None:
+        """Append a run result."""
+        self.results.append(result)
+
+    def statuses(self) -> dict[str, int]:
+        """Return run counts grouped by status."""
+        counts: dict[str, int] = {}
+        for result in self.results:
+            counts[result.status] = counts.get(result.status, 0) + 1
+        return counts
+
+    def summary(self) -> dict[str, object]:
+        """Return a compact summary of experiment results."""
+        return {
+            "run_count": self.run_count,
+            "successful_count": len(self.successful()),
+            "failed_count": self.failed_count,
+            "statuses": self.statuses(),
+        }
+
+    def run_records(self) -> list[dict[str, object]]:
+        """Return combined run metadata records from all runs."""
+        records: list[dict[str, object]] = []
+        for result in self.results:
+            records.extend(result.dataset.runs)
+        return records
+
+    def model_records(self) -> list[dict[str, object]]:
+        """Return combined model-level records from all runs."""
+        records: list[dict[str, object]] = []
+        for result in self.results:
+            records.extend(result.dataset.model_records)
+        return records
+
+    def agent_records(self) -> list[dict[str, object]]:
+        """Return combined agent-level records from all runs."""
+        records: list[dict[str, object]] = []
+        for result in self.results:
+            records.extend(result.dataset.agent_records)
+        return records
+
+    def write_csv(self, path: str | Path) -> Path:
+        """Write combined experiment records as CSV files."""
+        output_dir = Path(path)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        self._write_csv(output_dir / "runs.csv", self.run_records())
+        self._write_csv(output_dir / "model_records.csv", self.model_records())
+        self._write_csv(output_dir / "agent_records.csv", self.agent_records())
+
+        return output_dir
+
+    @staticmethod
+    def _write_csv(path: Path, records: list[dict[str, object]]) -> None:
+        if not records:
+            path.write_text("", encoding="utf-8")
+            return
+
+        fieldnames = sorted({key for record in records for key in record})
+        with path.open("w", newline="", encoding="utf-8") as file:
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(records)
+
 
 class Experiment:
-    """Minimal local experiment runner."""
+    """Experiment runner for scenarios or parameter-grid model runs."""
 
-    def __init__(self, scenarios: list[Scenario]) -> None:
-        self.scenarios = scenarios
+    def __init__(
+        self,
+        scenarios: list[Scenario] | None = None,
+        *,
+        model: type[Model] | None = None,
+        parameters: dict[str, list[Any]] | None = None,
+        seeds: list[int | None] | None = None,
+        steps: int = 0,
+        name: str | None = None,
+        continue_on_error: bool = False,
+    ) -> None:
+        self._explicit_scenarios = scenarios
+        self.model = model
+        self.parameters = parameters or {}
+        self.seeds = seeds or [None]
+        self.steps = steps
+        self.name = name
+        self.continue_on_error = continue_on_error
+
+        if self._explicit_scenarios is None and self.model is None:
+            raise ValueError("Either scenarios or model must be provided.")
+
+    def scenarios(self) -> list[Scenario]:
+        """Return all scenarios generated by this experiment."""
+        if self._explicit_scenarios is not None:
+            return self._explicit_scenarios
+
+        if self.model is None:
+            raise ValueError("model must be provided when scenarios are not explicit.")
+
+        grid: Iterable[dict[str, Any]] = ParameterGrid(self.parameters) if self.parameters else [{}]
+
+        scenarios: list[Scenario] = []
+        for parameter_set in grid:
+            for seed in self.seeds:
+                scenarios.append(
+                    Scenario(
+                        model=self.model,
+                        parameters=parameter_set,
+                        seed=seed,
+                        steps=self.steps,
+                        name=self.name or self.model.__name__,
+                    )
+                )
+
+        return scenarios
 
     def run(self) -> ExperimentResult:
         """Run scenarios sequentially."""
-        return ExperimentResult(results=[scenario.run() for scenario in self.scenarios])
+        experiment_result = ExperimentResult()
+
+        for scenario in self.scenarios():
+            try:
+                result = scenario.run()
+            except Exception:
+                if not self.continue_on_error:
+                    raise
+                continue
+
+            experiment_result.append(result)
+
+        return experiment_result

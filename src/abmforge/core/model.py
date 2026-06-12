@@ -82,6 +82,10 @@ class Model:
         unique_id = getattr(agent_or_id, "unique_id", agent_or_id)
         agent = self.agents.get(unique_id)
 
+        if agent is None:
+            raise KeyError(f"Agent not found: {unique_id}")
+
+        agent.is_alive = False
         self.events.cancel_by_owner(unique_id)
 
         if self.world is not None and hasattr(self.world, "remove"):

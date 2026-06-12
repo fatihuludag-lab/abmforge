@@ -25,3 +25,6 @@ dist/
 .DS_Store
 .vscode/
 .idea/
+
+# Generated outputs
+outputs/

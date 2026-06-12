@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import json
 from importlib import import_module
 from pathlib import Path
@@ -145,9 +146,63 @@ class Dataset:
         self._write_jsonl(output_dir / "lifecycle_records.jsonl", self.lifecycle_records)
         return output_dir
 
+    def write_csv(self, path: str | Path) -> Path:
+        """Write dataset tables to a directory as CSV files."""
+        output_dir = Path(path)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        self._write_csv(output_dir / "runs.csv", self.runs)
+        self._write_csv(output_dir / "model_records.csv", self.model_records)
+        self._write_csv(output_dir / "agent_records.csv", self.agent_records)
+        self._write_csv(output_dir / "event_records.csv", self.event_records)
+        self._write_csv(output_dir / "lifecycle_records.csv", self.lifecycle_records)
+
+        return output_dir
+
+    def write_manifest(self, path: str | Path) -> Path:
+        """Write a reproducibility manifest for the dataset."""
+        output_path = Path(path)
+
+        if output_path.suffix != ".json":
+            output_path.mkdir(parents=True, exist_ok=True)
+            output_path = output_path / "manifest.json"
+        else:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        manifest = {
+            "run_id": self.run_id,
+            "runs": self.runs,
+            "n_model_records": len(self.model_records),
+            "n_agent_records": len(self.agent_records),
+            "n_event_records": len(self.event_records),
+            "n_lifecycle_records": len(self.lifecycle_records),
+        }
+
+        output_path.write_text(
+            json.dumps(manifest, indent=2, default=str),
+            encoding="utf-8",
+        )
+        return output_path
+
     @staticmethod
     def _write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
         with path.open("w", encoding="utf-8") as f:
             for record in records:
                 f.write(json.dumps(record, default=str))
                 f.write("\n")
+
+    @staticmethod
+    def _write_csv(path: Path, records: list[dict[str, Any]]) -> None:
+        """Write records to a CSV file.
+
+        Empty tables are written as empty files.
+        """
+        if not records:
+            path.write_text("", encoding="utf-8")
+            return
+
+        fieldnames = sorted({key for record in records for key in record})
+        with path.open("w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(records)
