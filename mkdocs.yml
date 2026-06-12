@@ -1,0 +1,21 @@
+site_name: ABMForge
+site_description: Reproducible, experiment-native agent-based modeling for Python
+repo_url: https://github.com/fatihuludag-lab/abmforge
+
+theme:
+  name: material
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - First Model: first-model.md
+  - Spaces: spaces.md
+  - Scheduling: scheduling.md
+  - Experiments: experiments.md
+  - Visualization: visualization.md
+  - Analysis: analysis.md
+  - Replay: replay.md
+  - GISSpace: gis.md
+  - Examples: examples.md
+  - API Reference: api.md
+  - Contributing: contributing.md

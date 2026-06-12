@@ -21,6 +21,17 @@ Optional extras:
 pip install -e ".[viz]"
 pip install -e ".[analysis]"
 pip install -e ".[docs]"
+pip install -e ".[all]"
+```
+
+## Run the Test Suite
+
+```bash
+ruff format src tests examples
+ruff check src tests examples
+mypy src
+pytest
+python3 -m build
 ```
 
 ## First Scenario
@@ -41,6 +52,8 @@ result = scenario.run()
 
 ```python
 result.dataset.write_csv("outputs/run")
+result.dataset.write_json("outputs/run")
+result.dataset.write_manifest("outputs/run")
 ```
 
 ## Experiment
@@ -59,24 +72,16 @@ experiment = Experiment(
 )
 
 result = experiment.run()
-```
-
-## Visualization
-
-```python
-from abmforge import plot_timeseries
-
-plot_timeseries(
-    result.dataset,
-    metric="population",
-)
+print(result.summary())
+result.write_csv("outputs/experiment")
 ```
 
 ## Examples
 
-Run the bundled examples:
+Run bundled examples from the repository root:
 
 ```bash
+python3 examples/wealth_model/run.py
 python3 examples/schelling/run.py
 python3 examples/sir_epidemic/run.py
 python3 examples/sugarscape/run.py
