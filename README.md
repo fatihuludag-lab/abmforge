@@ -22,6 +22,84 @@ ABMForge focuses on four principles:
 
 ABMForge is not intended to be a clone of Mesa, NetLogo, or AgentPy. Its goal is to provide a research-friendly ABM workflow centered on reproducibility, experiments, datasets, and extensibility.
 
+## Positioning
+
+ABMForge is designed around a research workflow:
+
+Model → Scenario → Experiment → Dataset → Analysis → Visualization
+
+The framework emphasizes:
+
+- reproducibility
+- experiment management
+- dataset-oriented outputs
+- lightweight architecture
+- extensibility
+
+Rather than focusing only on simulation execution, ABMForge aims to support the complete lifecycle of computational experiments.
+
+## Key Features
+
+ABMForge currently provides:
+
+### Core Modeling
+
+- Agent
+- Model
+- AgentCollection
+
+### Spaces
+
+- GridWorld
+- NetworkSpace
+- ContinuousSpace
+- GISSpace
+
+### Scheduling
+
+- SequentialActivation
+- RandomActivation
+- SimultaneousActivation
+- StagedActivation
+
+### Experiments
+
+- Scenario
+- Experiment
+- ParameterGrid
+- Multi-seed experiments
+- ExperimentResult aggregation
+
+### Data & Reproducibility
+
+- Dataset export
+- JSONL export
+- CSV export
+- Reproducibility manifests
+- Snapshot read/write helpers
+
+### Analysis
+
+- SensitivityAnalysis
+- Optional SALib integration
+- Sobol sampling
+- Morris sampling
+
+### Visualization
+
+- plot_timeseries
+- plot_multiple_runs
+- plot_grid
+
+### Example Gallery
+
+- Wealth model
+- Schelling segregation
+- Spatial SIR epidemic
+- Sugarscape
+- Parameter sweep
+- GIS example
+
 ## Installation
 
 Clone the repository and install in editable mode:
