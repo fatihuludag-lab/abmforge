@@ -27,6 +27,7 @@ from abmforge.time.event import Event
 from abmforge.time.queue import EventQueue
 from abmforge.visualization import plot_grid, plot_multiple_runs, plot_timeseries
 from abmforge.world.continuous import ContinuousSpace
+from abmforge.world.gis import GISSpace
 from abmforge.world.grid import GridWorld
 from abmforge.world.network import NetworkSpace
 
@@ -40,6 +41,7 @@ __all__ = [
     "EventQueue",
     "Experiment",
     "ExperimentResult",
+    "GISSpace",
     "GridWorld",
     "Model",
     "NetworkSpace",
