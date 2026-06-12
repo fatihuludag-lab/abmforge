@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "abmforge"
-version = "0.1.0a1"
+version = "0.2.0a2"
 description = "A modern, extensible agent-based simulation framework for Python."
 readme = "README.md"
 requires-python = ">=3.10"

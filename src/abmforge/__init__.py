@@ -31,7 +31,7 @@ from abmforge.world.gis import GISSpace
 from abmforge.world.grid import GridWorld
 from abmforge.world.network import NetworkSpace
 
-__version__ = "0.1.0a1"
+__version__ = "0.2.0a2"
 
 __all__ = [
     "Agent",
