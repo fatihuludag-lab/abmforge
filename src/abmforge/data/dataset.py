@@ -174,6 +174,37 @@ class Dataset:
             "errors": self.errors,
         }
 
+    @property
+    def schema_version(self) -> str:
+        """Return the dataset schema version."""
+        from abmforge.data.schema import DATASET_SCHEMA_VERSION
+
+        return DATASET_SCHEMA_VERSION
+
+    def validate(self) -> None:
+        """Validate this dataset against DatasetSchemaV1.
+
+        Raises
+        ------
+        SchemaValidationError
+            If one or more records do not satisfy the schema.
+        """
+        from abmforge.data.schema import DatasetSchemaV1
+
+        DatasetSchemaV1.validate_dataset(self)
+
+    def schema_errors(self) -> list[str]:
+        """Return schema validation errors without raising."""
+        from abmforge.data.schema import DatasetSchemaV1
+
+        return DatasetSchemaV1.validate_dataset(self, raise_on_error=False)
+
+    def write_schema(self, path: str | Path) -> Path:
+        """Write the dataset schema used by this dataset."""
+        from abmforge.data.schema import DatasetSchemaV1
+
+        return DatasetSchemaV1.write(path)
+
     def write_json(self, path: str | Path) -> Path:
         """Write dataset tables to a directory as JSON/JSONL files."""
         output_dir = Path(path)

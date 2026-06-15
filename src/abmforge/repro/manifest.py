@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from abmforge._version import __version__
+from abmforge.data.schema import DATASET_SCHEMA_VERSION, DatasetSchemaV1
 
 if TYPE_CHECKING:
     from abmforge.data.dataset import Dataset
@@ -141,14 +142,14 @@ def _last_run(dataset: Dataset) -> dict[str, Any]:
 
 def _manifest_id_for(dataset: Dataset, record_hashes: dict[str, str]) -> str:
     source = {
-    "run_id": dataset.run_id,
-    "runs_hash": record_hashes["runs"],
-    "model_records_hash": record_hashes["model_records"],
-    "agent_records_hash": record_hashes["agent_records"],
-    "event_records_hash": record_hashes["event_records"],
-    "lifecycle_records_hash": record_hashes["lifecycle_records"],
-    "errors_hash": record_hashes["errors"],
-}
+        "run_id": dataset.run_id,
+        "runs_hash": record_hashes["runs"],
+        "model_records_hash": record_hashes["model_records"],
+        "agent_records_hash": record_hashes["agent_records"],
+        "event_records_hash": record_hashes["event_records"],
+        "lifecycle_records_hash": record_hashes["lifecycle_records"],
+        "errors_hash": record_hashes["errors"],
+    }
     return f"manifest-{_sha256_json(source)[:16]}"
 
 
@@ -166,6 +167,8 @@ class ReproducibilityManifest:
     manifest_id: str
     created_at: str
     abmforge_version: str
+    dataset_schema_version: str
+    dataset_schema_hash: str
     run_id: str
     experiment_id: str | None
     status: str | None
@@ -197,6 +200,8 @@ class ReproducibilityManifest:
         last_run = _last_run(dataset)
         record_counts = _record_counts(dataset)
         record_hashes = _record_hashes(dataset)
+        dataset_schema = DatasetSchemaV1.to_dict()
+        dataset_schema_hash = _sha256_json(dataset_schema)
 
         parameters = last_run.get("parameters")
         parameters_hash = _sha256_json(parameters) if parameters is not None else None
@@ -206,6 +211,8 @@ class ReproducibilityManifest:
             manifest_id=_manifest_id_for(dataset, record_hashes),
             created_at=_utc_now_iso(),
             abmforge_version=__version__,
+            dataset_schema_version=DATASET_SCHEMA_VERSION,
+            dataset_schema_hash=dataset_schema_hash,
             run_id=dataset.run_id,
             experiment_id=experiment_id,
             status=_optional_str(last_run.get("status")),
@@ -268,6 +275,12 @@ class ReproducibilityManifest:
         if not self.abmforge_version:
             raise ValueError("abmforge_version must not be empty")
 
+        if not self.dataset_schema_version:
+            raise ValueError("dataset_schema_version must not be empty")
+
+        if not self.dataset_schema_hash:
+            raise ValueError("dataset_schema_hash must not be empty")
+
         for table_name in _DATASET_TABLES:
             if table_name not in self.record_counts:
                 raise ValueError(f"Missing record count for table: {table_name}")
@@ -285,6 +298,8 @@ class ReproducibilityManifest:
             "manifest_id": self.manifest_id,
             "created_at": self.created_at,
             "abmforge_version": self.abmforge_version,
+            "dataset_schema_version": self.dataset_schema_version,
+            "dataset_schema_hash": self.dataset_schema_hash,
             "run_id": self.run_id,
             "experiment_id": self.experiment_id,
             "status": self.status,

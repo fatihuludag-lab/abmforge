@@ -12,6 +12,7 @@ from abmforge.analysis import (
 from abmforge.core.agent import Agent
 from abmforge.core.collection import AgentCollection
 from abmforge.core.model import Model
+from abmforge.data import DatasetSchemaV1, SchemaValidationError
 from abmforge.experiment.experiment import Experiment, ExperimentResult
 from abmforge.experiment.parameter_grid import ParameterGrid
 from abmforge.experiment.result import RunResult
@@ -37,6 +38,7 @@ __all__ = [
     "Agent",
     "AgentCollection",
     "ContinuousSpace",
+    "DatasetSchemaV1",
     "Event",
     "EventQueue",
     "Experiment",
@@ -51,6 +53,7 @@ __all__ = [
     "RunResult",
     "Scenario",
     "Scheduler",
+    "SchemaValidationError",
     "SensitivityAnalysis",
     "SequentialActivation",
     "SimultaneousActivation",

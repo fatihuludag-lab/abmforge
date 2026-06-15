@@ -62,6 +62,8 @@ def test_manifest_from_dataset_contains_required_metadata() -> None:
 
     assert data["schema_version"] == "abmforge.manifest.v1"
     assert data["abmforge_version"] == abmforge.__version__
+    assert data["dataset_schema_version"] == "abmforge.dataset.v1"
+    assert data["dataset_schema_hash"]
     assert data["run_id"] == "run-test"
     assert data["scenario"] == "demo"
     assert data["model_name"] == "DemoModel"
