@@ -81,6 +81,27 @@ class ExperimentResult:
             records.extend(result.dataset.agent_records)
         return records
 
+    def event_records(self) -> list[dict[str, object]]:
+        """Return combined event-level records from all runs."""
+        records: list[dict[str, object]] = []
+        for result in self.results:
+            records.extend(result.dataset.event_records)
+        return records
+
+    def lifecycle_records(self) -> list[dict[str, object]]:
+        """Return combined lifecycle records from all runs."""
+        records: list[dict[str, object]] = []
+        for result in self.results:
+            records.extend(result.dataset.lifecycle_records)
+        return records
+
+    def error_records(self) -> list[dict[str, object]]:
+        """Return combined error records from all runs."""
+        records: list[dict[str, object]] = []
+        for result in self.results:
+            records.extend(result.dataset.errors)
+        return records
+
     def write_csv(self, path: str | Path) -> Path:
         """Write combined experiment records as CSV files."""
         output_dir = Path(path)
@@ -89,6 +110,9 @@ class ExperimentResult:
         self._write_csv(output_dir / "runs.csv", self.run_records())
         self._write_csv(output_dir / "model_records.csv", self.model_records())
         self._write_csv(output_dir / "agent_records.csv", self.agent_records())
+        self._write_csv(output_dir / "event_records.csv", self.event_records())
+        self._write_csv(output_dir / "lifecycle_records.csv", self.lifecycle_records())
+        self._write_csv(output_dir / "errors.csv", self.error_records())
 
         return output_dir
 
@@ -138,9 +162,11 @@ class Experiment:
         if self.model is None:
             raise ValueError("model must be provided when scenarios are not explicit.")
 
-        grid: Iterable[dict[str, Any]] = ParameterGrid(self.parameters) if self.parameters else [{}]
-
+        grid: Iterable[dict[str, Any]] = (
+            ParameterGrid(self.parameters) if self.parameters else [{}]
+        )
         scenarios: list[Scenario] = []
+
         for parameter_set in grid:
             for seed in self.seeds:
                 scenarios.append(
@@ -160,13 +186,7 @@ class Experiment:
         experiment_result = ExperimentResult()
 
         for scenario in self.scenarios():
-            try:
-                result = scenario.run()
-            except Exception:
-                if not self.continue_on_error:
-                    raise
-                continue
-
+            result = scenario.run(raise_on_error=not self.continue_on_error)
             experiment_result.append(result)
 
         return experiment_result

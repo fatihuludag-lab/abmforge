@@ -73,10 +73,12 @@ def test_manifest_from_dataset_contains_required_metadata() -> None:
     assert data["record_counts"]["agent_records"] == 1
     assert data["record_counts"]["event_records"] == 1
     assert data["record_counts"]["lifecycle_records"] == 1
+    assert data["record_counts"]["errors"] == 0
     assert data["n_model_records"] == 1
     assert data["n_agent_records"] == 1
     assert data["n_event_records"] == 1
     assert data["n_lifecycle_records"] == 1
+    assert data["n_errors"] == 0
     assert data["git"] is None
     assert data["packages"] is None
     assert data["metadata"]["purpose"] == "unit-test"
@@ -113,6 +115,8 @@ def test_dataset_write_manifest_uses_manifest_v1(tmp_path) -> None:  # type: ign
     assert data["abmforge_version"] == abmforge.__version__
     assert data["run_id"] == "run-test"
     assert data["record_counts"]["model_records"] == 1
+    assert data["record_counts"]["errors"] == 0
+    assert data["n_errors"] == 0
 
 
 def test_manifest_from_run_result() -> None:

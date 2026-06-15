@@ -17,6 +17,7 @@ class Dataset:
         self.agent_records: list[dict[str, Any]] = []
         self.event_records: list[dict[str, Any]] = []
         self.lifecycle_records: list[dict[str, Any]] = []
+        self.errors: list[dict[str, Any]] = []
 
     def add_run(self, **metadata: Any) -> None:
         """Append run-level metadata."""
@@ -103,6 +104,38 @@ class Dataset:
             }
         )
 
+    def record_error(
+        self,
+        *,
+        step: int,
+        time: float,
+        exception_type: str,
+        message: str,
+        component: str | None = None,
+        traceback_text: str | None = None,
+        recoverable: bool = False,
+        event_id: int | str | None = None,
+        agent_id: int | str | None = None,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        """Record an error that occurred during a model run."""
+        self.errors.append(
+            {
+                "error_id": f"{self.run_id}-error-{len(self.errors) + 1}",
+                "run_id": self.run_id,
+                "step": step,
+                "time": time,
+                "component": component,
+                "exception_type": exception_type,
+                "message": message,
+                "traceback": traceback_text,
+                "recoverable": recoverable,
+                "event_id": event_id,
+                "agent_id": agent_id,
+                "details": details or {},
+            }
+        )
+
     def model_frame(self) -> Any:
         """Return model records as a pandas DataFrame when pandas is installed.
 
@@ -122,6 +155,14 @@ class Dataset:
             return list(self.agent_records)
         return pd.DataFrame(self.agent_records)
 
+    def error_frame(self) -> Any:
+        """Return error records as a pandas DataFrame when pandas is installed."""
+        try:
+            pd = import_module("pandas")
+        except ModuleNotFoundError:
+            return list(self.errors)
+        return pd.DataFrame(self.errors)
+
     def to_dict(self) -> dict[str, Any]:
         """Return all dataset tables as a dictionary."""
         return {
@@ -130,6 +171,7 @@ class Dataset:
             "agent_records": self.agent_records,
             "event_records": self.event_records,
             "lifecycle_records": self.lifecycle_records,
+            "errors": self.errors,
         }
 
     def write_json(self, path: str | Path) -> Path:
@@ -138,12 +180,15 @@ class Dataset:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         (output_dir / "runs.json").write_text(
-            json.dumps(self.runs, indent=2, default=str), encoding="utf-8"
+            json.dumps(self.runs, indent=2, default=str),
+            encoding="utf-8",
         )
         self._write_jsonl(output_dir / "model_records.jsonl", self.model_records)
         self._write_jsonl(output_dir / "agent_records.jsonl", self.agent_records)
         self._write_jsonl(output_dir / "event_records.jsonl", self.event_records)
         self._write_jsonl(output_dir / "lifecycle_records.jsonl", self.lifecycle_records)
+        self._write_jsonl(output_dir / "errors.jsonl", self.errors)
+
         return output_dir
 
     def write_csv(self, path: str | Path) -> Path:
@@ -156,6 +201,7 @@ class Dataset:
         self._write_csv(output_dir / "agent_records.csv", self.agent_records)
         self._write_csv(output_dir / "event_records.csv", self.event_records)
         self._write_csv(output_dir / "lifecycle_records.csv", self.lifecycle_records)
+        self._write_csv(output_dir / "errors.csv", self.errors)
 
         return output_dir
 

@@ -13,8 +13,10 @@ class RunResult:
     """Result of a single scenario run."""
 
     run_id: str
-    model: Model
+    model: Model | None
     dataset: Dataset
     status: str
     steps: int
     stop_reason: str | None
+    error: str | None = None
+    exception_type: str | None = None

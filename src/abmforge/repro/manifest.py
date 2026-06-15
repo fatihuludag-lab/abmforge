@@ -25,6 +25,7 @@ _DATASET_TABLES = (
     "agent_records",
     "event_records",
     "lifecycle_records",
+    "errors",
 )
 
 
@@ -140,13 +141,14 @@ def _last_run(dataset: Dataset) -> dict[str, Any]:
 
 def _manifest_id_for(dataset: Dataset, record_hashes: dict[str, str]) -> str:
     source = {
-        "run_id": dataset.run_id,
-        "runs_hash": record_hashes["runs"],
-        "model_records_hash": record_hashes["model_records"],
-        "agent_records_hash": record_hashes["agent_records"],
-        "event_records_hash": record_hashes["event_records"],
-        "lifecycle_records_hash": record_hashes["lifecycle_records"],
-    }
+    "run_id": dataset.run_id,
+    "runs_hash": record_hashes["runs"],
+    "model_records_hash": record_hashes["model_records"],
+    "agent_records_hash": record_hashes["agent_records"],
+    "event_records_hash": record_hashes["event_records"],
+    "lifecycle_records_hash": record_hashes["lifecycle_records"],
+    "errors_hash": record_hashes["errors"],
+}
     return f"manifest-{_sha256_json(source)[:16]}"
 
 
@@ -303,6 +305,7 @@ class ReproducibilityManifest:
             "n_agent_records": self.record_counts["agent_records"],
             "n_event_records": self.record_counts["event_records"],
             "n_lifecycle_records": self.record_counts["lifecycle_records"],
+            "n_errors": self.record_counts["errors"],
         }
 
     def to_json(self) -> str:
