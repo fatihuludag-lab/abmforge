@@ -5,7 +5,6 @@ from collections.abc import Sequence
 
 import abmforge
 
-
 _REPOSITORY_URL = "https://github.com/fatihuludag-lab/abmforge"
 _TITLE = "ABMForge: Reproducible Agent-Based Modelling in Python"
 _AUTHOR = "Fatih Uludağ"

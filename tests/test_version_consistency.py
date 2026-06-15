@@ -6,7 +6,6 @@ from pathlib import Path
 import abmforge
 from abmforge import Model, Scenario
 
-
 ROOT = Path(__file__).resolve().parents[1]
 
 

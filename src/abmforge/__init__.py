@@ -17,6 +17,7 @@ from abmforge.experiment.parameter_grid import ParameterGrid
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.scenario import Scenario
 from abmforge.replay import read_snapshot, write_snapshot
+from abmforge.repro import ReproducibilityManifest
 from abmforge.scheduling import (
     RandomActivation,
     Scheduler,
@@ -32,8 +33,6 @@ from abmforge.world.gis import GISSpace
 from abmforge.world.grid import GridWorld
 from abmforge.world.network import NetworkSpace
 
-
-
 __all__ = [
     "Agent",
     "AgentCollection",
@@ -48,6 +47,7 @@ __all__ = [
     "NetworkSpace",
     "ParameterGrid",
     "RandomActivation",
+    "ReproducibilityManifest",
     "RunResult",
     "Scenario",
     "Scheduler",
