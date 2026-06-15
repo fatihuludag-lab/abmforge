@@ -13,6 +13,7 @@ nav:
   - Scheduling: scheduling.md
   - Experiments: experiments.md
   - Reproducibility Manifest: reproducibility-manifest-v1.md
+  - ODD Export: odd-export.md
   - Visualization: visualization.md
   - Analysis: analysis.md
   - Replay: replay.md

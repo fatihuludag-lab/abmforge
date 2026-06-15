@@ -17,6 +17,7 @@ from abmforge.experiment.experiment import Experiment, ExperimentResult
 from abmforge.experiment.parameter_grid import ParameterGrid
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.scenario import Scenario
+from abmforge.methods import ODDDocument
 from abmforge.replay import read_snapshot, write_snapshot
 from abmforge.repro import ReproducibilityManifest
 from abmforge.scheduling import (
@@ -47,6 +48,7 @@ __all__ = [
     "GridWorld",
     "Model",
     "NetworkSpace",
+    "ODDDocument",
     "ParameterGrid",
     "RandomActivation",
     "ReproducibilityManifest",
