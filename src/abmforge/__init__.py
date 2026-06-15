@@ -1,5 +1,6 @@
 """ABMForge public API."""
 
+from abmforge._version import __version__
 from abmforge.analysis import (
     SALibProblem,
     SensitivityAnalysis,
@@ -31,7 +32,7 @@ from abmforge.world.gis import GISSpace
 from abmforge.world.grid import GridWorld
 from abmforge.world.network import NetworkSpace
 
-__version__ = "0.2.0a2"
+
 
 __all__ = [
     "Agent",

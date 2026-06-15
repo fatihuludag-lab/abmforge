@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
+from abmforge._version import __version__
 from abmforge.core.model import Model
 from abmforge.experiment.result import RunResult
 
@@ -39,7 +40,7 @@ class Scenario:
             started_at=started_at,
             python_version=sys.version,
             platform=platform.platform(),
-            abmforge_version="0.1.0a1",
+            abmforge_version=__version__,
         )
 
         try:
