@@ -1,0 +1,26 @@
+cff-version: "1.2.0"
+message: "If you use ABMForge in research, teaching, policy modelling, or published computational experiments, please cite it."
+type: software
+title: "ABMForge: Reproducible Agent-Based Modelling in Python"
+authors:
+  - family-names: "Uludağ"
+    given-names: "Fatih"
+    email: "fatihuludag@yyu.edu.tr"
+version: "0.2.0a2"
+repository-code: "https://github.com/fatihuludag-lab/abmforge"
+url: "https://github.com/fatihuludag-lab/abmforge"
+license: "Apache-2.0"
+abstract: >-
+  ABMForge is a lightweight, Python-first, experiment-native and dataset-first
+  framework for reproducible agent-based modelling. It is designed for research,
+  graduate teaching, publishable computational experiments, and future auditable
+  AI-enabled agent-based modelling workflows.
+keywords:
+  - agent-based modelling
+  - agent-based modeling
+  - simulation
+  - computational social science
+  - complex systems
+  - reproducibility
+  - experiments
+  - Python

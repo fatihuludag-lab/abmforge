@@ -1,0 +1,51 @@
+{
+  "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+  "@type": "SoftwareSourceCode",
+  "name": "ABMForge",
+  "version": "0.2.0a2",
+  "description": "ABMForge is a lightweight, Python-first, experiment-native and dataset-first framework for reproducible agent-based modelling.",
+  "codeRepository": "https://github.com/fatihuludag-lab/abmforge",
+  "url": "https://github.com/fatihuludag-lab/abmforge",
+  "issueTracker": "https://github.com/fatihuludag-lab/abmforge/issues",
+  "license": "https://spdx.org/licenses/Apache-2.0",
+  "programmingLanguage": "Python",
+  "runtimePlatform": "Python >=3.10",
+  "applicationCategory": "Scientific/Engineering",
+  "developmentStatus": "alpha",
+  "keywords": [
+    "agent-based modelling",
+    "agent-based modeling",
+    "simulation",
+    "computational social science",
+    "complex systems",
+    "reproducibility",
+    "experiments",
+    "Python"
+  ],
+  "author": [
+    {
+      "@type": "Person",
+      "givenName": "Fatih",
+      "familyName": "Uludağ",
+      "email": "mailto:fatihuludag@yyu.edu.tr"
+    }
+  ],
+  "maintainer": [
+    {
+      "@type": "Person",
+      "givenName": "Fatih",
+      "familyName": "Uludağ",
+      "email": "mailto:fatihuludag@yyu.edu.tr"
+    }
+  ],
+  "softwareRequirements": [
+    "Python >=3.10",
+    "numpy >=1.26"
+  ],
+  "operatingSystem": [
+    "Linux",
+    "macOS",
+    "Windows"
+  ],
+  "isAccessibleForFree": true
+}
