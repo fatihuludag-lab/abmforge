@@ -30,7 +30,10 @@ def build_odd_document() -> ODDDocument:
         },
         process_overview=[
             "Households observe neighbouring households within Chebyshev radius 1.",
-            "A household is happy when the share of same-group neighbours is at least the homophily threshold.",
+            (
+                "A household is happy when the share of same-group "
+                "neighbours is at least the homophily threshold."
+            ),
             "Unhappy households move to randomly selected empty cells.",
             "The model records population, empty cells, mean similarity, and unhappy households.",
         ],
@@ -39,7 +42,8 @@ def build_odd_document() -> ODDDocument:
                 "Macro-level segregation emerges from local household relocation decisions."
             ),
             "stochasticity": (
-                "Initial placement, group assignment, activation order, and relocation choices use the model RNG."
+                "Initial placement, group assignment, activation order, "
+                "and relocation choices use the model RNG."
             ),
             "interaction": (
                 "Households interact indirectly through local neighbourhood composition."
@@ -160,9 +164,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(f"run_id={result.run_id}")
     print(f"output_dir={output_dir}")
     print(f"final_mean_similarity={_last_metric(result.dataset.model_records, 'mean_similarity')}")
-    print(
-        f"final_unhappy_households={_last_metric(result.dataset.model_records, 'unhappy_households')}"
+    final_unhappy = _last_metric(
+        result.dataset.model_records,
+        "unhappy_households",
     )
+
+    print(f"final_unhappy_households={final_unhappy}")
 
     return 0
 

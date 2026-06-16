@@ -12,8 +12,11 @@ nav:
   - Spaces: spaces.md
   - Scheduling: scheduling.md
   - Experiments: experiments.md
+  - Dataset Schema: dataset-schema-v1.md
+  - Failure Handling: failure-handling.md
   - Reproducibility Manifest: reproducibility-manifest-v1.md
   - ODD Export: odd-export.md
+  - Model Zoo: model-zoo.md
   - Visualization: visualization.md
   - Analysis: analysis.md
   - Replay: replay.md

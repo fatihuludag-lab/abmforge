@@ -36,7 +36,8 @@ def build_odd_document() -> ODDDocument:
         ],
         design_concepts={
             "stochasticity": (
-                "Transmission, recovery, placement, and random activation are controlled by the model RNG."
+                "Transmission, recovery, placement, and random "
+                "activation are controlled by the model RNG."
             ),
             "emergence": (
                 "Population-level epidemic curves emerge from local contact and transition events."
