@@ -25,7 +25,7 @@ class SALibProblem:
 
 def _require_salib() -> None:
     try:
-        import SALib  # type: ignore[import-not-found]  # noqa: F401
+        import SALib  # noqa: F401
     except ModuleNotFoundError as exc:
         raise ModuleNotFoundError(
             "SALib integration requires SALib. Install it with: pip install SALib"
@@ -42,7 +42,7 @@ def sample_sobol(
     """Generate Sobol samples as parameter dictionaries."""
     _require_salib()
 
-    from SALib.sample import sobol  # type: ignore[import-not-found]
+    from SALib.sample import sobol
 
     samples = sobol.sample(
         problem.to_dict(),
@@ -63,7 +63,7 @@ def analyze_sobol(
     """Analyze Sobol sensitivity indices for model outputs."""
     _require_salib()
 
-    from SALib.analyze import sobol  # type: ignore[import-not-found]
+    from SALib.analyze import sobol
 
     result = sobol.analyze(
         problem.to_dict(),
