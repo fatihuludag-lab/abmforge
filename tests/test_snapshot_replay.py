@@ -73,3 +73,71 @@ def test_snapshot_schema_v1_excludes_framework_internal_state():
 
     assert snapshot["model_state"] == {"public_value": "visible"}
     assert "_private_value" not in snapshot["model_state"]
+
+
+def test_model_from_snapshot_restores_base_model_state():
+    model = Model(seed=42, parameters={"alpha": 0.5})
+    model.custom_counter = 7
+    model.steps = 12
+    model.time = 12.0
+
+    agent = model.agents.create(StatefulPerson, n=1, wealth=10, mood="happy")[0]
+
+    snapshot = model.snapshot()
+    restored = Model.from_snapshot(snapshot)
+
+    assert restored.run_id == model.run_id
+    assert restored.parameters == {"alpha": 0.5}
+    assert restored.steps == 12
+    assert restored.time == 12.0
+    assert restored.custom_counter == 7
+
+    restored_agent = restored.agents.get(agent.unique_id)
+
+    assert restored_agent is not None
+    assert restored_agent.unique_id == agent.unique_id
+    assert restored_agent.wealth == 10
+    assert restored_agent.mood == "happy"
+
+
+def test_model_from_snapshot_rejects_unsupported_schema_version():
+    snapshot = {
+        "schema_version": "999",
+        "run_id": "run-1",
+        "parameters": {},
+        "step": 0,
+        "time": 0.0,
+        "model_state": {},
+        "agents": [],
+    }
+
+    try:
+        Model.from_snapshot(snapshot)
+    except ValueError as exc:
+        assert "Unsupported snapshot schema version" in str(exc)
+    else:
+        raise AssertionError("Expected ValueError")
+
+
+def test_model_from_snapshot_rejects_invalid_agent_state():
+    snapshot = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "parameters": {},
+        "step": 0,
+        "time": 0.0,
+        "model_state": {},
+        "agents": [
+            {
+                "agent_id": 1,
+                "state": "not-a-dict",
+            }
+        ],
+    }
+
+    try:
+        Model.from_snapshot(snapshot)
+    except ValueError as exc:
+        assert "state" in str(exc)
+    else:
+        raise AssertionError("Expected ValueError")

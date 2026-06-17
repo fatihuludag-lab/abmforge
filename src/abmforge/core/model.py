@@ -95,6 +95,73 @@ class Model:
         self.agents.remove(unique_id)
         self.record.lifecycle("agent_removed", agent_id=unique_id)
 
+    @classmethod
+    def from_snapshot(cls, snapshot: dict[str, Any]) -> Model:
+        """Restore a basic model instance from Snapshot Schema v1.
+
+        Restore API v1 intentionally supports only the base model state,
+        parameters, step/time counters, run metadata, and basic agent state.
+
+        It does not yet restore world state, scheduler state, event queue state,
+        or RNG state.
+        """
+        schema_version = snapshot.get("schema_version")
+        if schema_version != "1.0":
+            raise ValueError(f"Unsupported snapshot schema version: {schema_version}")
+
+        parameters = snapshot.get("parameters", {})
+        if not isinstance(parameters, dict):
+            raise ValueError("Snapshot field 'parameters' must be a mapping")
+
+        model = cls(parameters=parameters)
+
+        run_id = snapshot.get("run_id")
+        if not isinstance(run_id, str):
+            raise ValueError("Snapshot field 'run_id' must be a string")
+        model.run_id = run_id
+
+        step = snapshot.get("step", 0)
+        if not isinstance(step, int):
+            raise ValueError("Snapshot field 'step' must be an integer")
+        model.steps = step
+
+        time = snapshot.get("time", 0.0)
+        if not isinstance(time, int | float):
+            raise ValueError("Snapshot field 'time' must be numeric")
+        model.time = float(time)
+
+        model_state = snapshot.get("model_state", {})
+        if not isinstance(model_state, dict):
+            raise ValueError("Snapshot field 'model_state' must be a mapping")
+
+        for key, value in model_state.items():
+            if not isinstance(key, str):
+                raise ValueError("Snapshot model_state keys must be strings")
+            setattr(model, key, value)
+
+        agents = snapshot.get("agents", [])
+        if not isinstance(agents, list):
+            raise ValueError("Snapshot field 'agents' must be a list")
+
+        from abmforge.core.agent import Agent
+
+        for agent_snapshot in agents:
+            if not isinstance(agent_snapshot, dict):
+                raise ValueError("Each agent snapshot must be a mapping")
+
+            agent_id = agent_snapshot.get("agent_id", agent_snapshot.get("id"))
+            if agent_id is None:
+                raise ValueError("Agent snapshot must define 'agent_id' or 'id'")
+
+            state = agent_snapshot.get("state", {})
+            if not isinstance(state, dict):
+                raise ValueError("Agent snapshot field 'state' must be a mapping")
+
+            agent = Agent(model=model, unique_id=agent_id, **state)
+            model.agents.add(agent)
+
+        return model
+
     def snapshot(self) -> dict[str, Any]:
         """Return a JSON-serializable model snapshot.
 
