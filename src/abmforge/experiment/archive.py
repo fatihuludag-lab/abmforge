@@ -4,9 +4,11 @@ import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
+from uuid import uuid4
 
 from abmforge.data.dataset import Dataset
 from abmforge.data.storage.parquet import ParquetStorage
+from abmforge.experiment.registry import ExperimentRegistry
 
 ArchiveFormat = Literal["json", "parquet"]
 
@@ -54,6 +56,26 @@ class ExperimentArchive:
     @property
     def dataset_schema_path(self) -> Path:
         return self.path / "dataset_schema.json"
+
+    @property
+    def registry_path(self) -> Path:
+        return self.path / "registry.json"
+
+    def create_registry(self, *, experiment_id: str | None = None) -> ExperimentRegistry:
+        """Create a new registry for this experiment archive."""
+        registry = ExperimentRegistry(experiment_id=experiment_id or f"experiment-{uuid4().hex}")
+        registry.write(self.registry_path)
+        return registry
+
+    def read_registry(self) -> ExperimentRegistry:
+        """Read the archive registry."""
+        return ExperimentRegistry.read(self.registry_path)
+
+    def ensure_registry(self) -> ExperimentRegistry:
+        """Read the archive registry, creating it if necessary."""
+        if self.registry_path.exists():
+            return self.read_registry()
+        return self.create_registry()
 
     def write_dataset_json(self, dataset: Dataset) -> Path:
         """Write dataset tables into the archive data directory as JSON/JSONL."""
