@@ -322,3 +322,51 @@ def test_model_from_snapshot_rejects_invalid_rng_state():
         assert "rng_state" in str(exc)
     else:
         raise AssertionError("Expected ValueError")
+
+
+def test_restored_model_continues_with_same_rng_sequence():
+    model = Model(seed=42)
+
+    # Advance RNG before snapshot.
+    pre_snapshot_values = model.rng.random(5)
+    assert len(pre_snapshot_values) == 5
+
+    snapshot = model.snapshot()
+    restored = Model.from_snapshot(snapshot)
+
+    original_next_values = model.rng.random(10)
+    restored_next_values = restored.rng.random(10)
+
+    assert original_next_values.tolist() == restored_next_values.tolist()
+
+
+class RandomWalkAgent(Agent):
+    pass
+
+
+class RandomWalkModel(Model):
+    def setup(self) -> None:
+        if len(self.agents) == 0:
+            self.agents.create(RandomWalkAgent, n=1, position=0)
+
+    def step(self) -> None:
+        for agent in self.agents:
+            move = int(self.rng.choice([-1, 1]))
+            agent.position += move
+
+
+def test_restored_model_continues_to_same_agent_state_with_rng_restore():
+    model = RandomWalkModel(seed=42)
+    model.setup()
+    model.run_for(5)
+
+    snapshot = model.snapshot()
+    restored = RandomWalkModel.from_snapshot(snapshot)
+
+    model.run_for(10)
+    restored.run_for(10)
+
+    original_agent = next(iter(model.agents))
+    restored_agent = next(iter(restored.agents))
+
+    assert original_agent.position == restored_agent.position
