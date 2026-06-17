@@ -12,6 +12,7 @@ nav:
   - Spaces: spaces.md
   - Scheduling: scheduling.md
   - Experiments: experiments.md
+  - Experiment Archive: experiment-archive.md
   - Dataset Schema: dataset-schema-v1.md
   - Failure Handling: failure-handling.md
   - Reproducibility Manifest: reproducibility-manifest-v1.md
