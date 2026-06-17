@@ -240,8 +240,6 @@ class Model:
             if key not in excluded and not key.startswith("_")
         }
 
-    
-
     @staticmethod
     def _agent_snapshot_state(agent: Any) -> dict[str, Any]:
         """Return user-defined agent state for Snapshot Schema v1."""
