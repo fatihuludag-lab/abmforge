@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
-from abmforge.data.dataset import Dataset
+from abmforge.data.storage.inmemory import InMemoryStorage
 
 if TYPE_CHECKING:
     from abmforge.core.model import Model
@@ -14,7 +14,7 @@ class Recorder:
 
     def __init__(self, model: Model) -> None:
         self.model = model
-        self.dataset = Dataset(run_id=model.run_id)
+        self.dataset = InMemoryStorage(run_id=model.run_id)
         self._metrics: list[tuple[str, Callable[[Model], Any]]] = []
         self._agent_variables: list[str] = []
 
