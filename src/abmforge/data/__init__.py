@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abmforge.data.dataset import Dataset
+from abmforge.data.query import ExperimentDataset
 from abmforge.data.recorder import Recorder
 from abmforge.data.schema import (
     DATASET_SCHEMA_VERSION,
@@ -12,6 +13,7 @@ __all__ = [
     "DATASET_SCHEMA_VERSION",
     "Dataset",
     "DatasetSchemaV1",
+    "ExperimentDataset",
     "Recorder",
     "SchemaValidationError",
 ]
