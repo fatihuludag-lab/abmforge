@@ -45,7 +45,8 @@ dev = [
   "mypy>=1.11",
   "build>=1.2",
   "twine>=5",
-  "types-PyYAML>=6.0"
+  "types-PyYAML>=6.0",
+  "pandas-stubs>=2.0",
 ]
 data = [
   "pandas>=2.2",
