@@ -82,3 +82,19 @@ def attach_snapshot_hash(
         include_metadata=include_metadata,
     )
     return snapshot_with_hash
+
+
+def link_snapshot(
+    parent: dict[str, Any],
+    child: dict[str, Any],
+) -> dict[str, Any]:
+    """Return a copy of child linked to parent through snapshot lineage."""
+    linked = dict(child)
+
+    parent_snapshot_id = parent.get("snapshot_id")
+    if not isinstance(parent_snapshot_id, str):
+        raise ValueError("Parent snapshot must define a string 'snapshot_id'")
+
+    linked["parent_snapshot"] = parent_snapshot_id
+
+    return linked

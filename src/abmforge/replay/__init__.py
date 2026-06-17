@@ -1,5 +1,6 @@
 from abmforge.replay.snapshot import (
     attach_snapshot_hash,
+    link_snapshot,
     read_snapshot,
     snapshot_hash,
     write_snapshot,
@@ -7,6 +8,7 @@ from abmforge.replay.snapshot import (
 
 __all__ = [
     "attach_snapshot_hash",
+    "link_snapshot",
     "read_snapshot",
     "snapshot_hash",
     "write_snapshot",

@@ -1,4 +1,13 @@
-from abmforge import Agent, GridWorld, Model, read_snapshot, snapshot_hash, write_snapshot
+from abmforge import (
+    Agent,
+    GridWorld,
+    Model,
+    attach_snapshot_hash,
+    link_snapshot,
+    read_snapshot,
+    snapshot_hash,
+    write_snapshot,
+)
 
 
 class Person(Agent):
@@ -389,8 +398,50 @@ def test_snapshot_hash_can_be_attached():
 
     snapshot = model.snapshot()
 
-    from abmforge.replay.snapshot import attach_snapshot_hash
-
     snapshot = attach_snapshot_hash(snapshot)
 
     assert "snapshot_hash" in snapshot
+
+
+def test_link_snapshot_sets_parent_snapshot_id():
+    model = Model(seed=42)
+
+    parent = model.snapshot()
+    child = model.snapshot()
+
+    linked = link_snapshot(parent, child)
+
+    assert linked["parent_snapshot"] == parent["snapshot_id"]
+    assert child["parent_snapshot"] is None
+
+
+def test_link_snapshot_does_not_mutate_child_snapshot():
+    model = Model(seed=42)
+
+    parent = model.snapshot()
+    child = model.snapshot()
+
+    linked = link_snapshot(parent, child)
+
+    assert linked is not child
+    assert linked["parent_snapshot"] == parent["snapshot_id"]
+    assert child["parent_snapshot"] is None
+
+
+def test_link_snapshot_rejects_parent_without_snapshot_id():
+    parent = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+    }
+    child = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "parent_snapshot": None,
+    }
+
+    try:
+        link_snapshot(parent, child)
+    except ValueError as exc:
+        assert "snapshot_id" in str(exc)
+    else:
+        raise AssertionError("Expected ValueError")
