@@ -13,6 +13,7 @@ from abmforge.core.agent import Agent
 from abmforge.core.collection import AgentCollection
 from abmforge.core.model import Model
 from abmforge.data import DatasetSchemaV1, SchemaValidationError
+from abmforge.experiment.archive import ExperimentArchive
 from abmforge.experiment.experiment import Experiment, ExperimentResult
 from abmforge.experiment.parameter_grid import ParameterGrid
 from abmforge.experiment.result import RunResult
@@ -43,6 +44,7 @@ __all__ = [
     "Event",
     "EventQueue",
     "Experiment",
+    "ExperimentArchive",
     "ExperimentResult",
     "GISSpace",
     "GridWorld",

@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import argparse
 from collections.abc import Sequence
+from pathlib import Path
 
 import abmforge
+from abmforge.experiment.archive import ExperimentArchive
 
 _REPOSITORY_URL = "https://github.com/fatihuludag-lab/abmforge"
 _TITLE = "ABMForge: Reproducible Agent-Based Modelling in Python"
@@ -63,6 +65,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="Citation output format",
     )
 
+    validate_parser = subparsers.add_parser("validate", help="Validate an experiment archive")
+    validate_parser.add_argument("path", help="Path to an ABMForge experiment archive")
+
     return parser
 
 
@@ -83,6 +88,17 @@ def main(argv: Sequence[str] | None = None) -> None:
 
     if args.command == "cite":
         print(format_citation(args.format))
+        return
+
+    if args.command == "validate":
+        archive = ExperimentArchive(Path(args.path))
+        errors = archive.validate()
+        if errors:
+            print("Archive validation failed:")
+            for error in errors:
+                print(f"- {error}")
+            raise SystemExit(1)
+        print("Archive validation passed")
         return
 
     parser.print_help()
