@@ -13,12 +13,31 @@ from abmforge.core.agent import Agent
 from abmforge.core.collection import AgentCollection
 from abmforge.core.model import Model
 from abmforge.data import DatasetSchemaV1, SchemaValidationError
+from abmforge.experiment.archive import ExperimentArchive
 from abmforge.experiment.experiment import Experiment, ExperimentResult
 from abmforge.experiment.parameter_grid import ParameterGrid
+from abmforge.experiment.registry import ExperimentRegistry
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.scenario import Scenario
 from abmforge.methods import ODDDocument
-from abmforge.replay import read_snapshot, write_snapshot
+from abmforge.replay.snapshot import (
+    attach_snapshot_hash,
+    link_snapshot,
+    read_snapshot,
+    snapshot_hash,
+    write_snapshot,
+)
+from abmforge.replay.validation import ReplayValidationReport, validate_replay
+
+__all__ = [
+    "ReplayValidationReport",
+    "attach_snapshot_hash",
+    "link_snapshot",
+    "read_snapshot",
+    "snapshot_hash",
+    "validate_replay",
+    "write_snapshot",
+]
 from abmforge.repro import ReproducibilityManifest
 from abmforge.scheduling import (
     RandomActivation,
@@ -43,6 +62,8 @@ __all__ = [
     "Event",
     "EventQueue",
     "Experiment",
+    "ExperimentArchive",
+    "ExperimentRegistry",
     "ExperimentResult",
     "GISSpace",
     "GridWorld",
@@ -52,6 +73,8 @@ __all__ = [
     "ParameterGrid",
     "RandomActivation",
     "ReproducibilityManifest",
+    "ReplayValidationReport",
+    "validate_replay",
     "RunResult",
     "Scenario",
     "Scheduler",
@@ -70,5 +93,8 @@ __all__ = [
     "analyze_sobol",
     "sample_morris",
     "sample_sobol",
+    "attach_snapshot_hash",
+    "snapshot_hash",
+    "link_snapshot",
     "__version__",
 ]
