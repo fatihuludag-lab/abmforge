@@ -6,6 +6,7 @@ from abmforge import (
     link_snapshot,
     read_snapshot,
     snapshot_hash,
+    validate_replay,
     write_snapshot,
 )
 
@@ -445,3 +446,47 @@ def test_link_snapshot_rejects_parent_without_snapshot_id():
         assert "snapshot_id" in str(exc)
     else:
         raise AssertionError("Expected ValueError")
+
+
+def test_validate_replay_accepts_equivalent_snapshots():
+    model = Model(seed=42, parameters={"alpha": 0.5})
+    model.custom_counter = 7
+    model.agents.create(StatefulPerson, n=1, wealth=10)
+
+    snapshot = model.snapshot()
+    restored = Model.from_snapshot(snapshot)
+
+    report = validate_replay(snapshot, restored.snapshot())
+
+    assert report.valid is True
+    assert report.differences == []
+    assert report.original_hash == report.replayed_hash
+
+
+def test_validate_replay_reports_state_difference():
+    model = Model(seed=42)
+    agent = model.agents.create(StatefulPerson, n=1, wealth=10)[0]
+
+    snapshot = model.snapshot()
+
+    agent.wealth = 11
+    changed_snapshot = model.snapshot()
+
+    report = validate_replay(snapshot, changed_snapshot)
+
+    assert report.valid is False
+    assert report.original_hash != report.replayed_hash
+    assert any("wealth" in difference for difference in report.differences)
+
+
+def test_replay_validation_report_to_dict():
+    model = Model(seed=42)
+    snapshot = model.snapshot()
+
+    report = validate_replay(snapshot, snapshot)
+
+    data = report.to_dict()
+
+    assert data["valid"] is True
+    assert data["original_hash"] == data["replayed_hash"]
+    assert data["differences"] == []
