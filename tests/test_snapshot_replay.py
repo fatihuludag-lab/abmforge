@@ -1,4 +1,4 @@
-from abmforge import Agent, GridWorld, Model, read_snapshot, write_snapshot
+from abmforge import Agent, GridWorld, Model, read_snapshot, snapshot_hash, write_snapshot
 
 
 class Person(Agent):
@@ -141,3 +141,151 @@ def test_model_from_snapshot_rejects_invalid_agent_state():
         assert "state" in str(exc)
     else:
         raise AssertionError("Expected ValueError")
+
+
+def test_snapshot_hash_is_deterministic_for_equivalent_snapshots():
+    snapshot_a = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "model": "Model",
+        "step": 1,
+        "time": 1.0,
+        "parameters": {"beta": 2, "alpha": 1},
+        "model_state": {"x": 10},
+        "agents": [
+            {
+                "id": 1,
+                "agent_id": 1,
+                "type": "Person",
+                "agent_type": "Person",
+                "state": {"wealth": 10},
+            }
+        ],
+    }
+
+    snapshot_b = {
+        "agents": [
+            {
+                "state": {"wealth": 10},
+                "agent_type": "Person",
+                "type": "Person",
+                "agent_id": 1,
+                "id": 1,
+            }
+        ],
+        "model_state": {"x": 10},
+        "parameters": {"alpha": 1, "beta": 2},
+        "time": 1.0,
+        "step": 1,
+        "model": "Model",
+        "run_id": "run-1",
+        "schema_version": "1.0",
+    }
+
+    assert snapshot_hash(snapshot_a) == snapshot_hash(snapshot_b)
+
+
+def test_snapshot_hash_changes_when_state_changes():
+    snapshot = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "model": "Model",
+        "step": 1,
+        "time": 1.0,
+        "parameters": {},
+        "model_state": {},
+        "agents": [
+            {
+                "id": 1,
+                "agent_id": 1,
+                "type": "Person",
+                "agent_type": "Person",
+                "state": {"wealth": 10},
+            }
+        ],
+    }
+
+    changed = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "model": "Model",
+        "step": 1,
+        "time": 1.0,
+        "parameters": {},
+        "model_state": {},
+        "agents": [
+            {
+                "id": 1,
+                "agent_id": 1,
+                "type": "Person",
+                "agent_type": "Person",
+                "state": {"wealth": 11},
+            }
+        ],
+    }
+
+    assert snapshot_hash(snapshot) != snapshot_hash(changed)
+
+
+def test_restored_snapshot_hash_matches_original_snapshot_hash():
+    model = Model(seed=42, parameters={"alpha": 0.5})
+    model.custom_counter = 7
+    model.steps = 3
+    model.time = 3.0
+    model.agents.create(StatefulPerson, n=1, wealth=10, mood="happy")
+
+    snapshot = model.snapshot()
+    restored = Model.from_snapshot(snapshot)
+
+    assert snapshot_hash(restored.snapshot(), include_metadata=False) == snapshot_hash(
+        snapshot,
+        include_metadata=False,
+    )
+
+
+def test_snapshot_hash_can_ignore_type_metadata():
+    snapshot_a = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "model": "CustomModel",
+        "model_name": "CustomModel",
+        "step": 0,
+        "time": 0.0,
+        "parameters": {},
+        "model_state": {},
+        "agents": [
+            {
+                "id": 1,
+                "agent_id": 1,
+                "type": "CustomAgent",
+                "agent_type": "CustomAgent",
+                "state": {"wealth": 10},
+            }
+        ],
+    }
+
+    snapshot_b = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "model": "Model",
+        "model_name": "Model",
+        "step": 0,
+        "time": 0.0,
+        "parameters": {},
+        "model_state": {},
+        "agents": [
+            {
+                "id": 1,
+                "agent_id": 1,
+                "type": "Agent",
+                "agent_type": "Agent",
+                "state": {"wealth": 10},
+            }
+        ],
+    }
+
+    assert snapshot_hash(snapshot_a) != snapshot_hash(snapshot_b)
+    assert snapshot_hash(snapshot_a, include_metadata=False) == snapshot_hash(
+        snapshot_b,
+        include_metadata=False,
+    )
