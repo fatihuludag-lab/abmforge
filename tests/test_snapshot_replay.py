@@ -370,3 +370,27 @@ def test_restored_model_continues_to_same_agent_state_with_rng_restore():
     restored_agent = next(iter(restored.agents))
 
     assert original_agent.position == restored_agent.position
+
+
+def test_snapshot_contains_provenance_metadata():
+    model = Model(seed=42)
+
+    snapshot = model.snapshot()
+
+    assert "snapshot_id" in snapshot
+    assert "created_at" in snapshot
+    assert "parent_snapshot" in snapshot
+    assert "experiment_id" in snapshot
+    assert "manifest_hash" in snapshot
+
+
+def test_snapshot_hash_can_be_attached():
+    model = Model(seed=42)
+
+    snapshot = model.snapshot()
+
+    from abmforge.replay.snapshot import attach_snapshot_hash
+
+    snapshot = attach_snapshot_hash(snapshot)
+
+    assert "snapshot_hash" in snapshot

@@ -18,7 +18,12 @@ from abmforge.experiment.parameter_grid import ParameterGrid
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.scenario import Scenario
 from abmforge.methods import ODDDocument
-from abmforge.replay import read_snapshot, snapshot_hash, write_snapshot
+from abmforge.replay import (
+    attach_snapshot_hash,
+    read_snapshot,
+    snapshot_hash,
+    write_snapshot,
+)
 from abmforge.repro import ReproducibilityManifest
 from abmforge.scheduling import (
     RandomActivation,
@@ -70,6 +75,7 @@ __all__ = [
     "analyze_sobol",
     "sample_morris",
     "sample_sobol",
+    "attach_snapshot_hash",
     "snapshot_hash",
     "__version__",
 ]

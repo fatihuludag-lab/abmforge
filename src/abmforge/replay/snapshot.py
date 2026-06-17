@@ -6,6 +6,17 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any, cast
 
+_METADATA_FIELDS = {
+    "model",
+    "model_name",
+    "snapshot_id",
+    "created_at",
+    "parent_snapshot",
+    "experiment_id",
+    "manifest_hash",
+    "snapshot_hash",
+}
+
 
 def write_snapshot(snapshot: dict[str, Any], path: str | Path) -> Path:
     """Write a model snapshot to a JSON file."""
@@ -34,14 +45,14 @@ def snapshot_hash(
 ) -> str:
     """Return a deterministic SHA-256 hash for a snapshot.
 
-    When include_metadata is False, class/type metadata is ignored so that
-    state-equivalent snapshots can be compared across basic restore operations.
+    When include_metadata is False, class/type/provenance metadata is ignored so
+    state-equivalent snapshots can be compared across restore operations.
     """
     comparable = deepcopy(snapshot)
 
     if not include_metadata:
-        comparable.pop("model", None)
-        comparable.pop("model_name", None)
+        for field in _METADATA_FIELDS:
+            comparable.pop(field, None)
 
         agents = comparable.get("agents", [])
         if isinstance(agents, list):
@@ -57,3 +68,17 @@ def snapshot_hash(
         default=str,
     )
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
+
+def attach_snapshot_hash(
+    snapshot: dict[str, Any],
+    *,
+    include_metadata: bool = False,
+) -> dict[str, Any]:
+    """Return a copy of the snapshot with a deterministic snapshot hash attached."""
+    snapshot_with_hash = dict(snapshot)
+    snapshot_with_hash["snapshot_hash"] = snapshot_hash(
+        snapshot_with_hash,
+        include_metadata=include_metadata,
+    )
+    return snapshot_with_hash
