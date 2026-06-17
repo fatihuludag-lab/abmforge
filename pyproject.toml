@@ -32,7 +32,8 @@ classifiers = [
   "Topic :: Software Development :: Libraries",
 ]
 dependencies = [
-  "numpy>=1.26"
+  "numpy>=1.26",
+  "pyyaml>=6.0"
 ]
 
 
@@ -43,7 +44,8 @@ dev = [
   "ruff>=0.6",
   "mypy>=1.11",
   "build>=1.2",
-  "twine>=5"
+  "twine>=5",
+  "types-PyYAML>=6.0"
 ]
 data = [
   "pandas>=2.2",

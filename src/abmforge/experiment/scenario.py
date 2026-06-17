@@ -1,18 +1,41 @@
 from __future__ import annotations
 
+import importlib
 import platform
 import sys
 import traceback
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 from uuid import uuid4
+
+import yaml
 
 from abmforge._version import __version__
 from abmforge.core.model import Model
 from abmforge.data.dataset import Dataset
 from abmforge.experiment.result import RunResult
+
+
+def _import_model_class(import_path: str) -> type[Model]:
+    """Import a model class from a dotted import path."""
+    module_name, separator, class_name = import_path.rpartition(".")
+
+    if not separator:
+        raise ValueError(
+            "Model path must be a dotted import path, "
+            "for example 'examples.schelling.model.SchellingModel'"
+        )
+
+    module = importlib.import_module(module_name)
+    model_cls = getattr(module, class_name)
+
+    if not isinstance(model_cls, type) or not issubclass(model_cls, Model):
+        raise TypeError(f"Imported object is not a Model subclass: {import_path}")
+
+    return model_cls
 
 
 @dataclass(slots=True)
@@ -25,6 +48,56 @@ class Scenario:
     steps: int = 0
     stop_when: Callable[[Model], bool] | None = None
     name: str | None = None
+
+    @classmethod
+    def from_yaml(cls, path: str | Path) -> Scenario:
+        """Create a scenario from a YAML configuration file."""
+        scenario_path = Path(path)
+
+        with scenario_path.open(encoding="utf-8") as file:
+            config = yaml.safe_load(file) or {}
+
+        if not isinstance(config, dict):
+            raise ValueError("Scenario YAML must contain a mapping at the top level")
+
+        model_path = config.get("model")
+        if not isinstance(model_path, str) or not model_path:
+            raise ValueError("Scenario YAML must define a non-empty 'model' string")
+
+        model_cls = _import_model_class(model_path)
+
+        parameters = config.get("parameters", {})
+        if parameters is None:
+            parameters = {}
+        if not isinstance(parameters, dict):
+            raise ValueError("'parameters' must be a mapping")
+
+        run_config = config.get("run", {})
+        if run_config is None:
+            run_config = {}
+        if not isinstance(run_config, dict):
+            raise ValueError("'run' must be a mapping")
+
+        seed = run_config.get("seed", config.get("seed"))
+        steps = run_config.get("steps", config.get("steps", 0))
+
+        if seed is not None and not isinstance(seed, int):
+            raise ValueError("'seed' must be an integer or null")
+
+        if not isinstance(steps, int):
+            raise ValueError("'steps' must be an integer")
+
+        name = config.get("name")
+        if name is not None and not isinstance(name, str):
+            raise ValueError("'name' must be a string or null")
+
+        return cls(
+            model=model_cls,
+            parameters=parameters,
+            seed=seed,
+            steps=steps,
+            name=name,
+        )
 
     def run(
         self,
