@@ -3,8 +3,12 @@ from __future__ import annotations
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 from abmforge.data.dataset import Dataset
+from abmforge.data.storage.parquet import ParquetStorage
+
+ArchiveFormat = Literal["json", "parquet"]
 
 
 @dataclass(slots=True)
@@ -55,6 +59,17 @@ class ExperimentArchive:
         """Write dataset tables into the archive data directory as JSON/JSONL."""
         return dataset.write_json(self.data_dir)
 
+    def write_dataset_parquet(self, dataset: Dataset) -> Path:
+        """Write dataset tables into the archive data directory as Parquet files."""
+        storage = ParquetStorage(run_id=dataset.run_id)
+        storage.runs = list(dataset.runs)
+        storage.model_records = list(dataset.model_records)
+        storage.agent_records = list(dataset.agent_records)
+        storage.event_records = list(dataset.event_records)
+        storage.lifecycle_records = list(dataset.lifecycle_records)
+        storage.errors = list(dataset.errors)
+        return storage.write_parquet(self.data_dir)
+
     def write_dataset_schema(self, dataset: Dataset) -> Path:
         """Write the dataset schema into the archive root."""
         return dataset.write_schema(self.dataset_schema_path)
@@ -63,10 +78,22 @@ class ExperimentArchive:
         """Write a reproducibility manifest into the archive root."""
         return dataset.write_manifest(self.manifest_path)
 
-    def write_run_outputs(self, dataset: Dataset) -> None:
+    def write_run_outputs(
+        self,
+        dataset: Dataset,
+        *,
+        format: ArchiveFormat = "json",
+    ) -> None:
         """Write minimum reproducible run outputs."""
         dataset.validate()
-        self.write_dataset_json(dataset)
+
+        if format == "json":
+            self.write_dataset_json(dataset)
+        elif format == "parquet":
+            self.write_dataset_parquet(dataset)
+        else:
+            raise ValueError(f"Unsupported archive format: {format}")
+
         self.write_dataset_schema(dataset)
         self.write_manifest(dataset)
 
@@ -90,7 +117,7 @@ class ExperimentArchive:
         if not self.dataset_schema_path.is_file():
             errors.append("Missing dataset_schema.json")
 
-        if not any(self.data_dir.iterdir()) if self.data_dir.exists() else True:
+        if self.data_dir.exists() and not any(self.data_dir.iterdir()):
             errors.append("Data directory is empty")
 
         return errors
