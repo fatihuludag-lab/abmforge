@@ -52,6 +52,8 @@ def test_snapshot_schema_v1_contains_model_parameters_and_agent_state():
     assert snapshot["step"] == model.steps
     assert snapshot["time"] == model.time
     assert snapshot["parameters"] == {"alpha": 0.5}
+    assert "rng_state" in snapshot
+    assert isinstance(snapshot["rng_state"], dict)
     assert snapshot["model_state"] == {"custom_counter": 7}
 
     assert snapshot["agents"][0]["id"] == agent.unique_id
@@ -289,3 +291,34 @@ def test_snapshot_hash_can_ignore_type_metadata():
         snapshot_b,
         include_metadata=False,
     )
+
+
+def test_model_from_snapshot_restores_rng_state():
+    model = Model(seed=42)
+
+    _ = model.rng.random(5)
+    snapshot = model.snapshot()
+
+    restored = Model.from_snapshot(snapshot)
+
+    assert model.rng.random() == restored.rng.random()
+
+
+def test_model_from_snapshot_rejects_invalid_rng_state():
+    snapshot = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "parameters": {},
+        "rng_state": "not-a-dict",
+        "step": 0,
+        "time": 0.0,
+        "model_state": {},
+        "agents": [],
+    }
+
+    try:
+        Model.from_snapshot(snapshot)
+    except ValueError as exc:
+        assert "rng_state" in str(exc)
+    else:
+        raise AssertionError("Expected ValueError")
