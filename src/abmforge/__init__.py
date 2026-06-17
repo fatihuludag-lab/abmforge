@@ -20,6 +20,7 @@ from abmforge.experiment.scenario import Scenario
 from abmforge.methods import ODDDocument
 from abmforge.replay import (
     attach_snapshot_hash,
+    link_snapshot,
     read_snapshot,
     snapshot_hash,
     write_snapshot,
@@ -77,5 +78,6 @@ __all__ = [
     "sample_sobol",
     "attach_snapshot_hash",
     "snapshot_hash",
+    "link_snapshot",
     "__version__",
 ]
