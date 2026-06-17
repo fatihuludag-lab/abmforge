@@ -208,6 +208,11 @@ class Model:
             "rng_state": self._rng_snapshot_state(),
             "model_state": self._model_snapshot_state(),
             "agents": agents,
+            "snapshot_id": f"snapshot-{uuid4().hex}",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "parent_snapshot": None,
+            "experiment_id": None,
+            "manifest_hash": None,
         }
 
     def _model_snapshot_state(self) -> dict[str, Any]:
@@ -234,6 +239,8 @@ class Model:
             for key, value in vars(self).items()
             if key not in excluded and not key.startswith("_")
         }
+
+    
 
     @staticmethod
     def _agent_snapshot_state(agent: Any) -> dict[str, Any]:
