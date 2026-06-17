@@ -114,6 +114,11 @@ class Model:
             raise ValueError("Snapshot field 'parameters' must be a mapping")
 
         model = cls(parameters=parameters)
+        rng_state = snapshot.get("rng_state")
+        if rng_state is not None:
+            if not isinstance(rng_state, dict):
+                raise ValueError("Snapshot field 'rng_state' must be a mapping")
+            model.rng.bit_generator.state = rng_state
 
         run_id = snapshot.get("run_id")
         if not isinstance(run_id, str):
@@ -162,6 +167,10 @@ class Model:
 
         return model
 
+    def _rng_snapshot_state(self) -> dict[str, Any]:
+        """Return NumPy RNG state for Snapshot Schema v1."""
+        return dict(self.rng.bit_generator.state)
+
     def snapshot(self) -> dict[str, Any]:
         """Return a JSON-serializable model snapshot.
 
@@ -196,6 +205,7 @@ class Model:
             "model": type(self).__name__,
             "model_name": type(self).__name__,
             "parameters": dict(self.parameters),
+            "rng_state": self._rng_snapshot_state(),
             "model_state": self._model_snapshot_state(),
             "agents": agents,
         }
