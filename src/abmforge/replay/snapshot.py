@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import json
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, cast
 
@@ -23,3 +25,35 @@ def read_snapshot(path: str | Path) -> dict[str, Any]:
     input_path = Path(path)
     data = json.loads(input_path.read_text(encoding="utf-8"))
     return cast(dict[str, Any], data)
+
+
+def snapshot_hash(
+    snapshot: dict[str, Any],
+    *,
+    include_metadata: bool = True,
+) -> str:
+    """Return a deterministic SHA-256 hash for a snapshot.
+
+    When include_metadata is False, class/type metadata is ignored so that
+    state-equivalent snapshots can be compared across basic restore operations.
+    """
+    comparable = deepcopy(snapshot)
+
+    if not include_metadata:
+        comparable.pop("model", None)
+        comparable.pop("model_name", None)
+
+        agents = comparable.get("agents", [])
+        if isinstance(agents, list):
+            for agent in agents:
+                if isinstance(agent, dict):
+                    agent.pop("type", None)
+                    agent.pop("agent_type", None)
+
+    normalized = json.dumps(
+        comparable,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
