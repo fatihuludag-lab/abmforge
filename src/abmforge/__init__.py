@@ -18,13 +18,24 @@ from abmforge.experiment.parameter_grid import ParameterGrid
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.scenario import Scenario
 from abmforge.methods import ODDDocument
-from abmforge.replay import (
+from abmforge.replay.snapshot import (
     attach_snapshot_hash,
     link_snapshot,
     read_snapshot,
     snapshot_hash,
     write_snapshot,
 )
+from abmforge.replay.validation import ReplayValidationReport, validate_replay
+
+__all__ = [
+    "ReplayValidationReport",
+    "attach_snapshot_hash",
+    "link_snapshot",
+    "read_snapshot",
+    "snapshot_hash",
+    "validate_replay",
+    "write_snapshot",
+]
 from abmforge.repro import ReproducibilityManifest
 from abmforge.scheduling import (
     RandomActivation,
@@ -58,6 +69,8 @@ __all__ = [
     "ParameterGrid",
     "RandomActivation",
     "ReproducibilityManifest",
+    "ReplayValidationReport",
+    "validate_replay",
     "RunResult",
     "Scenario",
     "Scheduler",
