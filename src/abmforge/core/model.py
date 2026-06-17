@@ -96,25 +96,79 @@ class Model:
         self.record.lifecycle("agent_removed", agent_id=unique_id)
 
     def snapshot(self) -> dict[str, Any]:
-        """Return a JSON-serializable snapshot of the model state."""
+        """Return a JSON-serializable model snapshot.
+
+        Snapshot Schema v1 captures model metadata, user-defined model state,
+        parameters, and agent state while preserving legacy snapshot fields.
+        """
         agents = []
+
         for agent in self.agents:
             item: dict[str, Any] = {
                 "id": agent.unique_id,
+                "agent_id": agent.unique_id,
                 "type": type(agent).__name__,
+                "agent_type": type(agent).__name__,
+                "state": self._agent_snapshot_state(agent),
             }
+
             if self.world is not None and hasattr(self.world, "position_of"):
                 try:
                     position = self.world.position_of(agent)
                     item["position"] = list(position)
                 except KeyError:
                     pass
+
             agents.append(item)
 
         return {
+            "schema_version": "1.0",
             "run_id": self.run_id,
             "step": self.steps,
             "time": self.time,
             "model": type(self).__name__,
+            "model_name": type(self).__name__,
+            "parameters": dict(self.parameters),
+            "model_state": self._model_snapshot_state(),
             "agents": agents,
+        }
+
+    def _model_snapshot_state(self) -> dict[str, Any]:
+        """Return user-defined model state for Snapshot Schema v1."""
+        excluded = {
+            "parameters",
+            "seed",
+            "rng",
+            "run_id",
+            "created_at",
+            "steps",
+            "time",
+            "running",
+            "stop_reason",
+            "status",
+            "agents",
+            "events",
+            "record",
+            "world",
+        }
+
+        return {
+            key: value
+            for key, value in vars(self).items()
+            if key not in excluded and not key.startswith("_")
+        }
+
+    @staticmethod
+    def _agent_snapshot_state(agent: Any) -> dict[str, Any]:
+        """Return user-defined agent state for Snapshot Schema v1."""
+        excluded = {
+            "model",
+            "unique_id",
+            "is_alive",
+        }
+
+        return {
+            key: value
+            for key, value in vars(agent).items()
+            if key not in excluded and not key.startswith("_")
         }
