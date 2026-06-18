@@ -4,7 +4,7 @@ import importlib
 import platform
 import sys
 import traceback
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -55,45 +55,59 @@ class Scenario:
         scenario_path = Path(path)
 
         with scenario_path.open(encoding="utf-8") as file:
-            config = yaml.safe_load(file) or {}
+            config = yaml.safe_load(file)
 
-        if not isinstance(config, dict):
-            raise ValueError("Scenario YAML must contain a mapping at the top level")
+        if config is None:
+            raise ValueError("Scenario YAML document must be a mapping")
+
+        if not isinstance(config, Mapping):
+            raise ValueError("Scenario YAML document must be a mapping")
 
         model_path = config.get("model")
-        if not isinstance(model_path, str) or not model_path:
-            raise ValueError("Scenario YAML must define a non-empty 'model' string")
+        if model_path is None:
+            raise ValueError("Missing required field: model")
 
-        model_cls = _import_model_class(model_path)
+        if not isinstance(model_path, str) or not model_path:
+            raise ValueError("Field 'model' must be a string")
+
+        name = config.get("name")
+        if name is not None and not isinstance(name, str):
+            raise ValueError("Field 'name' must be a string or null")
 
         parameters = config.get("parameters", {})
         if parameters is None:
             parameters = {}
-        if not isinstance(parameters, dict):
-            raise ValueError("'parameters' must be a mapping")
+
+        if not isinstance(parameters, Mapping):
+            raise ValueError("Field 'parameters' must be a mapping/object")
 
         run_config = config.get("run", {})
         if run_config is None:
             run_config = {}
-        if not isinstance(run_config, dict):
-            raise ValueError("'run' must be a mapping")
 
-        seed = run_config.get("seed", config.get("seed"))
-        steps = run_config.get("steps", config.get("steps", 0))
+        if not isinstance(run_config, Mapping):
+            raise ValueError("Field 'run' must be a mapping/object")
 
-        if seed is not None and not isinstance(seed, int):
-            raise ValueError("'seed' must be an integer or null")
+        if "steps" not in run_config:
+            raise ValueError("Missing required field: run.steps")
 
-        if not isinstance(steps, int):
-            raise ValueError("'steps' must be an integer")
+        seed = run_config.get("seed")
+        steps = run_config["steps"]
 
-        name = config.get("name")
-        if name is not None and not isinstance(name, str):
-            raise ValueError("'name' must be a string or null")
+        if seed is not None and (not isinstance(seed, int) or isinstance(seed, bool)):
+            raise ValueError("Field 'run.seed' must be an integer or null")
+
+        if not isinstance(steps, int) or isinstance(steps, bool):
+            raise ValueError("Field 'run.steps' must be an integer")
+
+        if steps < 0:
+            raise ValueError("Field 'run.steps' must be non-negative")
+
+        model_cls = _import_model_class(model_path)
 
         return cls(
             model=model_cls,
-            parameters=parameters,
+            parameters=dict(parameters),
             seed=seed,
             steps=steps,
             name=name,
