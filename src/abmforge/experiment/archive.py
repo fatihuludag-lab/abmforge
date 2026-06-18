@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 from uuid import uuid4
 
 from abmforge.data.dataset import Dataset
@@ -11,6 +13,68 @@ from abmforge.data.storage.parquet import ParquetStorage
 from abmforge.experiment.registry import ExperimentRegistry
 
 ArchiveFormat = Literal["json", "parquet"]
+
+_DATASET_JSON_FILES = {
+    "runs": "runs.json",
+    "model_records": "model_records.jsonl",
+    "agent_records": "agent_records.jsonl",
+    "event_records": "event_records.jsonl",
+    "lifecycle_records": "lifecycle_records.jsonl",
+    "errors": "errors.jsonl",
+}
+
+
+def _canonical_json_bytes(data: Any) -> bytes:
+    return json.dumps(
+        data,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        default=str,
+    ).encode("utf-8")
+
+
+def _sha256_json(data: Any) -> str:
+    return hashlib.sha256(_canonical_json_bytes(data)).hexdigest()
+
+
+def _read_json_array(path: Path) -> list[dict[str, Any]]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+
+    if not isinstance(data, list):
+        raise ValueError(f"{path.name} must contain a JSON array")
+
+    records: list[dict[str, Any]] = []
+
+    for index, record in enumerate(data):
+        if not isinstance(record, dict):
+            raise ValueError(f"{path.name}[{index}] must be a JSON object")
+        records.append(record)
+
+    return records
+
+
+def _read_jsonl(path: Path) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
+
+    if not path.read_text(encoding="utf-8").strip():
+        return records
+
+    with path.open("r", encoding="utf-8") as handle:
+        for line_number, line in enumerate(handle, start=1):
+            line = line.strip()
+
+            if not line:
+                continue
+
+            record = json.loads(line)
+
+            if not isinstance(record, dict):
+                raise ValueError(f"{path.name}:{line_number} must be a JSON object")
+
+            records.append(record)
+
+    return records
 
 
 @dataclass(slots=True)
@@ -75,6 +139,7 @@ class ExperimentArchive:
         """Read the archive registry, creating it if necessary."""
         if self.registry_path.exists():
             return self.read_registry()
+
         return self.create_registry()
 
     def write_dataset_json(self, dataset: Dataset) -> Path:
@@ -141,5 +206,103 @@ class ExperimentArchive:
 
         if self.data_dir.exists() and not any(self.data_dir.iterdir()):
             errors.append("Data directory is empty")
+
+        if errors:
+            return errors
+
+        errors.extend(self._validate_dataset_schema_hash())
+        errors.extend(self._validate_json_dataset_integrity())
+
+        return errors
+
+    def _validate_dataset_schema_hash(self) -> list[str]:
+        """Validate manifest dataset schema hash against dataset_schema.json."""
+        try:
+            manifest = json.loads(self.manifest_path.read_text(encoding="utf-8"))
+            schema = json.loads(self.dataset_schema_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            return [f"Invalid JSON while validating archive metadata: {exc}"]
+
+        expected_hash = manifest.get("dataset_schema_hash")
+
+        if expected_hash is None:
+            return ["manifest.json is missing dataset_schema_hash"]
+
+        actual_hash = _sha256_json(schema)
+
+        if actual_hash != expected_hash:
+            return [
+                "dataset_schema_hash mismatch: "
+                f"manifest has {expected_hash}, actual is {actual_hash}"
+            ]
+
+        return []
+
+    def _validate_json_dataset_integrity(self) -> list[str]:
+        """Validate JSON/JSONL dataset files against manifest counts and hashes.
+
+        Parquet archive integrity validation is intentionally deferred to a later PR.
+        This method only runs when JSON archive files are present.
+        """
+        runs_path = self.data_dir / _DATASET_JSON_FILES["runs"]
+
+        if not runs_path.exists():
+            return []
+
+        errors: list[str] = []
+
+        try:
+            manifest = json.loads(self.manifest_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            return [f"Invalid manifest.json: {exc}"]
+
+        record_counts = manifest.get("record_counts", {})
+        record_hashes = manifest.get("record_hashes", {})
+
+        if not isinstance(record_counts, dict):
+            errors.append("manifest.json record_counts must be an object")
+            record_counts = {}
+
+        if not isinstance(record_hashes, dict):
+            errors.append("manifest.json record_hashes must be an object")
+            record_hashes = {}
+
+        for table_name, filename in _DATASET_JSON_FILES.items():
+            table_path = self.data_dir / filename
+
+            if not table_path.exists():
+                errors.append(f"Missing dataset table file: data/{filename}")
+                continue
+
+            try:
+                if filename.endswith(".jsonl"):
+                    records = _read_jsonl(table_path)
+                else:
+                    records = _read_json_array(table_path)
+            except (json.JSONDecodeError, ValueError) as exc:
+                errors.append(f"Invalid dataset table data/{filename}: {exc}")
+                continue
+
+            expected_count = record_counts.get(table_name)
+            actual_count = len(records)
+
+            if expected_count is None:
+                errors.append(f"manifest.json record_counts missing table: {table_name}")
+            elif actual_count != expected_count:
+                errors.append(
+                    f"record_counts mismatch for {table_name}: "
+                    f"manifest has {expected_count}, actual is {actual_count}"
+                )
+
+            expected_hash = record_hashes.get(table_name)
+            actual_hash = _sha256_json(records)
+
+            if expected_hash is None:
+                errors.append(f"manifest.json record_hashes missing table: {table_name}")
+            elif actual_hash != expected_hash:
+                errors.append(
+                    f"record_hashes mismatch for {table_name}: "
+                    f"manifest has {expected_hash}, actual is {actual_hash}"
+                )
 
         return errors
