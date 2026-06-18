@@ -1,0 +1,7 @@
+name: wealth_baseline
+model: examples.wealth_model.model.WealthModel
+parameters:
+  n: 100
+run:
+  seed: 42
+  steps: 10
