@@ -48,7 +48,7 @@ class ToyModel(Model):
         encoding="utf-8",
     )
 
-    monkeypatch.syspath_prepend(str(tmp_path))
+    monkeypatch.chdir(tmp_path)
 
     scenario_file = tmp_path / "scenario.yaml"
     scenario_file.write_text(

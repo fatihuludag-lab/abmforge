@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -136,7 +137,14 @@ def main(argv: Sequence[str] | None = None) -> None:
         return
 
     if args.command == "run":
-        scenario = Scenario.from_yaml(args.scenario)
+        scenario_path = Path(args.scenario).resolve()
+
+        for import_path in (Path.cwd().resolve(), scenario_path.parent):
+            import_path_str = str(import_path)
+            if import_path_str not in sys.path:
+                sys.path.insert(0, import_path_str)
+
+        scenario = Scenario.from_yaml(scenario_path)
         result = scenario.run(raise_on_error=False)
 
         archive = ExperimentArchive.create(args.archive, overwrite=args.overwrite)
