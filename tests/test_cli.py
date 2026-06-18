@@ -83,6 +83,7 @@ run:
     assert (archive_path / "data" / "runs.json").is_file()
     assert (archive_path / "data" / "model_records.jsonl").is_file()
     assert (archive_path / "reports" / "run_summary.json").is_file()
+    assert (archive_path / "configs" / "scenario.yaml").is_file()
 
     main(["validate", str(archive_path)])
 
