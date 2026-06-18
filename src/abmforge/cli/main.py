@@ -157,7 +157,13 @@ def main(argv: Sequence[str] | None = None) -> None:
             if import_path_str not in sys.path:
                 sys.path.insert(0, import_path_str)
 
-        scenario = Scenario.from_yaml(scenario_path)
+        try:
+            scenario = Scenario.from_yaml(scenario_path)
+        except ValueError as exc:
+            print("Scenario validation failed:")
+            print(f"- {exc}")
+            raise SystemExit(2) from exc
+
         result = scenario.run(raise_on_error=False)
 
         archive = ExperimentArchive.create(args.archive, overwrite=args.overwrite)
