@@ -10,6 +10,7 @@ import abmforge
 from abmforge.experiment.archive import ExperimentArchive
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.scenario import Scenario
+from abmforge.experiment.summary import format_archive_summary, summarize_archive
 
 _REPOSITORY_URL = "https://github.com/fatihuludag-lab/abmforge"
 _TITLE = "ABMForge: Reproducible Agent-Based Modelling in Python"
@@ -114,6 +115,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     validate_parser.add_argument("path", help="Path to an ABMForge experiment archive")
 
+    summarize_parser = subparsers.add_parser(
+        "summarize",
+        help="Summarize an experiment archive",
+    )
+    summarize_parser.add_argument("path", help="Path to an ABMForge experiment archive")
+    summarize_parser.add_argument(
+        "--json",
+        action="store_true",
+        dest="as_json",
+        help="Print summary as JSON",
+    )
+
     return parser
 
 
@@ -159,6 +172,16 @@ def main(argv: Sequence[str] | None = None) -> None:
 
         if result.status == "failed" and not args.allow_failed:
             raise SystemExit(1)
+
+        return
+
+    if args.command == "summarize":
+        summary = summarize_archive(Path(args.path))
+
+        if args.as_json:
+            print(json.dumps(summary, indent=2, default=str))
+        else:
+            print(format_archive_summary(summary))
 
         return
 
