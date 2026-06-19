@@ -11,6 +11,7 @@ nav:
   - First Model: first-model.md
   - Spaces: spaces.md
   - Scheduling: scheduling.md
+  - Agent Lifecycle: agent-lifecycle.md
   - Experiments: experiments.md
   - Scenario YAML Reference: scenario-yaml.md
   - Experiment Archive Format: archive-format.md
