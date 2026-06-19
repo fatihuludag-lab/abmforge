@@ -28,3 +28,5 @@ nav:
   - API Reference: api.md
   - API Stability: api-stability.md
   - Contributing: contributing.md
+
+  - Recording Data: recording.md
