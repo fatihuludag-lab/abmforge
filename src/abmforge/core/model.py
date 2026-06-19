@@ -9,6 +9,7 @@ import numpy as np
 from numpy.random import Generator
 
 from abmforge.core.collection import AgentCollection
+from abmforge.core.status import COMPLETED, CREATED, RUNNING, STOPPED, ModelStatus
 from abmforge.data.recorder import Recorder
 from abmforge.time.queue import EventQueue
 
@@ -30,7 +31,7 @@ class Model:
         self.time = 0.0
         self.running = False
         self.stop_reason: str | None = None
-        self.status = "created"
+        self.status: ModelStatus = CREATED
 
         self.agents = AgentCollection(model=self)
         self.events = EventQueue(model=self)
@@ -55,7 +56,7 @@ class Model:
             raise ValueError("steps must be non-negative")
 
         self.running = True
-        self.status = "running"
+        self.status = RUNNING
 
         for _ in range(steps):
             if not self.running:
@@ -69,13 +70,13 @@ class Model:
             self.record.collect()
 
         if self.running:
-            self.status = "completed"
+            self.status = COMPLETED
 
     def stop(self, reason: str = "stopped") -> None:
         """Stop the model run."""
         self.running = False
         self.stop_reason = reason
-        self.status = "stopped"
+        self.status = STOPPED
 
     def remove_agent(self, agent_or_id: Any) -> None:
         """Remove an agent from the model, world, and owned event queue entries."""

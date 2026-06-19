@@ -15,6 +15,7 @@ import yaml
 
 from abmforge._version import __version__
 from abmforge.core.model import Model
+from abmforge.core.status import COMPLETED, CREATED, FAILED
 from abmforge.data.dataset import Dataset
 from abmforge.experiment.result import RunResult
 
@@ -188,7 +189,9 @@ class Scenario:
                 raise
             return result
 
-        status = model.status if model.status != "created" else "completed"
+        if model.status == CREATED:
+            model.status = COMPLETED
+        status = model.status
         model.record.dataset.update_last_run(
             status=status,
             ended_at=datetime.now(timezone.utc).isoformat(),
@@ -218,7 +221,7 @@ class Scenario:
         error_repr = repr(exc)
         ended_at = datetime.now(timezone.utc).isoformat()
 
-        model.status = "failed"
+        model.status = FAILED
         model.record.dataset.record_error(
             step=model.steps,
             time=float(getattr(model, "time", 0.0)),
@@ -233,7 +236,7 @@ class Scenario:
             },
         )
         model.record.dataset.update_last_run(
-            status="failed",
+            status=FAILED,
             error=error_repr,
             error_message=error_message,
             exception_type=exception_type,
@@ -246,7 +249,7 @@ class Scenario:
             run_id=model.run_id,
             model=model,
             dataset=model.record.dataset,
-            status="failed",
+            status=FAILED,
             steps=model.steps,
             stop_reason=model.stop_reason,
             error=error_repr,
@@ -275,7 +278,7 @@ class Scenario:
             model_name=self.model.__name__,
             parameters=dict(self.parameters),
             seed=run_seed,
-            status="failed",
+            status=FAILED,
             started_at=started_at,
             ended_at=ended_at,
             python_version=sys.version,
@@ -305,7 +308,7 @@ class Scenario:
             run_id=run_id,
             model=None,
             dataset=dataset,
-            status="failed",
+            status=FAILED,
             steps=0,
             stop_reason=None,
             error=error_repr,
