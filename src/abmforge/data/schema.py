@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, ClassVar
 
+from abmforge.core.status import VALID_MODEL_STATUSES
+
 DATASET_SCHEMA_VERSION = "abmforge.dataset.v1"
 
 
@@ -169,7 +171,13 @@ class DatasetSchemaV1:
                 FieldSpec("model_name", "string", required=False, nullable=True),
                 FieldSpec("parameters", "object", required=False, nullable=True),
                 FieldSpec("seed", "integer", required=False, nullable=True),
-                FieldSpec("status", "string", required=False, nullable=True),
+                FieldSpec(
+                    "status",
+                    "string",
+                    required=False,
+                    nullable=True,
+                    enum=tuple(sorted(VALID_MODEL_STATUSES)),
+                ),
                 FieldSpec("started_at", "string", required=False, nullable=True),
                 FieldSpec("ended_at", "string", required=False, nullable=True),
                 FieldSpec("python_version", "string", required=False, nullable=True),
