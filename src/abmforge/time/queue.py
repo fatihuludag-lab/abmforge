@@ -5,6 +5,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from abmforge.time.event import Event
+from abmforge.time.status import CANCELLED, EXECUTED, FAILED, SCHEDULED
 
 if TYPE_CHECKING:
     from abmforge.core.model import Model
@@ -66,7 +67,7 @@ class EventQueue:
             event_id=event_id,
             owner=owner,
             tags=list(event.tags),
-            status="scheduled",
+            status=SCHEDULED,
         )
         return event
 
@@ -80,7 +81,7 @@ class EventQueue:
             event_id=event.event_id,
             owner=event.owner,
             tags=list(event.tags),
-            status="cancelled",
+            status=CANCELLED,
         )
         return True
 
@@ -128,7 +129,7 @@ class EventQueue:
                     event_id=event.event_id,
                     owner=event.owner,
                     tags=list(event.tags),
-                    status="failed",
+                    status=FAILED,
                 )
                 raise
             else:
@@ -137,7 +138,7 @@ class EventQueue:
                     event_id=event.event_id,
                     owner=event.owner,
                     tags=list(event.tags),
-                    status="executed",
+                    status=EXECUTED,
                 )
             finally:
                 self._events.pop(event_id, None)
