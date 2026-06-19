@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast
 
+from abmforge.core.agent_lifecycle import ACTIVE, AgentLifecycleStatus
+
 if TYPE_CHECKING:
     from numpy.random import Generator
 
@@ -19,6 +21,7 @@ class Agent:
         self.model = model
         self.unique_id = unique_id
         self.is_alive = True
+        self.lifecycle_status: AgentLifecycleStatus = ACTIVE
 
         for key, value in attrs.items():
             setattr(self, key, value)

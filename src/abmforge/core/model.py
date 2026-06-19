@@ -8,6 +8,7 @@ from uuid import uuid4
 import numpy as np
 from numpy.random import Generator
 
+from abmforge.core.agent_lifecycle import REMOVED
 from abmforge.core.collection import AgentCollection
 from abmforge.core.status import COMPLETED, CREATED, RUNNING, STOPPED, ModelStatus
 from abmforge.data.recorder import Recorder
@@ -87,6 +88,7 @@ class Model:
             raise KeyError(f"Agent not found: {unique_id}")
 
         agent.is_alive = False
+        agent.lifecycle_status = REMOVED
         self.events.cancel_by_owner(unique_id)
 
         if self.world is not None and hasattr(self.world, "remove"):
@@ -248,6 +250,7 @@ class Model:
             "model",
             "unique_id",
             "is_alive",
+            "lifecycle_status",
         }
 
         return {
