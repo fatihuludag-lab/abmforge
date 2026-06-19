@@ -92,7 +92,7 @@ class ExperimentArchive:
 
         archive_path.mkdir(parents=True, exist_ok=True)
 
-        for subdir in ("data", "snapshots", "reports", "logs"):
+        for subdir in ("data", "snapshots", "reports", "logs", "configs"):
             (archive_path / subdir).mkdir(exist_ok=True)
 
         return cls(path=archive_path)
@@ -112,6 +112,10 @@ class ExperimentArchive:
     @property
     def logs_dir(self) -> Path:
         return self.path / "logs"
+
+    @property
+    def configs_dir(self) -> Path:
+        return self.path / "configs"
 
     @property
     def manifest_path(self) -> Path:
@@ -141,6 +145,24 @@ class ExperimentArchive:
             return self.read_registry()
 
         return self.create_registry()
+
+    def write_scenario_file(
+        self,
+        source: str | Path,
+        *,
+        filename: str = "scenario.yaml",
+    ) -> Path:
+        """Copy the Scenario YAML file into the archive configs directory."""
+        source_path = Path(source)
+
+        if not source_path.is_file():
+            raise FileNotFoundError(f"Scenario file does not exist: {source_path}")
+
+        self.configs_dir.mkdir(exist_ok=True)
+        destination = self.configs_dir / filename
+        shutil.copy2(source_path, destination)
+
+        return destination
 
     def write_dataset_json(self, dataset: Dataset) -> Path:
         """Write dataset tables into the archive data directory as JSON/JSONL."""
@@ -194,7 +216,7 @@ class ExperimentArchive:
         if not self.path.exists():
             return [f"Archive does not exist: {self.path}"]
 
-        for subdir in ("data", "snapshots", "reports", "logs"):
+        for subdir in ("data", "snapshots", "reports", "logs", "configs"):
             if not (self.path / subdir).is_dir():
                 errors.append(f"Missing directory: {subdir}")
 

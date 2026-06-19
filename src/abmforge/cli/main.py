@@ -167,6 +167,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         result = scenario.run(raise_on_error=False)
 
         archive = ExperimentArchive.create(args.archive, overwrite=args.overwrite)
+        archive.write_scenario_file(scenario_path)
         archive.write_run_outputs(result.dataset, format=args.format)
         summary_path = _write_run_summary(result, archive)
 
