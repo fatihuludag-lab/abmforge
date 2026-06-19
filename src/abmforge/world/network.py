@@ -36,6 +36,8 @@ class NetworkSpace:
         self._agents[agent_id] = agent
         self._agent_positions[agent_id] = node_id
         self._node_agents[node_id].add(agent_id)
+        agent.world = self
+        agent.pos = node_id
 
     def place(self, agent: Any, node_id: Any) -> None:
         """Alias for place_agent."""
@@ -50,6 +52,7 @@ class NetworkSpace:
 
         self._agent_positions[agent_id] = node_id
         self._node_agents[node_id].add(agent_id)
+        agent.pos = node_id
 
     def move(self, agent: Any, node_id: Any) -> None:
         """Alias for move_agent."""
@@ -60,6 +63,9 @@ class NetworkSpace:
         node_id = self._agent_positions.pop(agent_id)
         self._node_agents[node_id].remove(agent_id)
         self._agents.pop(agent_id, None)
+
+        if hasattr(agent, "pos"):
+            delattr(agent, "pos")
 
     def position_of(self, agent: Any) -> Any:
         return self._agent_positions[agent.unique_id]

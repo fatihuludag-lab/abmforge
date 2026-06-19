@@ -92,6 +92,16 @@ class ContinuousSpace:
 
         return math.sqrt(dx * dx + dy * dy)
 
+    def agents_at(self, position: tuple[float, float]) -> list[Any]:
+        """Return agents exactly at a continuous-space position."""
+        normalized = self.normalize(position)
+
+        return [
+            self._agents[agent_id]
+            for agent_id, agent_position in self._positions.items()
+            if agent_position == normalized
+        ]
+
     def neighbors(
         self,
         agent_or_position: Any,
