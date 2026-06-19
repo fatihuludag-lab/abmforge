@@ -6,9 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, ClassVar
 
-from abmforge.time.status import VALID_EVENT_STATUSES
-
 from abmforge.core.status import VALID_MODEL_STATUSES
+from abmforge.time.status import VALID_EVENT_STATUSES
 
 DATASET_SCHEMA_VERSION = "abmforge.dataset.v1"
 
