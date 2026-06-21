@@ -40,6 +40,8 @@ class AgentCollection:
         if agent.unique_id in self._agents:
             raise ValueError(f"agent id already exists: {agent.unique_id!r}")
         self._agents[agent.unique_id] = agent
+        if isinstance(agent.unique_id, int) and agent.unique_id >= self._next_id:
+            self._next_id = agent.unique_id + 1
         return agent
 
     def create(self, agent_cls: type[AgentT], n: int = 1, **attrs: Any) -> list[AgentT]:

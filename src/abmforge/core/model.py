@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from contextlib import suppress
 from datetime import datetime, timezone
 from typing import Any
@@ -8,6 +9,7 @@ from uuid import uuid4
 import numpy as np
 from numpy.random import Generator
 
+from abmforge.core.agent import Agent
 from abmforge.core.agent_lifecycle import REMOVED
 from abmforge.core.collection import AgentCollection
 from abmforge.core.status import COMPLETED, CREATED, RUNNING, STOPPED, ModelStatus
@@ -99,14 +101,22 @@ class Model:
         self.record.lifecycle("agent_removed", agent_id=unique_id)
 
     @classmethod
-    def from_snapshot(cls, snapshot: dict[str, Any]) -> Model:
+    def from_snapshot(
+        cls,
+        snapshot: dict[str, Any],
+        *,
+        agent_classes: Mapping[str, type[Agent]] | None = None,
+    ) -> Model:
         """Restore a basic model instance from Snapshot Schema v1.
 
         Restore API v1 intentionally supports only the base model state,
-        parameters, step/time counters, run metadata, and basic agent state.
+        parameters, step/time counters, run metadata, RNG state, and basic
+        agent state. It does not yet restore world state, scheduler state,
+        or event queue state.
 
-        It does not yet restore world state, scheduler state, event queue state,
-        or RNG state.
+        Custom agent classes are restored only when they are explicitly
+        provided through ``agent_classes``. This avoids silently converting
+        domain-specific agents into base ``Agent`` instances.
         """
         schema_version = snapshot.get("schema_version")
         if schema_version != "1.0":
@@ -117,6 +127,7 @@ class Model:
             raise ValueError("Snapshot field 'parameters' must be a mapping")
 
         model = cls(parameters=parameters)
+
         rng_state = snapshot.get("rng_state")
         if rng_state is not None:
             if not isinstance(rng_state, dict):
@@ -147,11 +158,13 @@ class Model:
                 raise ValueError("Snapshot model_state keys must be strings")
             setattr(model, key, value)
 
+        agent_class_registry: dict[str, type[Agent]] = {"Agent": Agent}
+        if agent_classes is not None:
+            agent_class_registry.update(agent_classes)
+
         agents = snapshot.get("agents", [])
         if not isinstance(agents, list):
             raise ValueError("Snapshot field 'agents' must be a list")
-
-        from abmforge.core.agent import Agent
 
         for agent_snapshot in agents:
             if not isinstance(agent_snapshot, dict):
@@ -161,11 +174,26 @@ class Model:
             if agent_id is None:
                 raise ValueError("Agent snapshot must define 'agent_id' or 'id'")
 
+            agent_type = agent_snapshot.get(
+                "agent_type",
+                agent_snapshot.get("type", "Agent"),
+            )
+            if not isinstance(agent_type, str):
+                raise ValueError("Agent snapshot field 'agent_type' must be a string")
+
+            try:
+                agent_cls = agent_class_registry[agent_type]
+            except KeyError as exc:
+                raise ValueError(
+                    f"Snapshot contains agent type {agent_type!r}, but no class was "
+                    "provided. Pass it through the 'agent_classes' registry."
+                ) from exc
+
             state = agent_snapshot.get("state", {})
             if not isinstance(state, dict):
                 raise ValueError("Agent snapshot field 'state' must be a mapping")
 
-            agent = Agent(model=model, unique_id=agent_id, **state)
+            agent = agent_cls(model=model, unique_id=agent_id, **state)
             model.agents.add(agent)
 
         return model
