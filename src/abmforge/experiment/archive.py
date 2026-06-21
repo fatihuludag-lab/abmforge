@@ -23,6 +23,15 @@ _DATASET_JSON_FILES = {
     "errors": "errors.jsonl",
 }
 
+_DATASET_PARQUET_FILES = {
+    "runs": "runs.parquet",
+    "model_records": "model_records.parquet",
+    "agent_records": "agent_records.parquet",
+    "event_records": "event_records.parquet",
+    "lifecycle_records": "lifecycle_records.parquet",
+    "errors": "errors.parquet",
+}
+
 
 def _canonical_json_bytes(data: Any) -> bytes:
     return json.dumps(
@@ -241,6 +250,7 @@ class ExperimentArchive:
 
         errors.extend(self._validate_dataset_schema_hash())
         errors.extend(self._validate_json_dataset_integrity())
+        errors.extend(self._validate_parquet_dataset_integrity())
 
         return errors
 
@@ -332,6 +342,64 @@ class ExperimentArchive:
                 errors.append(
                     f"record_hashes mismatch for {table_name}: "
                     f"manifest has {expected_hash}, actual is {actual_hash}"
+                )
+
+        return errors
+
+    def _validate_parquet_dataset_integrity(self) -> list[str]:
+        """Validate Parquet dataset files against manifest record counts.
+
+        JSON/JSONL archives are validated separately through
+        ``_validate_json_dataset_integrity``. This method only runs when at
+        least one expected Parquet table file is present.
+        """
+        if not any(
+            (self.data_dir / filename).exists() for filename in _DATASET_PARQUET_FILES.values()
+        ):
+            return []
+
+        errors: list[str] = []
+
+        try:
+            import pandas as pd
+        except ModuleNotFoundError:
+            return [
+                "Parquet archive validation requires pandas and pyarrow. "
+                "Install with: pip install abmforge[data]"
+            ]
+
+        try:
+            manifest = json.loads(self.manifest_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            return [f"Invalid manifest.json: {exc}"]
+
+        record_counts = manifest.get("record_counts", {})
+        if not isinstance(record_counts, dict):
+            errors.append("manifest.json record_counts must be an object")
+            record_counts = {}
+
+        for table_name, filename in _DATASET_PARQUET_FILES.items():
+            table_path = self.data_dir / filename
+
+            if not table_path.exists():
+                errors.append(f"Missing dataset table file: data/{filename}")
+                continue
+
+            try:
+                frame = pd.read_parquet(table_path)
+            except Exception as exc:
+                errors.append(f"Invalid parquet dataset table data/{filename}: {exc}")
+                continue
+
+            expected_count = record_counts.get(table_name)
+            actual_count = len(frame)
+
+            if expected_count is None:
+                errors.append(f"manifest.json record_counts missing table: {table_name}")
+            elif actual_count != expected_count:
+                errors.append(
+                    f"record_counts mismatch for {table_name}: "
+                    f"manifest has {expected_count}, actual is {actual_count}"
                 )
 
         return errors
