@@ -87,14 +87,21 @@ class ExperimentArchive:
     def create(cls, path: str | Path, *, overwrite: bool = False) -> ExperimentArchive:
         archive_path = Path(path)
 
-        if archive_path.exists() and overwrite:
-            shutil.rmtree(archive_path)
+        if archive_path.exists():
+            if not overwrite:
+                raise FileExistsError(
+                    f"Archive path already exists: {archive_path}. "
+                    "Pass overwrite=True to replace it."
+                )
 
-        archive_path.mkdir(parents=True, exist_ok=True)
+            if archive_path.is_dir():
+                shutil.rmtree(archive_path)
+            else:
+                archive_path.unlink()
 
+        archive_path.mkdir(parents=True, exist_ok=False)
         for subdir in ("data", "snapshots", "reports", "logs", "configs"):
-            (archive_path / subdir).mkdir(exist_ok=True)
-
+            (archive_path / subdir).mkdir(exist_ok=False)
         return cls(path=archive_path)
 
     @property
