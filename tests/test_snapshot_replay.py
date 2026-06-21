@@ -96,7 +96,10 @@ def test_model_from_snapshot_restores_base_model_state():
     agent = model.agents.create(StatefulPerson, n=1, wealth=10, mood="happy")[0]
 
     snapshot = model.snapshot()
-    restored = Model.from_snapshot(snapshot)
+    restored = Model.from_snapshot(
+        snapshot,
+        agent_classes={"StatefulPerson": StatefulPerson},
+    )
 
     assert restored.run_id == model.run_id
     assert restored.parameters == {"alpha": 0.5}
@@ -247,7 +250,10 @@ def test_restored_snapshot_hash_matches_original_snapshot_hash():
     model.agents.create(StatefulPerson, n=1, wealth=10, mood="happy")
 
     snapshot = model.snapshot()
-    restored = Model.from_snapshot(snapshot)
+    restored = Model.from_snapshot(
+        snapshot,
+        agent_classes={"StatefulPerson": StatefulPerson},
+    )
 
     assert snapshot_hash(restored.snapshot(), include_metadata=False) == snapshot_hash(
         snapshot,
@@ -309,7 +315,10 @@ def test_model_from_snapshot_restores_rng_state():
     _ = model.rng.random(5)
     snapshot = model.snapshot()
 
-    restored = Model.from_snapshot(snapshot)
+    restored = Model.from_snapshot(
+        snapshot,
+        agent_classes={"StatefulPerson": StatefulPerson},
+    )
 
     assert model.rng.random() == restored.rng.random()
 
@@ -342,7 +351,10 @@ def test_restored_model_continues_with_same_rng_sequence():
     assert len(pre_snapshot_values) == 5
 
     snapshot = model.snapshot()
-    restored = Model.from_snapshot(snapshot)
+    restored = Model.from_snapshot(
+        snapshot,
+        agent_classes={"StatefulPerson": StatefulPerson},
+    )
 
     original_next_values = model.rng.random(10)
     restored_next_values = restored.rng.random(10)
@@ -371,7 +383,10 @@ def test_restored_model_continues_to_same_agent_state_with_rng_restore():
     model.run_for(5)
 
     snapshot = model.snapshot()
-    restored = RandomWalkModel.from_snapshot(snapshot)
+    restored = RandomWalkModel.from_snapshot(
+        snapshot,
+        agent_classes={"RandomWalkAgent": RandomWalkAgent},
+    )
 
     model.run_for(10)
     restored.run_for(10)
@@ -454,7 +469,10 @@ def test_validate_replay_accepts_equivalent_snapshots():
     model.agents.create(StatefulPerson, n=1, wealth=10)
 
     snapshot = model.snapshot()
-    restored = Model.from_snapshot(snapshot)
+    restored = Model.from_snapshot(
+        snapshot,
+        agent_classes={"StatefulPerson": StatefulPerson},
+    )
 
     report = validate_replay(snapshot, restored.snapshot())
 
