@@ -15,7 +15,7 @@ import yaml
 
 from abmforge._version import __version__
 from abmforge.core.model import Model
-from abmforge.core.status import COMPLETED, CREATED, FAILED
+from abmforge.core.status import COMPLETED, CREATED, FAILED, STOPPED
 from abmforge.data.dataset import Dataset
 from abmforge.experiment.result import RunResult
 
@@ -168,11 +168,15 @@ class Scenario:
                 raise ValueError("steps must be non-negative")
 
             for _ in range(self.steps):
+                if model.status == STOPPED:
+                    break
                 if self.stop_when is not None and self.stop_when(model):
                     model.stop("stop_condition")
                     break
 
                 model.run_for(1)
+                if model.status == STOPPED:
+                    break
 
                 if self.stop_when is not None and self.stop_when(model):
                     model.stop("stop_condition")
