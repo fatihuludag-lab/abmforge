@@ -12,9 +12,9 @@ class NetworkSpace:
     """
 
     def __init__(self) -> None:
-        self._adjacency: dict[Any, set[Any]] = defaultdict(set)
+        self._adjacency: dict[Any, dict[Any, None]] = defaultdict(dict)
         self._agent_positions: dict[int | str, Any] = {}
-        self._node_agents: dict[Any, set[int | str]] = defaultdict(set)
+        self._node_agents: dict[Any, dict[int | str, None]] = defaultdict(dict)
         self._agents: dict[int | str, Any] = {}
 
     def add_node(self, node_id: Any) -> None:
@@ -23,8 +23,8 @@ class NetworkSpace:
     def add_edge(self, source: Any, target: Any) -> None:
         self.add_node(source)
         self.add_node(target)
-        self._adjacency[source].add(target)
-        self._adjacency[target].add(source)
+        self._adjacency[source][target] = None
+        self._adjacency[target][source] = None
 
     def place_agent(self, agent: Any, node_id: Any) -> None:
         self.add_node(node_id)
@@ -35,7 +35,7 @@ class NetworkSpace:
 
         self._agents[agent_id] = agent
         self._agent_positions[agent_id] = node_id
-        self._node_agents[node_id].add(agent_id)
+        self._node_agents[node_id][agent_id] = None
         agent.world = self
         agent.pos = node_id
 
@@ -48,10 +48,10 @@ class NetworkSpace:
         agent_id = agent.unique_id
 
         old_node = self._agent_positions[agent_id]
-        self._node_agents[old_node].remove(agent_id)
+        del self._node_agents[old_node][agent_id]
 
         self._agent_positions[agent_id] = node_id
-        self._node_agents[node_id].add(agent_id)
+        self._node_agents[node_id][agent_id] = None
         agent.pos = node_id
 
     def move(self, agent: Any, node_id: Any) -> None:
@@ -61,7 +61,7 @@ class NetworkSpace:
     def remove(self, agent: Any) -> None:
         agent_id = agent.unique_id
         node_id = self._agent_positions.pop(agent_id)
-        self._node_agents[node_id].remove(agent_id)
+        del self._node_agents[node_id][agent_id]
         self._agents.pop(agent_id, None)
 
         if hasattr(agent, "pos"):
@@ -78,10 +78,10 @@ class NetworkSpace:
 
     def neighbors(self, agent: Any, *, include_center: bool = False) -> list[Any]:
         node_id = self.position_of(agent)
-        nodes = set(self._adjacency[node_id])
+        nodes = list(self._adjacency[node_id])
 
         if include_center:
-            nodes.add(node_id)
+            nodes.append(node_id)
 
         result = []
         for node in nodes:
