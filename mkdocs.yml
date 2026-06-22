@@ -15,6 +15,7 @@ nav:
   - Experiments: experiments.md
   - Scenario YAML Reference: scenario-yaml.md
   - Experiment Archive Format: archive-format.md
+  - Reference Reproducible Workflow: reference-reproducible-workflow.md
   - Experiment Archive: experiment-archive.md
   - Dataset Schema: dataset-schema-v1.md
   - Failure Handling: failure-handling.md
