@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def build_sdist(tmp_path: Path) -> set[str]:
     dist_dir = tmp_path / "dist"
 
-    subprocess.run(
+    completed = subprocess.run(
         [
             sys.executable,
             "-m",
@@ -22,9 +22,12 @@ def build_sdist(tmp_path: Path) -> set[str]:
             str(dist_dir),
         ],
         cwd=ROOT,
-        check=True,
         capture_output=True,
         text=True,
+    )
+
+    assert completed.returncode == 0, (
+        f"sdist build failed\nstdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
     )
 
     sdists = sorted(dist_dir.glob("*.tar.gz"))
