@@ -6,7 +6,7 @@ authors:
   - family-names: "Uludağ"
     given-names: "Fatih"
     email: "fatihuludag@yyu.edu.tr"
-version: "0.2.0a2"
+version: "0.2.0a4.dev0"
 repository-code: "https://github.com/fatihuludag-lab/abmforge"
 url: "https://github.com/fatihuludag-lab/abmforge"
 license: "Apache-2.0"
