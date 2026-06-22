@@ -5,11 +5,14 @@ import sys
 import tarfile
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def build_sdist(tmp_path: Path) -> set[str]:
-    dist_dir = tmp_path / "dist"
+@pytest.fixture(scope="module")
+def sdist_members(tmp_path_factory: pytest.TempPathFactory) -> set[str]:
+    dist_dir = tmp_path_factory.mktemp("sdist") / "dist"
 
     completed = subprocess.run(
         [
@@ -17,7 +20,6 @@ def build_sdist(tmp_path: Path) -> set[str]:
             "-m",
             "build",
             "--sdist",
-            "--no-isolation",
             "--outdir",
             str(dist_dir),
         ],
@@ -27,7 +29,10 @@ def build_sdist(tmp_path: Path) -> set[str]:
     )
 
     assert completed.returncode == 0, (
-        f"sdist build failed\nstdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
+        "sdist build failed\n"
+        f"command: {completed.args}\n"
+        f"stdout:\n{completed.stdout}\n"
+        f"stderr:\n{completed.stderr}"
     )
 
     sdists = sorted(dist_dir.glob("*.tar.gz"))
@@ -46,9 +51,9 @@ def has_directory_member(members: set[str], directory: str) -> bool:
     return any(marker in member for member in members)
 
 
-def test_sdist_includes_project_metadata_and_license(tmp_path) -> None:
-    members = build_sdist(tmp_path)
-
+def test_sdist_includes_project_metadata_and_license(
+    sdist_members: set[str],
+) -> None:
     for relative_path in [
         "README.md",
         "LICENSE",
@@ -58,21 +63,21 @@ def test_sdist_includes_project_metadata_and_license(tmp_path) -> None:
         "codemeta.json",
         "pyproject.toml",
     ]:
-        assert has_member(members, relative_path)
+        assert has_member(sdist_members, relative_path)
 
 
-def test_sdist_includes_docs_examples_model_zoo_and_tests(tmp_path) -> None:
-    members = build_sdist(tmp_path)
+def test_sdist_includes_docs_examples_model_zoo_and_tests(
+    sdist_members: set[str],
+) -> None:
+    assert has_directory_member(sdist_members, "docs")
+    assert has_directory_member(sdist_members, "examples")
+    assert has_directory_member(sdist_members, "model_zoo")
+    assert has_directory_member(sdist_members, "tests")
 
-    assert has_directory_member(members, "docs")
-    assert has_directory_member(members, "examples")
-    assert has_directory_member(members, "model_zoo")
-    assert has_directory_member(members, "tests")
 
-
-def test_sdist_includes_representative_python_sources(tmp_path) -> None:
-    members = build_sdist(tmp_path)
-
-    assert any(member.endswith("/examples/wealth_model/run.py") for member in members)
-    assert any("/model_zoo/" in member and member.endswith(".py") for member in members)
-    assert any(member.endswith("/tests/test_import.py") for member in members)
+def test_sdist_includes_representative_python_sources(
+    sdist_members: set[str],
+) -> None:
+    assert any(member.endswith("/examples/wealth_model/run.py") for member in sdist_members)
+    assert any("/model_zoo/" in member and member.endswith(".py") for member in sdist_members)
+    assert any(member.endswith("/tests/test_import.py") for member in sdist_members)
