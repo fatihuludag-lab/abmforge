@@ -39,6 +39,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+  "build",
   "duckdb>=1.0",
   "pytest>=8",
   "pytest-cov>=5",

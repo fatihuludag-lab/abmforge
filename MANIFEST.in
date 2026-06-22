@@ -10,3 +10,15 @@ recursive-include tests *.py
 recursive-include .github/workflows *.yml
 prune build
 prune dist
+include README.md
+include LICENSE
+include CITATION.cff
+include codemeta.json
+include pyproject.toml
+recursive-include docs *.md *.yml *.yaml *.png *.jpg *.jpeg *.gif *.svg
+recursive-include examples *.py *.md *.yml *.yaml *.json *.jsonl *.csv *.toml
+recursive-include model_zoo *.py *.md *.yml *.yaml *.json *.jsonl *.csv *.toml
+global-exclude __pycache__
+global-exclude *.py[cod]
+global-exclude .DS_Store
+prune site
