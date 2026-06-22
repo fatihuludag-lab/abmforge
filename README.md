@@ -1,8 +1,8 @@
 # ABMForge
 
-ABMForge is a lightweight, reproducible, experiment-native agent-based modeling framework for Python.
+ABMForge is a lightweight, Python-first alpha framework for agent-based modeling, with first-class support for scenarios, structured datasets, and reproducibility-oriented metadata.
 
-It is designed for researchers, educators, model developers, and Python users who want to build agent-based simulations that are easy to write, easy to reproduce, easy to analyze, and easy to extend.
+It is designed for researchers, educators, model developers, and Python users who want to build agent-based simulations that are easy to write, easier to inspect, easier to analyze, and easier to reproduce when source code, inputs, and environments are preserved.
 
 ## Why ABMForge?
 
