@@ -1,33 +1,49 @@
-# ABMForge 0.1.0a1 Release Notes
+# ABMForge Alpha Development Notes
 
-This alpha patch keeps the first release installable on systems using Python 3.10.
+Current development version: `0.2.0a4.dev0`.
 
-## Changed since 0.1.0a0
+ABMForge is currently alpha-stage research software. The current `main` branch
+contains changes after the `v0.2.0a3` tag and should be treated as a development
+state rather than a formal release artifact.
 
-- Lowered `requires-python` from `>=3.11` to `>=3.10`.
-- Replaced Python 3.11-only `datetime.UTC` with Python 3.10-compatible `timezone.utc`.
-- Updated Ruff and mypy configuration targets to Python 3.10.
+## Current main branch highlights
 
-## Included
+Recent development has focused on making ABMForge's research-software claims
+more defensible before expanding the feature surface.
 
-- Installable `abmforge` Python package.
-- `Model`, `Agent`, and `AgentCollection` core abstractions.
-- Deterministic model-level random number generator.
-- `GridWorld` with placement, movement, removal, and neighbor queries.
-- `EventQueue` with schedule, cancel, owner, tags, and event logging.
-- `Recorder` and in-memory `Dataset`.
-- `Scenario` and `RunResult` for reproducible local runs.
-- Minimal sequential `Experiment` runner.
-- CLI entry point: `abmforge`.
-- Wealth model example.
-- CI workflow template.
-- Initial test suite.
+### Reproducibility and execution correctness
 
-## Not included yet
+- `Scenario.run()` now respects model-internal `stop()` calls.
+- `NetworkSpace` now preserves deterministic neighbor and agent iteration order.
+- Snapshot agent restore is explicit and ID-safe.
 
-- TestPyPI/PyPI upload.
-- Multiprocessing runner.
-- Storage backends beyond in-memory JSON writing.
-- Plugin discovery.
-- Full visualization dashboard.
-- Columnar agent backend.
+### Archive integrity
+
+- Archive creation refuses existing paths unless `overwrite=True` is explicit.
+- Parquet archive validation checks table presence, readability, and manifest
+  row-count consistency.
+
+### Project metadata and positioning
+
+- Public wording is being aligned with the current alpha-stage implementation.
+- Version metadata is aligned across package, citation, and CodeMeta files.
+- The project license file uses the canonical Apache License 2.0 text.
+
+## Not a stable release
+
+This development state does not yet imply:
+
+- stable public APIs,
+- self-contained experiment reconstruction,
+- mature replay/checkpoint support,
+- distributed experiment execution,
+- full cross-platform validation beyond CI,
+- or production-grade archive provenance.
+
+## Recommended user interpretation
+
+Use this version for local research software experiments, teaching prototypes,
+model development, and reproducibility-oriented ABM workflow development. For
+published or long-lived research workflows, preserve model source code, input
+data, dependency specifications, and the execution environment alongside any
+ABMForge archive.
