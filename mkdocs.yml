@@ -32,3 +32,5 @@ nav:
   - Contributing: contributing.md
 
   - Recording Data: recording.md
+  - Reference Reproducible Workflow: reference-reproducible-workflow.md
+  - Reproducibility Tiers: reproducibility-tiers.md
