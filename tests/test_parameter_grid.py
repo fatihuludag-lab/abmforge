@@ -84,3 +84,41 @@ def test_experiment_still_supports_explicit_scenarios():
     result = experiment.run()
 
     assert result.run_count == 1
+
+
+def test_parameter_grid_len_does_not_consume_generator_values():
+    grid = ParameterGrid(
+        {
+            "a": (value for value in [1, 2, 3]),
+            "b": [10],
+        }
+    )
+
+    assert len(grid) == 3
+    assert len(grid) == 3
+    assert list(grid) == [
+        {"a": 1, "b": 10},
+        {"a": 2, "b": 10},
+        {"a": 3, "b": 10},
+    ]
+
+
+def test_parameter_grid_can_be_iterated_multiple_times_with_generators():
+    grid = ParameterGrid(
+        {
+            "a": (value for value in [1, 2]),
+            "b": (value for value in [10, 20]),
+        }
+    )
+
+    first = list(grid)
+    second = list(grid)
+
+    assert first == [
+        {"a": 1, "b": 10},
+        {"a": 1, "b": 20},
+        {"a": 2, "b": 10},
+        {"a": 2, "b": 20},
+    ]
+    assert second == first
+    assert len(grid) == 4
