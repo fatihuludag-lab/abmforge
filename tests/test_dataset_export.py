@@ -1,4 +1,12 @@
+import csv
+
 from abmforge.data.dataset import Dataset
+from abmforge.data.schema import DatasetSchemaV1
+
+
+def _csv_header(path):
+    with path.open(newline="", encoding="utf-8") as f:
+        return next(csv.reader(f))
 
 
 def test_dataset_write_csv_creates_expected_files(tmp_path):
@@ -46,5 +54,25 @@ def test_dataset_write_csv_handles_empty_tables(tmp_path):
 
     output_dir = dataset.write_csv(tmp_path)
 
-    assert (output_dir / "runs.csv").read_text(encoding="utf-8") == ""
-    assert (output_dir / "model_records.csv").read_text(encoding="utf-8") == ""
+    for table_name, table_schema in DatasetSchemaV1.tables.items():
+        csv_path = output_dir / f"{table_name}.csv"
+
+        assert csv_path.exists()
+        assert _csv_header(csv_path) == [field.name for field in table_schema.fields]
+        assert len(csv_path.read_text(encoding="utf-8").splitlines()) == 1
+
+
+def test_dataset_write_csv_uses_schema_headers_before_extra_fields(tmp_path):
+    dataset = Dataset(run_id="run-1")
+    dataset.add_run(
+        run_id="run-1",
+        scenario="custom",
+        custom_metric="kept",
+    )
+
+    output_dir = dataset.write_csv(tmp_path)
+    header = _csv_header(output_dir / "runs.csv")
+    schema_fields = [field.name for field in DatasetSchemaV1.tables["runs"].fields]
+
+    assert header[: len(schema_fields)] == schema_fields
+    assert "custom_metric" in header[len(schema_fields) :]

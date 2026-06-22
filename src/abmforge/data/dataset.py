@@ -227,12 +227,28 @@ class Dataset:
         output_dir = Path(path)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        self._write_csv(output_dir / "runs.csv", self.runs)
-        self._write_csv(output_dir / "model_records.csv", self.model_records)
-        self._write_csv(output_dir / "agent_records.csv", self.agent_records)
-        self._write_csv(output_dir / "event_records.csv", self.event_records)
-        self._write_csv(output_dir / "lifecycle_records.csv", self.lifecycle_records)
-        self._write_csv(output_dir / "errors.csv", self.errors)
+        self._write_csv(output_dir / "runs.csv", self.runs, table_name="runs")
+        self._write_csv(
+            output_dir / "model_records.csv",
+            self.model_records,
+            table_name="model_records",
+        )
+        self._write_csv(
+            output_dir / "agent_records.csv",
+            self.agent_records,
+            table_name="agent_records",
+        )
+        self._write_csv(
+            output_dir / "event_records.csv",
+            self.event_records,
+            table_name="event_records",
+        )
+        self._write_csv(
+            output_dir / "lifecycle_records.csv",
+            self.lifecycle_records,
+            table_name="lifecycle_records",
+        )
+        self._write_csv(output_dir / "errors.csv", self.errors, table_name="errors")
 
         return output_dir
 
@@ -251,16 +267,29 @@ class Dataset:
                 f.write("\n")
 
     @staticmethod
-    def _write_csv(path: Path, records: list[dict[str, Any]]) -> None:
+    def _write_csv(
+        path: Path,
+        records: list[dict[str, Any]],
+        *,
+        table_name: str,
+    ) -> None:
         """Write records to a CSV file.
 
-        Empty tables are written as empty files.
+        Empty tables are written with schema headers so CSV exports preserve the
+        dataset contract even when no rows are present.
         """
-        if not records:
-            path.write_text("", encoding="utf-8")
-            return
+        from abmforge.data.schema import DatasetSchemaV1
 
-        fieldnames = sorted({key for record in records for key in record})
+        schema_fieldnames = [field.name for field in DatasetSchemaV1.tables[table_name].fields]
+
+        if records:
+            extra_fieldnames = sorted(
+                {key for record in records for key in record} - set(schema_fieldnames)
+            )
+            fieldnames = [*schema_fieldnames, *extra_fieldnames]
+        else:
+            fieldnames = schema_fieldnames
+
         with path.open("w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
