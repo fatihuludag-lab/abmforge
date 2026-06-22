@@ -12,7 +12,13 @@ from abmforge.analysis import (
 from abmforge.core.agent import Agent
 from abmforge.core.collection import AgentCollection
 from abmforge.core.model import Model
-from abmforge.data import DatasetSchemaV1, SchemaValidationError
+from abmforge.data import (
+    DATASET_SCHEMA_VERSION,
+    Dataset,
+    DatasetSchemaV1,
+    Recorder,
+    SchemaValidationError,
+)
 from abmforge.experiment.archive import ExperimentArchive
 from abmforge.experiment.experiment import Experiment, ExperimentResult
 from abmforge.experiment.parameter_grid import ParameterGrid
@@ -48,6 +54,9 @@ __all__ = [
     "Agent",
     "AgentCollection",
     "ContinuousSpace",
+    "Recorder",
+    "Dataset",
+    "DATASET_SCHEMA_VERSION",
     "DatasetSchemaV1",
     "Event",
     "EventQueue",
