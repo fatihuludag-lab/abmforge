@@ -10,6 +10,7 @@ nav:
   - Getting Started: getting-started.md
   - Architecture Overview: architecture-overview.md
   - Seed Sequence Policy: seed-sequence-policy.md
+  - Experiment Replicates: experiment-replicates.md
   - First Model: first-model.md
   - Spaces: spaces.md
   - Scheduling: scheduling.md

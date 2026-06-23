@@ -10,6 +10,10 @@ from abmforge.experiment.archive_summary import (
 from abmforge.experiment.experiment import Experiment, ExperimentResult
 from abmforge.experiment.parameter_grid import ParameterGrid
 from abmforge.experiment.registry import ExperimentRegistry
+from abmforge.experiment.replicates import (
+    ReplicatePlanEntry,
+    build_replicate_plan,
+)
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.run_index import (
     RUN_INDEX_SCHEMA_VERSION,
@@ -29,6 +33,7 @@ __all__ = [
     "ExperimentResult",
     "ExperimentRegistry",
     "ParameterGrid",
+    "ReplicatePlanEntry",
     "RunResult",
     "RunIndexEntry",
     "RunIndex",
@@ -37,6 +42,7 @@ __all__ = [
     "SeedSequence",
     "SEED_SEQUENCE_VERSION",
     "DEFAULT_MAX_SEED",
+    "build_replicate_plan",
     "load_archive_runs",
     "summarize_run_records",
     "summarize_archive_runs",
