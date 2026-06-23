@@ -177,3 +177,33 @@ For research projects, archive the following together:
 Archive format is still evolving during the alpha phase.
 
 Breaking changes should be avoided within Dataset Schema v1. If the archive layout changes in a non-compatible way, future versions should document a migration path.
+
+## `run_index.json`
+
+Current ABMForge archives write a compact `run_index.json` file at the archive root.
+
+This file is a convenience index for experiment-level tracking. It does not replace
+`data/runs.json`; instead, it duplicates selected run metadata and adds relative
+archive paths that make downstream tooling easier to write.
+
+A typical entry contains:
+
+- `run_id`
+- `scenario`
+- `model_name`
+- `seed`
+- `status`
+- `steps`
+- `started_at`
+- `ended_at`
+- `stop_reason`
+- `parameters`
+- `dataset_path`
+- `manifest_path`
+- `dataset_schema_path`
+- `summary_path`
+
+The run index is intentionally small and JSON-based. It is useful for discovering
+which runs exist in an archive before loading the full dataset tables.
+
+Archives produced before this feature may not contain `run_index.json`.

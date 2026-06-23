@@ -47,3 +47,13 @@ replay traces
 validation reports
 calibration reports
 ODD documentation
+
+## Run index
+
+Current ABMForge archive writers also create `run_index.json` at the archive root.
+
+The run index is a compact, machine-readable summary of archived runs. It is designed
+for experiment tracking and downstream tooling. It does not replace `data/runs.json`;
+it provides a small discovery layer before loading full dataset tables.
+
+Older alpha archives may not contain this file.

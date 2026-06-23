@@ -11,6 +11,7 @@ from uuid import uuid4
 from abmforge.data.dataset import Dataset
 from abmforge.data.storage.parquet import ParquetStorage
 from abmforge.experiment.registry import ExperimentRegistry
+from abmforge.experiment.run_index import RunIndex
 
 ArchiveFormat = Literal["json", "parquet"]
 
@@ -145,6 +146,10 @@ class ExperimentArchive:
     def registry_path(self) -> Path:
         return self.path / "registry.json"
 
+    @property
+    def run_index_path(self) -> Path:
+        return self.path / "run_index.json"
+
     def create_registry(self, *, experiment_id: str | None = None) -> ExperimentRegistry:
         """Create a new registry for this experiment archive."""
         registry = ExperimentRegistry(experiment_id=experiment_id or f"experiment-{uuid4().hex}")
@@ -203,6 +208,14 @@ class ExperimentArchive:
         """Write a reproducibility manifest into the archive root."""
         return dataset.write_manifest(self.manifest_path)
 
+    def write_run_index(self, dataset: Dataset) -> Path:
+        """Write a compact index of runs in this archive."""
+        return RunIndex.from_dataset(dataset).write(self.run_index_path)
+
+    def read_run_index(self) -> RunIndex:
+        """Read the archive run index."""
+        return RunIndex.read(self.run_index_path)
+
     def write_run_outputs(
         self,
         dataset: Dataset,
@@ -221,6 +234,7 @@ class ExperimentArchive:
 
         self.write_dataset_schema(dataset)
         self.write_manifest(dataset)
+        self.write_run_index(dataset)
 
     def validate(self) -> list[str]:
         """Return archive validation errors.
@@ -251,8 +265,25 @@ class ExperimentArchive:
         errors.extend(self._validate_dataset_schema_hash())
         errors.extend(self._validate_json_dataset_integrity())
         errors.extend(self._validate_parquet_dataset_integrity())
+        errors.extend(self._validate_run_index())
 
         return errors
+
+    def _validate_run_index(self) -> list[str]:
+        """Validate run_index.json when present.
+
+        Missing run_index.json is allowed for archives created before this
+        optional index existed.
+        """
+        if not self.run_index_path.exists():
+            return []
+
+        try:
+            self.read_run_index()
+        except ValueError as exc:
+            return [f"Invalid run_index.json: {exc}"]
+
+        return []
 
     def _validate_dataset_schema_hash(self) -> list[str]:
         """Validate manifest dataset schema hash against dataset_schema.json."""
