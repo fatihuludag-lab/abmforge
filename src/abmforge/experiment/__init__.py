@@ -3,6 +3,11 @@ from abmforge.experiment.experiment import Experiment, ExperimentResult
 from abmforge.experiment.parameter_grid import ParameterGrid
 from abmforge.experiment.registry import ExperimentRegistry
 from abmforge.experiment.result import RunResult
+from abmforge.experiment.run_index import (
+    RUN_INDEX_SCHEMA_VERSION,
+    RunIndex,
+    RunIndexEntry,
+)
 from abmforge.experiment.scenario import Scenario
 
 __all__ = [
@@ -12,5 +17,8 @@ __all__ = [
     "ExperimentRegistry",
     "ParameterGrid",
     "RunResult",
+    "RunIndexEntry",
+    "RunIndex",
+    "RUN_INDEX_SCHEMA_VERSION",
     "Scenario",
 ]
