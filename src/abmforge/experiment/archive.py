@@ -10,6 +10,7 @@ from uuid import uuid4
 
 from abmforge.data.dataset import Dataset
 from abmforge.data.storage.parquet import ParquetStorage
+from abmforge.experiment.archive_loader import load_archive_runs
 from abmforge.experiment.registry import ExperimentRegistry
 from abmforge.experiment.run_index import RunIndex
 
@@ -159,6 +160,14 @@ class ExperimentArchive:
     def read_registry(self) -> ExperimentRegistry:
         """Read the archive registry."""
         return ExperimentRegistry.read(self.registry_path)
+
+    def load_runs(self) -> Any:
+        """Load archived run metadata.
+
+        Returns a pandas DataFrame when pandas is installed. If pandas is not
+        installed, returns a list of dictionaries.
+        """
+        return load_archive_runs(self.path)
 
     def ensure_registry(self) -> ExperimentRegistry:
         """Read the archive registry, creating it if necessary."""
