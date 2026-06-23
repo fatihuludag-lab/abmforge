@@ -1,4 +1,8 @@
 from abmforge.experiment.archive import ExperimentArchive
+from abmforge.experiment.archive_loader import (
+    load_archive_run_records,
+    load_archive_runs,
+)
 from abmforge.experiment.experiment import Experiment, ExperimentResult
 from abmforge.experiment.parameter_grid import ParameterGrid
 from abmforge.experiment.registry import ExperimentRegistry
@@ -21,4 +25,6 @@ __all__ = [
     "RunIndex",
     "RUN_INDEX_SCHEMA_VERSION",
     "Scenario",
+    "load_archive_runs",
+    "load_archive_run_records",
 ]
