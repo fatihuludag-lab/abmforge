@@ -5,7 +5,9 @@ from abmforge.experiment.archive_loader import (
 )
 from abmforge.experiment.archive_summary import (
     summarize_archive_runs,
+    summarize_archive_runs_by,
     summarize_run_records,
+    summarize_run_records_by,
 )
 from abmforge.experiment.experiment import Experiment, ExperimentResult
 from abmforge.experiment.parameter_grid import ParameterGrid
@@ -46,5 +48,7 @@ __all__ = [
     "load_archive_runs",
     "summarize_run_records",
     "summarize_archive_runs",
+    "summarize_run_records_by",
+    "summarize_archive_runs_by",
     "load_archive_run_records",
 ]

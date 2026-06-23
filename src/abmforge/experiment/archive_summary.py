@@ -17,6 +17,15 @@ def summarize_archive_runs(path: str | Path) -> dict[str, Any]:
     return summarize_run_records(load_archive_run_records(path))
 
 
+def summarize_archive_runs_by(
+    path: str | Path,
+    *,
+    by: str | Iterable[str],
+) -> dict[str, Any]:
+    """Summarize archive-level run metadata grouped by one or more fields."""
+    return summarize_run_records_by(load_archive_run_records(path), by=by)
+
+
 def summarize_run_records(records: Iterable[Mapping[str, Any]]) -> dict[str, Any]:
     """Summarize run metadata records."""
     materialized = [dict(record) for record in records]
@@ -34,6 +43,37 @@ def summarize_run_records(records: Iterable[Mapping[str, Any]]) -> dict[str, Any
         "model_counts": model_counts,
         "seed_count": _unique_count(materialized, "seed"),
         "step_summary": _numeric_summary(materialized, "steps"),
+    }
+
+
+def summarize_run_records_by(
+    records: Iterable[Mapping[str, Any]],
+    *,
+    by: str | Iterable[str],
+) -> dict[str, Any]:
+    """Summarize run metadata records grouped by one or more fields."""
+    group_fields = _normalize_group_fields(by)
+    materialized = [dict(record) for record in records]
+
+    grouped: dict[tuple[str, ...], list[dict[str, Any]]] = {}
+
+    for record in materialized:
+        group_key = tuple(_group_value(record.get(field)) for field in group_fields)
+        grouped.setdefault(group_key, []).append(record)
+
+    groups = []
+    for group_key, group_records in sorted(grouped.items(), key=lambda item: item[0]):
+        groups.append(
+            {
+                "key": dict(zip(group_fields, group_key, strict=True)),
+                "summary": summarize_run_records(group_records),
+            }
+        )
+
+    return {
+        "group_by": list(group_fields),
+        "group_count": len(groups),
+        "groups": groups,
     }
 
 
@@ -84,3 +124,32 @@ def _as_float(value: Any) -> float | None:
         return float(value)
     except (TypeError, ValueError):
         return None
+
+
+def _normalize_group_fields(by: str | Iterable[str]) -> tuple[str, ...]:
+    group_fields: tuple[str, ...]
+
+    if isinstance(by, str):
+        group_fields = (by,)
+    else:
+        try:
+            group_fields = tuple(by)
+        except TypeError as exc:
+            raise TypeError("by must be a field name or an iterable of field names") from exc
+
+    if not group_fields:
+        raise ValueError("by must contain at least one field")
+
+    for field in group_fields:
+        if not isinstance(field, str):
+            raise TypeError("group fields must be strings")
+        if not field:
+            raise ValueError("group fields must be non-empty strings")
+
+    return group_fields
+
+
+def _group_value(value: Any) -> str:
+    if value is None:
+        return "<missing>"
+    return str(value)
