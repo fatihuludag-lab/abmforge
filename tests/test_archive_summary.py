@@ -1,55 +1,151 @@
+from pathlib import Path
+
 from abmforge.data.dataset import Dataset
-from abmforge.experiment.archive import ExperimentArchive
-from abmforge.experiment.summary import format_archive_summary, summarize_archive
+from abmforge.experiment import (
+    ExperimentArchive,
+    summarize_archive_runs,
+    summarize_run_records,
+)
 
 
-def _make_dataset() -> Dataset:
-    dataset = Dataset(run_id="run-1")
+def _dataset_with_runs() -> Dataset:
+    dataset = Dataset(run_id="run-001")
     dataset.add_run(
-        run_id="run-1",
-        scenario="summary_scenario",
-        model_name="SummaryModel",
-        parameters={"x": 1},
-        seed=42,
+        run_id="run-001",
+        scenario="baseline",
+        model_name="ToyModel",
+        parameters={"alpha": 0.2},
+        seed=1,
         status="completed",
+        started_at="2026-06-22T10:00:00+00:00",
+        ended_at="2026-06-22T10:00:01+00:00",
+        steps=5,
+        stop_reason=None,
     )
-    dataset.record_model(step=0, time=0.0, metric="count", value=1)
+    dataset.add_run(
+        run_id="run-002",
+        scenario="baseline",
+        model_name="ToyModel",
+        parameters={"alpha": 0.2},
+        seed=2,
+        status="completed",
+        started_at="2026-06-22T10:01:00+00:00",
+        ended_at="2026-06-22T10:01:01+00:00",
+        steps=10,
+        stop_reason=None,
+    )
+    dataset.add_run(
+        run_id="run-003",
+        scenario="policy",
+        model_name="ToyModel",
+        parameters={"alpha": 0.5},
+        seed=3,
+        status="failed",
+        started_at="2026-06-22T10:02:00+00:00",
+        ended_at="2026-06-22T10:02:01+00:00",
+        steps=3,
+        stop_reason="error",
+    )
     return dataset
 
 
-def test_summarize_archive_returns_manifest_and_file_counts(tmp_path) -> None:
-    dataset = _make_dataset()
+def test_summarize_run_records_counts_status_scenario_model_and_steps() -> None:
+    records = [
+        {
+            "run_id": "run-001",
+            "scenario": "baseline",
+            "model_name": "ToyModel",
+            "seed": 1,
+            "status": "completed",
+            "steps": 5,
+        },
+        {
+            "run_id": "run-002",
+            "scenario": "baseline",
+            "model_name": "ToyModel",
+            "seed": 2,
+            "status": "completed",
+            "steps": 10,
+        },
+        {
+            "run_id": "run-003",
+            "scenario": "policy",
+            "model_name": "ToyModel",
+            "seed": 3,
+            "status": "failed",
+            "steps": 3,
+        },
+    ]
 
+    summary = summarize_run_records(records)
+
+    assert summary == {
+        "run_count": 3,
+        "completed_count": 2,
+        "failed_count": 1,
+        "status_counts": {"completed": 2, "failed": 1},
+        "scenario_counts": {"baseline": 2, "policy": 1},
+        "model_counts": {"ToyModel": 3},
+        "seed_count": 3,
+        "step_summary": {
+            "count": 3,
+            "min": 3.0,
+            "max": 10.0,
+            "mean": 6.0,
+        },
+    }
+
+
+def test_summarize_run_records_handles_empty_records() -> None:
+    summary = summarize_run_records([])
+
+    assert summary == {
+        "run_count": 0,
+        "completed_count": 0,
+        "failed_count": 0,
+        "status_counts": {},
+        "scenario_counts": {},
+        "model_counts": {},
+        "seed_count": 0,
+        "step_summary": {
+            "count": 0,
+            "min": None,
+            "max": None,
+            "mean": None,
+        },
+    }
+
+
+def test_summarize_archive_runs_uses_archive_run_metadata(tmp_path: Path) -> None:
+    dataset = _dataset_with_runs()
     archive = ExperimentArchive.create(tmp_path / "archive")
-    archive.write_run_outputs(dataset, format="json")
 
-    summary = summarize_archive(archive.path)
+    archive.write_run_outputs(dataset)
 
-    assert summary["valid"] is True
-    assert summary["run_id"] == "run-1"
-    assert summary["status"] == "completed"
-    assert summary["scenario"] == "summary_scenario"
-    assert summary["model_name"] == "SummaryModel"
-    assert summary["seed"] == 42
+    summary = summarize_archive_runs(archive.path)
 
-    assert summary["record_counts"]["manifest"]["runs"] == 1
-    assert summary["record_counts"]["manifest"]["model_records"] == 1
+    assert summary["run_count"] == 3
+    assert summary["completed_count"] == 2
+    assert summary["failed_count"] == 1
+    assert summary["status_counts"] == {"completed": 2, "failed": 1}
+    assert summary["scenario_counts"] == {"baseline": 2, "policy": 1}
+    assert summary["model_counts"] == {"ToyModel": 3}
+    assert summary["seed_count"] == 3
+    assert summary["step_summary"] == {
+        "count": 3,
+        "min": 3.0,
+        "max": 10.0,
+        "mean": 6.0,
+    }
 
-    assert summary["record_counts"]["files"]["runs"] == 1
-    assert summary["record_counts"]["files"]["model_records"] == 1
 
-
-def test_format_archive_summary_contains_key_fields(tmp_path) -> None:
-    dataset = _make_dataset()
-
+def test_experiment_archive_summarize_runs_method(tmp_path: Path) -> None:
+    dataset = _dataset_with_runs()
     archive = ExperimentArchive.create(tmp_path / "archive")
-    archive.write_run_outputs(dataset, format="json")
 
-    summary = summarize_archive(archive.path)
-    text = format_archive_summary(summary)
+    archive.write_run_outputs(dataset)
 
-    assert "ABMForge archive summary" in text
-    assert "Valid: yes" in text
-    assert "run_id: run-1" in text
-    assert "model_name: SummaryModel" in text
-    assert "model_records" in text
+    summary = archive.summarize_runs()
+
+    assert summary["run_count"] == 3
+    assert summary["status_counts"] == {"completed": 2, "failed": 1}
