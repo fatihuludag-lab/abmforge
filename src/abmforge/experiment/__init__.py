@@ -17,6 +17,11 @@ from abmforge.experiment.run_index import (
     RunIndexEntry,
 )
 from abmforge.experiment.scenario import Scenario
+from abmforge.experiment.seed_sequence import (
+    DEFAULT_MAX_SEED,
+    SEED_SEQUENCE_VERSION,
+    SeedSequence,
+)
 
 __all__ = [
     "Experiment",
@@ -29,6 +34,9 @@ __all__ = [
     "RunIndex",
     "RUN_INDEX_SCHEMA_VERSION",
     "Scenario",
+    "SeedSequence",
+    "SEED_SEQUENCE_VERSION",
+    "DEFAULT_MAX_SEED",
     "load_archive_runs",
     "summarize_run_records",
     "summarize_archive_runs",
