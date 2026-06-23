@@ -11,6 +11,7 @@ from uuid import uuid4
 from abmforge.data.dataset import Dataset
 from abmforge.data.storage.parquet import ParquetStorage
 from abmforge.experiment.archive_loader import load_archive_runs
+from abmforge.experiment.archive_summary import summarize_archive_runs
 from abmforge.experiment.registry import ExperimentRegistry
 from abmforge.experiment.run_index import RunIndex
 
@@ -168,6 +169,10 @@ class ExperimentArchive:
         installed, returns a list of dictionaries.
         """
         return load_archive_runs(self.path)
+
+    def summarize_runs(self) -> dict[str, Any]:
+        """Summarize archived run metadata."""
+        return summarize_archive_runs(self.path)
 
     def ensure_registry(self) -> ExperimentRegistry:
         """Read the archive registry, creating it if necessary."""

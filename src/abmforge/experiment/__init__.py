@@ -3,6 +3,10 @@ from abmforge.experiment.archive_loader import (
     load_archive_run_records,
     load_archive_runs,
 )
+from abmforge.experiment.archive_summary import (
+    summarize_archive_runs,
+    summarize_run_records,
+)
 from abmforge.experiment.experiment import Experiment, ExperimentResult
 from abmforge.experiment.parameter_grid import ParameterGrid
 from abmforge.experiment.registry import ExperimentRegistry
@@ -26,5 +30,7 @@ __all__ = [
     "RUN_INDEX_SCHEMA_VERSION",
     "Scenario",
     "load_archive_runs",
+    "summarize_run_records",
+    "summarize_archive_runs",
     "load_archive_run_records",
 ]
