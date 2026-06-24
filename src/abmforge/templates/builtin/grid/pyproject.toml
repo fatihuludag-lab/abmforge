@@ -1,0 +1,17 @@
+[project]
+name = "{{ project_slug }}"
+version = "0.1.0"
+description = "An ABMForge study project."
+requires-python = ">=3.10"
+dependencies = [
+    "abmforge",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

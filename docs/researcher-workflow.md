@@ -1,0 +1,80 @@
+# Researcher workflow
+
+ABMForge can be used as a Python framework, but research users often need a
+project workflow before they need advanced framework extension points.
+
+The researcher workflow starts from a generated study project:
+
+```bash
+abmforge new my-study --template grid
+cd my-study
+abmforge run configs/baseline.yaml --archive outputs/baseline --overwrite
+```
+
+The generated project separates scientific model code from configuration and
+outputs:
+
+```text
+configs/
+  baseline.yaml
+  experiment.yaml
+model/
+  agents.py
+  model.py
+scripts/
+  run_baseline.py
+tests/
+  test_smoke.py
+outputs/
+```
+
+The initial template is intentionally small. It is designed to show the
+minimum research workflow:
+
+1. define agent behavior;
+2. define model setup, scheduler, space, and recorders;
+3. run a scenario YAML file;
+4. write a reproducible ABMForge archive;
+5. validate and summarize the output.
+
+## Create a project
+
+```bash
+abmforge new demo-study --template grid
+```
+
+Existing non-empty directories are not overwritten by default. Use
+`--force` only when you intentionally want to recreate the project:
+
+```bash
+abmforge new demo-study --template grid --force
+```
+
+## Run the baseline
+
+```bash
+cd demo-study
+abmforge run configs/baseline.yaml --archive outputs/baseline --overwrite
+```
+
+## Validate the archive
+
+```bash
+abmforge validate outputs/baseline
+```
+
+## Summarize the archive
+
+```bash
+abmforge summarize outputs/baseline
+```
+
+## Current scope
+
+The first researcher workflow layer only adds project scaffolding. Future
+layers are expected to add:
+
+- experiment YAML execution;
+- automatic report generation;
+- additional built-in templates;
+- optional plotting and notebook helpers.
