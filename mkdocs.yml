@@ -39,3 +39,4 @@ nav:
   - Recording Data: recording.md
   - Reference Reproducible Workflow: reference-reproducible-workflow.md
   - Reproducibility Tiers: reproducibility-tiers.md
+  - Experiment YAML: experiment-yaml.md

@@ -57,6 +57,16 @@ cd demo-study
 abmforge run configs/baseline.yaml --archive outputs/baseline --overwrite
 ```
 
+## Run a multi-run experiment
+
+```bash
+abmforge experiment configs/experiment.yaml --archive outputs/experiment --overwrite
+```
+
+This reads the generated `configs/experiment.yaml`, expands the parameter grid,
+runs each seed, writes combined CSV tables, and creates a compact experiment
+summary under `outputs/experiment/reports/`.
+
 ## Validate the archive
 
 ```bash

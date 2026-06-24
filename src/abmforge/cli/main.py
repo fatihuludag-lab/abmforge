@@ -8,6 +8,7 @@ from pathlib import Path
 
 import abmforge
 from abmforge.experiment.archive import ExperimentArchive
+from abmforge.experiment.config import ExperimentConfig, write_experiment_outputs
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.scenario import Scenario
 from abmforge.experiment.summary import format_archive_summary, summarize_archive
@@ -136,6 +137,30 @@ def build_parser() -> argparse.ArgumentParser:
         help="Exit with status 0 even if the model run fails",
     )
 
+    experiment_parser = subparsers.add_parser(
+        "experiment",
+        help="Run a multi-run experiment YAML file",
+    )
+    experiment_parser.add_argument(
+        "config",
+        help="Path to an experiment YAML file",
+    )
+    experiment_parser.add_argument(
+        "--archive",
+        required=True,
+        help="Output directory for the ABMForge experiment results",
+    )
+    experiment_parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Overwrite the experiment output directory if it already exists",
+    )
+    experiment_parser.add_argument(
+        "--continue-on-error",
+        action="store_true",
+        help="Continue running remaining scenarios if one run fails",
+    )
+
     validate_parser = subparsers.add_parser(
         "validate",
         help="Validate an experiment archive",
@@ -228,6 +253,41 @@ def main(argv: Sequence[str] | None = None) -> None:
         if result.status == "failed" and not args.allow_failed:
             raise SystemExit(1)
 
+        return
+
+    if args.command == "experiment":
+        config_path = Path(args.config).resolve()
+
+        for import_path in (Path.cwd().resolve(), config_path.parent):
+            import_path_str = str(import_path)
+            if import_path_str not in sys.path:
+                sys.path.insert(0, import_path_str)
+
+        try:
+            config = ExperimentConfig.from_yaml(config_path)
+        except ValueError as exc:
+            print("Experiment configuration validation failed:")
+            print(f"- {exc}")
+            raise SystemExit(2) from exc
+
+        try:
+            experiment_result = config.to_experiment(continue_on_error=args.continue_on_error).run()
+            output_path = write_experiment_outputs(
+                experiment_result,
+                config,
+                config_path,
+                args.archive,
+                overwrite=args.overwrite,
+            )
+        except FileExistsError as exc:
+            print("Experiment output failed:")
+            print(f"- {exc}")
+            raise SystemExit(1) from exc
+
+        print(f"Experiment completed: {config.name or 'unnamed'}")
+        print(f"Runs expected: {len(config.seeds)} seed(s) x parameter grid")
+        print(f"Output written: {output_path}")
+        print(f"Summary written: {output_path / 'reports' / 'experiment_summary.json'}")
         return
 
     if args.command == "summarize":
