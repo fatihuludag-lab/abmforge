@@ -12,6 +12,7 @@ from abmforge.experiment.config import ExperimentConfig, write_experiment_output
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.scenario import Scenario
 from abmforge.experiment.summary import format_archive_summary, summarize_archive
+from abmforge.reporting import generate_experiment_report
 from abmforge.templates import (
     ProjectExistsError,
     TemplateError,
@@ -179,6 +180,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print summary as JSON",
     )
 
+    report_parser = subparsers.add_parser(
+        "report",
+        help="Generate a researcher report from experiment outputs",
+    )
+    report_parser.add_argument(
+        "path",
+        help="Path to an ABMForge experiment output directory",
+    )
+
     return parser
 
 
@@ -288,6 +298,21 @@ def main(argv: Sequence[str] | None = None) -> None:
         print(f"Runs expected: {len(config.seeds)} seed(s) x parameter grid")
         print(f"Output written: {output_path}")
         print(f"Summary written: {output_path / 'reports' / 'experiment_summary.json'}")
+        return
+
+    if args.command == "report":
+        try:
+            report = generate_experiment_report(Path(args.path))
+        except (FileNotFoundError, ValueError) as exc:
+            print("Report generation failed:")
+            print(f"- {exc}")
+            raise SystemExit(1) from exc
+
+        print(f"Report written: {report.output_dir / 'reports'}")
+        print(f"- summary: {report.summary_markdown}")
+        print(f"- metric summary: {report.metric_summary_csv}")
+        print(f"- run status: {report.run_status_csv}")
+        print(f"- failed runs: {report.failed_runs_csv}")
         return
 
     if args.command == "summarize":
