@@ -67,6 +67,15 @@ This reads the generated `configs/experiment.yaml`, expands the parameter grid,
 runs each seed, writes combined CSV tables, and creates a compact experiment
 summary under `outputs/experiment/reports/`.
 
+## Generate a researcher report
+
+```bash
+abmforge report outputs/experiment
+```
+
+This creates `summary.md`, `metric_summary.csv`, `run_status.csv`, and
+`failed_runs.csv` under `outputs/experiment/reports/`.
+
 ## Validate the archive
 
 ```bash

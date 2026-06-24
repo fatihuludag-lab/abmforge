@@ -40,3 +40,4 @@ nav:
   - Reference Reproducible Workflow: reference-reproducible-workflow.md
   - Reproducibility Tiers: reproducibility-tiers.md
   - Experiment YAML: experiment-yaml.md
+  - Reporting: reporting.md
