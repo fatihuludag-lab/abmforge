@@ -22,3 +22,4 @@ global-exclude __pycache__
 global-exclude *.py[cod]
 global-exclude .DS_Store
 prune site
+recursive-include src/abmforge/templates/builtin *

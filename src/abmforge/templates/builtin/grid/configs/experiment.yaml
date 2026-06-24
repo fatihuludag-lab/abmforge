@@ -1,0 +1,22 @@
+name: grid-template-experiment
+
+model: model.model.GridTemplateModel
+
+base_parameters:
+  width: 20
+  height: 20
+  n_agents: 120
+  initial_wealth: 10
+
+experiment:
+  parameters:
+    transfer_probability: [0.20, 0.35, 0.50]
+  seeds:
+    count: 10
+    master_seed: 20260624
+
+run:
+  steps: 25
+
+outputs:
+  primary_metric: mean_wealth

@@ -11,15 +11,22 @@ from abmforge.experiment.archive import ExperimentArchive
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.scenario import Scenario
 from abmforge.experiment.summary import format_archive_summary, summarize_archive
+from abmforge.templates import (
+    ProjectExistsError,
+    TemplateError,
+    create_project,
+    list_templates,
+)
 
 _REPOSITORY_URL = "https://github.com/fatihuludag-lab/abmforge"
 _TITLE = "ABMForge: Reproducible Agent-Based Modelling in Python"
-_AUTHOR = "Fatih Uludağ"
+_AUTHOR = "Fatih Uluda?"
 _LICENSE = "Apache-2.0"
 
 
 def format_citation(citation_format: str = "text") -> str:
     """Return citation information for ABMForge."""
+
     if citation_format == "bibtex":
         return (
             "@software{uludag_abmforge_2026,\n"
@@ -49,6 +56,7 @@ def format_citation(citation_format: str = "text") -> str:
 
 def _write_run_summary(result: RunResult, archive: ExperimentArchive) -> Path:
     """Write a compact machine-readable run summary into the archive."""
+
     summary = {
         "run_id": result.run_id,
         "status": result.status,
@@ -64,6 +72,7 @@ def _write_run_summary(result: RunResult, archive: ExperimentArchive) -> Path:
 
 def build_parser() -> argparse.ArgumentParser:
     """Build the ABMForge command-line parser."""
+
     parser = argparse.ArgumentParser(prog="abmforge")
     parser.add_argument("--version", action="store_true", help="Show package version")
 
@@ -77,6 +86,24 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["text", "bibtex"],
         default="text",
         help="Citation output format",
+    )
+
+    template_choices = [template.name for template in list_templates()]
+    new_parser = subparsers.add_parser(
+        "new",
+        help="Create a new ABMForge study project from a built-in template",
+    )
+    new_parser.add_argument("path", help="Project directory to create")
+    new_parser.add_argument(
+        "--template",
+        choices=template_choices,
+        default="grid",
+        help="Built-in project template",
+    )
+    new_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite the project directory if it already exists",
     )
 
     run_parser = subparsers.add_parser(
@@ -119,7 +146,7 @@ def build_parser() -> argparse.ArgumentParser:
         "summarize",
         help="Summarize an experiment archive",
     )
-    summarize_parser.add_argument("path", help="Path to an ABMForge experiment archive")
+    summarize_parser.add_argument("path", help="Path to an experiment archive")
     summarize_parser.add_argument(
         "--json",
         action="store_true",
@@ -132,6 +159,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> None:
     """Run the ABMForge command-line interface."""
+
     parser = build_parser()
     args = parser.parse_args(argv)
 
@@ -147,6 +175,26 @@ def main(argv: Sequence[str] | None = None) -> None:
 
     if args.command == "cite":
         print(format_citation(args.format))
+        return
+
+    if args.command == "new":
+        try:
+            project_path = create_project(
+                args.path,
+                template=args.template,
+                force=args.force,
+            )
+        except (ProjectExistsError, TemplateError) as exc:
+            print("Project creation failed:", file=sys.stderr)
+            print(f"- {exc}", file=sys.stderr)
+            raise SystemExit(1) from exc
+
+        print(f"Created ABMForge project: {project_path}")
+        print(f"Template: {args.template}")
+        print()
+        print("Next steps:")
+        print(f"  cd {project_path}")
+        print("  abmforge run configs/baseline.yaml --archive outputs/baseline --overwrite")
         return
 
     if args.command == "run":
@@ -200,6 +248,7 @@ def main(argv: Sequence[str] | None = None) -> None:
             print("Archive validation failed:")
             for error in errors:
                 print(f"- {error}")
+
             raise SystemExit(1)
 
         print("Archive validation passed")

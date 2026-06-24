@@ -88,7 +88,15 @@ abmforge = "abmforge.cli.main:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-abmforge = ["py.typed"]
+abmforge = [
+    "py.typed",
+    "templates/builtin/*/*",
+    "templates/builtin/*/configs/*",
+    "templates/builtin/*/model/*.py",
+    "templates/builtin/*/outputs/*",
+    "templates/builtin/*/scripts/*.py",
+    "templates/builtin/*/tests/*.py",
+]
 
 [tool.ruff]
 line-length = 100
@@ -104,6 +112,7 @@ testpaths = ["tests"]
 addopts = "-q"
 
 [tool.mypy]
+exclude = ["^src[\\\\/]abmforge[\\\\/]templates[\\\\/]builtin[\\\\/]"]
 python_version = "3.10"
 packages = ["abmforge"]
 disallow_untyped_defs = true
