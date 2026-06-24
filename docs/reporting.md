@@ -13,6 +13,8 @@ The command writes files under `outputs/experiment/reports/`:
 ```text
 summary.md
 metric_summary.csv
+parameter_effects.csv
+primary_metric_rankings.csv
 run_status.csv
 failed_runs.csv
 ```
@@ -21,10 +23,20 @@ failed_runs.csv
 
 `summary.md` is a human-readable overview of the experiment name, model,
 number of seeds, expected run count, run statuses, final model metric
-summaries, and failed or non-completed runs.
+summaries, primary-metric rankings, key findings, and failed or
+non-completed runs.
 
 `metric_summary.csv` summarizes the final numeric model metric value for
 each run. It reports run count, mean, minimum, and maximum by metric.
+
+`parameter_effects.csv` summarizes the configured primary metric by
+parameter value. It reports run count, mean, minimum, maximum, and difference
+from the overall primary-metric mean.
+
+`primary_metric_rankings.csv` ranks full parameter combinations from lowest
+to highest mean value for the configured primary metric. Lower is not always
+better; interpret this ranking according to the scientific meaning of the
+metric.
 
 `run_status.csv` counts runs by status.
 
@@ -32,7 +44,7 @@ each run. It reports run count, mean, minimum, and maximum by metric.
 
 ## Current scope
 
-The first reporting layer is intentionally lightweight. It does not replace
+The reporting layer is intentionally lightweight. It does not replace
 statistical analysis or publication-quality visualization. It provides a
 reproducible starting point for inspecting experiment outputs before deeper
 analysis.
