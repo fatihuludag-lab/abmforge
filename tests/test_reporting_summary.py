@@ -24,9 +24,9 @@ def _write_demo_output(root: Path) -> None:
         encoding="utf-8",
     )
     (root / "data" / "runs.csv").write_text(
-        "run_id,status,error,exception_type\n"
-        "run-1,completed,,\n"
-        "run-2,failed,bad run,RuntimeError\n",
+        "run_id,status,parameters,error,exception_type\n"
+        'run-1,completed,"{""transfer_probability"": 0.2}",,\n'
+        'run-2,failed,"{""transfer_probability"": 0.5}",bad run,RuntimeError\n',
         encoding="utf-8",
     )
     (root / "data" / "model_records.csv").write_text(
@@ -52,15 +52,27 @@ def test_generate_experiment_report_writes_summary_files(tmp_path: Path) -> None
     assert report.metric_summary_csv.exists()
     assert report.run_status_csv.exists()
     assert report.failed_runs_csv.exists()
+    assert report.parameter_effects_csv.exists()
+    assert report.primary_metric_rankings_csv.exists()
 
     summary_text = report.summary_markdown.read_text(encoding="utf-8")
     assert "ABMForge experiment report" in summary_text
+    assert "Key findings" in summary_text
     assert "total_value" in summary_text
     assert "failed or non-completed" in summary_text
+    assert "Primary metric parameter rankings" in summary_text
 
     metric_summary = report.metric_summary_csv.read_text(encoding="utf-8")
     assert "metric,run_count,mean,min,max" in metric_summary
     assert "total_value,2,7,6,8" in metric_summary
+
+    parameter_effects = report.parameter_effects_csv.read_text(encoding="utf-8")
+    assert "parameter,value,run_count,mean,min,max,difference_from_overall" in parameter_effects
+    assert "transfer_probability" in parameter_effects
+
+    rankings = report.primary_metric_rankings_csv.read_text(encoding="utf-8")
+    assert "rank_low_to_high,parameter_combination,run_count,mean,min,max" in rankings
+    assert "transfer_probability" in rankings
 
     failed_runs = report.failed_runs_csv.read_text(encoding="utf-8")
     assert "run-2" in failed_runs

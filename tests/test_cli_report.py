@@ -42,3 +42,5 @@ def test_cli_report_runs_on_scaffolded_experiment(tmp_path, monkeypatch) -> None
     assert (output / "metric_summary.csv").exists()
     assert (output / "run_status.csv").exists()
     assert (output / "failed_runs.csv").exists()
+    assert (output / "parameter_effects.csv").exists()
+    assert (output / "primary_metric_rankings.csv").exists()

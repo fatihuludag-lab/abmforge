@@ -313,6 +313,8 @@ def main(argv: Sequence[str] | None = None) -> None:
         print(f"- metric summary: {report.metric_summary_csv}")
         print(f"- run status: {report.run_status_csv}")
         print(f"- failed runs: {report.failed_runs_csv}")
+        print(f"- parameter effects: {report.parameter_effects_csv}")
+        print(f"- primary metric rankings: {report.primary_metric_rankings_csv}")
         return
 
     if args.command == "summarize":
