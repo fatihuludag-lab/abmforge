@@ -9,6 +9,7 @@ from abmforge.experiment.archive_summary import (
     summarize_run_records,
     summarize_run_records_by,
 )
+from abmforge.experiment.config import ExperimentConfig, write_experiment_outputs
 from abmforge.experiment.experiment import Experiment, ExperimentResult
 from abmforge.experiment.parameter_grid import ParameterGrid
 from abmforge.experiment.registry import ExperimentRegistry
@@ -31,8 +32,10 @@ from abmforge.experiment.seed_sequence import (
 
 __all__ = [
     "Experiment",
+    "ExperimentConfig",
     "ExperimentArchive",
     "ExperimentResult",
+    "write_experiment_outputs",
     "ExperimentRegistry",
     "ParameterGrid",
     "ReplicatePlanEntry",
