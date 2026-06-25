@@ -1,0 +1,23 @@
+name: network-template-experiment
+
+model: model.model.NetworkTemplateModel
+
+base_parameters:
+  n_agents: 80
+  initial_adoption_share: 0.10
+  threshold_sd: 0.10
+  shortcut_probability: 0.04
+
+experiment:
+  parameters:
+    threshold_mean: [0.25, 0.35, 0.45]
+    broadcast_probability: [0.00, 0.02]
+  seeds:
+    count: 5
+    master_seed: 20260625
+
+run:
+  steps: 40
+
+outputs:
+  primary_metric: adoption_rate

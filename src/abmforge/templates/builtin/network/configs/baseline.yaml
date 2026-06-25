@@ -1,0 +1,15 @@
+name: network-template-baseline
+
+model: model.model.NetworkTemplateModel
+
+parameters:
+  n_agents: 80
+  initial_adoption_share: 0.10
+  threshold_mean: 0.35
+  threshold_sd: 0.10
+  shortcut_probability: 0.04
+  broadcast_probability: 0.01
+
+run:
+  seed: 42
+  steps: 40

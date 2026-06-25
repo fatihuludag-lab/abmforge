@@ -18,6 +18,7 @@ def test_cli_templates_lists_builtin_templates(capsys) -> None:
 
     assert "Available ABMForge project templates" in captured.out
     assert "- grid:" in captured.out
+    assert "- network:" in captured.out
     assert "abmforge new my-study --template <template>" in captured.out
 
 
@@ -31,5 +32,9 @@ def test_cli_templates_json_output(capsys) -> None:
         {
             "name": "grid",
             "description": "Minimal grid-based ABM study template for researcher workflows.",
-        }
+        },
+        {
+            "name": "network",
+            "description": "Network-based diffusion ABM study template for researcher workflows.",
+        },
     ]
