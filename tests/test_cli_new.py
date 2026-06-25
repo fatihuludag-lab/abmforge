@@ -20,8 +20,11 @@ def test_build_parser_includes_new_command() -> None:
 def test_list_templates_contains_grid() -> None:
     templates = list_templates()
 
-    assert [template.name for template in templates] == ["grid"]
-    assert templates[0].description
+    names = [template.name for template in templates]
+
+    assert "grid" in names
+    assert "network" in names
+    assert all(template.description for template in templates)
 
 
 def test_create_grid_project(tmp_path) -> None:
