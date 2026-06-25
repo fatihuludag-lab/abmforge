@@ -24,6 +24,7 @@ The current ABMForge ODD support is intentionally conservative:
 
 Use `ODDDocument` from the public ABMForge API:
 
+<!-- abmforge:execute-python -->
 ```python
 from abmforge import Model, ODDDocument
 

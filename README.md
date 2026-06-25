@@ -121,6 +121,7 @@ pip install -e ".[all]"
 
 ## Quick example
 
+<!-- abmforge:execute-python -->
 ```python
 from abmforge import Agent, Model, Scenario
 from abmforge.scheduling import RandomActivation
