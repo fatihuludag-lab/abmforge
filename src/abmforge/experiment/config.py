@@ -3,7 +3,6 @@ from __future__ import annotations
 import importlib
 import json
 import random
-import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
@@ -11,6 +10,8 @@ from typing import Any, cast
 import yaml
 
 from abmforge.core.model import Model
+from abmforge.data.dataset import Dataset
+from abmforge.experiment.archive import ExperimentArchive
 from abmforge.experiment.experiment import Experiment, ExperimentResult
 
 
@@ -116,28 +117,23 @@ def write_experiment_outputs(
     *,
     overwrite: bool = False,
 ) -> Path:
-    """Write a lightweight multi-run experiment output directory."""
+    """Write a multi-run experiment archive.
 
-    target = Path(output_dir)
+    The archive uses the same top-level contract as single-run archives:
+    manifest, dataset schema, run index, copied configuration, and data tables.
 
-    if target.exists() and any(target.iterdir()):
-        if not overwrite:
-            raise FileExistsError(
-                "Experiment output directory already exists and is not empty: "
-                f"{target}. Use --overwrite to replace it."
-            )
-        shutil.rmtree(target)
+    CSV tables are also written into ``data/`` to preserve compatibility with
+    the current researcher-facing report generator.
+    """
 
-    configs_dir = target / "configs"
-    data_dir = target / "data"
-    reports_dir = target / "reports"
+    archive = ExperimentArchive.create(output_dir, overwrite=overwrite)
+    archive.write_scenario_file(config_path, filename="experiment.yaml")
 
-    configs_dir.mkdir(parents=True, exist_ok=True)
-    data_dir.mkdir(parents=True, exist_ok=True)
-    reports_dir.mkdir(parents=True, exist_ok=True)
+    dataset = _combined_experiment_dataset(result, config)
+    archive.write_run_outputs(dataset, format="json")
 
-    shutil.copy2(config_path, configs_dir / "experiment.yaml")
-    result.write_csv(data_dir)
+    # Keep CSV outputs for researcher reports and spreadsheet-friendly review.
+    result.write_csv(archive.data_dir)
 
     summary = {
         "name": config.name,
@@ -149,21 +145,43 @@ def write_experiment_outputs(
         "parameters": config.parameters,
         "primary_metric": config.primary_metric,
         "result_summary": _safe_summary(result),
+        "archive_format": "experiment-archive-v1",
+        "data_format": "json",
+        "csv_compatibility_outputs": True,
     }
 
-    summary_path = reports_dir / "experiment_summary.json"
+    summary_path = archive.reports_dir / "experiment_summary.json"
     summary_path.write_text(
         json.dumps(summary, indent=2, default=str),
         encoding="utf-8",
     )
 
-    readme_path = reports_dir / "README_RESULTS.md"
+    readme_path = archive.reports_dir / "README_RESULTS.md"
     readme_path.write_text(
         _format_results_readme(config, summary_path),
         encoding="utf-8",
     )
 
-    return target
+    return archive.path
+
+
+def _combined_experiment_dataset(
+    result: ExperimentResult,
+    config: ExperimentConfig,
+) -> Dataset:
+    """Return one Dataset containing all run outputs from an ExperimentResult."""
+
+    archive_run_id = f"experiment-{config.name or 'unnamed'}"
+    dataset = Dataset(run_id=archive_run_id)
+
+    dataset.runs = result.run_records()
+    dataset.model_records = result.model_records()
+    dataset.agent_records = result.agent_records()
+    dataset.event_records = result.event_records()
+    dataset.lifecycle_records = result.lifecycle_records()
+    dataset.errors = result.error_records()
+
+    return dataset
 
 
 def _import_model_class(path: str) -> type[Model]:

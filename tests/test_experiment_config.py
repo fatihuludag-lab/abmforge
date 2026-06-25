@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from abmforge.experiment.archive import ExperimentArchive
 from abmforge.experiment.config import ExperimentConfig, write_experiment_outputs
 
 
@@ -131,24 +132,19 @@ run:
 def test_experiment_config_runs_and_writes_outputs(tmp_path, monkeypatch) -> None:
     _write_demo_model(tmp_path)
     monkeypatch.syspath_prepend(str(tmp_path))
-
     path = tmp_path / "experiment.yaml"
     path.write_text(
         """
 name: demo-experiment
 model: study_model.DemoModel
-
 base_parameters:
   n: 4
-
 experiment:
   parameters:
     increment: [1, 2]
   seeds: [100, 101]
-
 run:
   steps: 3
-
 outputs:
   primary_metric: total_value
 """,
@@ -166,11 +162,22 @@ outputs:
 
     assert (output / "configs" / "experiment.yaml").exists()
     assert (output / "data").exists()
+    assert (output / "data" / "runs.json").exists()
+    assert (output / "data" / "runs.csv").exists()
+    assert (output / "manifest.json").exists()
+    assert (output / "dataset_schema.json").exists()
+    assert (output / "run_index.json").exists()
     assert (output / "reports" / "experiment_summary.json").exists()
     assert (output / "reports" / "README_RESULTS.md").exists()
+
+    archive = ExperimentArchive(output)
+    assert archive.validate() == []
+    assert len(archive.read_run_index().entries) == 4
 
     summary = json.loads(
         (output / "reports" / "experiment_summary.json").read_text(encoding="utf-8")
     )
     assert summary["run_count_expected"] == 4
     assert summary["primary_metric"] == "total_value"
+    assert summary["archive_format"] == "experiment-archive-v1"
+    assert summary["csv_compatibility_outputs"] is True
