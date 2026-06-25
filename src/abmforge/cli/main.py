@@ -22,7 +22,7 @@ from abmforge.templates import (
 
 _REPOSITORY_URL = "https://github.com/fatihuludag-lab/abmforge"
 _TITLE = "ABMForge: Reproducible Agent-Based Modelling in Python"
-_AUTHOR = "Fatih Uluda?"
+_AUTHOR = "Fatih Uludağ"
 _LICENSE = "Apache-2.0"
 
 

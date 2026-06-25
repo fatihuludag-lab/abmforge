@@ -47,3 +47,13 @@ def test_info_command_mentions_repository(capsys) -> None:  # type: ignore[no-un
 
     assert "ABMForge" in captured.out
     assert "Repository:" in captured.out
+
+
+def test_format_citation_preserves_unicode_author_name() -> None:
+    citation_text = format_citation("text")
+    citation_bibtex = format_citation("bibtex")
+
+    assert "Fatih Uludağ" in citation_text
+    assert "Fatih Uludağ" in citation_bibtex
+    assert "Fatih Uluda?" not in citation_text
+    assert "Fatih Uluda?" not in citation_bibtex

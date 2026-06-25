@@ -8,8 +8,8 @@ It is designed for researchers, educators, model developers, and Python users wh
 
 ABMForge focuses on four principles:
 
-1. **Reproducible by default**  
-   Model runs can be controlled with deterministic seeds and reproducibility metadata.
+1. **Reproducibility-oriented**
+   Model runs can be controlled with deterministic seeds and reproducibility metadata, while full reconstruction still depends on preserving source code, inputs, and environments.
 
 2. **Experiment-native**  
    Simulations are organized around scenarios, parameter grids, multi-seed experiments, and run results.
@@ -364,7 +364,7 @@ Near-term priorities:
 
 ABMForge aims to differentiate through:
 
-- reproducible scenario-based runs
+- auditable scenario-based runs
 - dataset-first outputs
 - experiment-native workflows
 - explicit event ownership

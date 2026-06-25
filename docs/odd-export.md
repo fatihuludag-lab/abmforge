@@ -1,119 +1,129 @@
 # ODD Export Specification
 
-**Status:** Draft
-**Version:** 1.0
+**Status:** Draft  
+**Version:** 1.0  
 **Applies to:** ABMForge >= 0.2.x
 
 ## Overview
 
-ABMForge supports exporting simulation models using the ODD (Overview, Design Concepts, Details) protocol.
+ABMForge provides a lightweight ODD-style documentation helper through
+`ODDDocument`.
 
-The ODD protocol improves:
+ODD stands for **Overview, Design Concepts, and Details**. It is commonly used
+to describe agent-based models in a structured and publication-friendly way.
 
-- Reproducibility
-- Transparency
-- Scientific communication
-- Model comparison
-- Publication readiness
+The current ABMForge ODD support is intentionally conservative:
 
-## Export Command
+- it creates a structured ODD skeleton;
+- it can inspect public model methods;
+- it exports Markdown and JSON;
+- it marks the document as requiring manual review;
+- it does not claim that the model is automatically complete, validated, or publication-ready.
+
+## Public API
+
+Use `ODDDocument` from the public ABMForge API:
 
 ```python
-from abmforge.export import export_odd
+from abmforge import Model, ODDDocument
 
-export_odd(model, "model_odd.md")
+
+class WealthModel(Model):
+    def setup(self) -> None:
+        self.population = 100
+
+    def step(self) -> None:
+        pass
+
+
+odd = ODDDocument.from_model(
+    WealthModel,
+    purpose="Document a simple wealth model.",
+    authors=["Fatih Uludağ"],
+    entities=["Household"],
+    scales={
+        "time": "discrete simulation step",
+        "space": "abstract population",
+    },
+    process_overview=[
+        "The model advances one discrete step at a time.",
+    ],
+    design_concepts={
+        "stochasticity": "The model may use controlled random number generation.",
+        "observation": "Model-level and agent-level outputs can be recorded.",
+    },
+    initialization=[
+        "The model initializes a fixed-size population.",
+    ],
+)
+
+odd.add_state_variable(
+    "Household",
+    "wealth",
+    description="Household wealth level.",
+    kind="float",
+    unit="abstract units",
+)
+
+odd.write_markdown("outputs/ODD.md")
+odd.write_json("outputs/ODD.json")
 ```
 
 ## ODD Structure
 
-### 1. Purpose
+ABMForge's ODD skeleton includes:
 
-Describes the goal of the model.
+1. Purpose
+2. Entities, state variables, and scales
+3. Process overview and scheduling
+4. Design concepts
+5. Initialization
+6. Input data
+7. Submodels
+8. Decision processes
+9. ABMForge model introspection
+10. Completeness checklist
 
-### 2. Entities, State Variables, and Scales
+## Manual Review Requirement
 
-Documents:
+Generated ODD files are skeleton documents. Authors should review and complete
+every section before using them in a thesis, article, technical report, or
+supplementary material.
 
-- Agent types
-- State variables
-- Environment
-- Temporal scale
-- Spatial scale
-
-### 3. Process Overview and Scheduling
-
-Describes:
-
-- Agent activation
-- Scheduling strategy
-- Event execution
-- Simulation lifecycle
-
-## Design Concepts
-
-- Basic principles
-- Emergence
-- Adaptation
-- Objectives
-- Learning
-- Prediction
-- Sensing
-- Interaction
-- Stochasticity
-- Collectives
-- Observation
-
-## Details
-
-### Initialization
-
-Initial model state.
-
-### Input Data
-
-External datasets used by the model.
-
-### Submodels
-
-Agent decision logic and sub-processes.
-
-## Metadata
-
-| Field | Description |
-|---------|-------------|
-| model_name | Model name |
-| model_version | Version |
-| abmforge_version | Framework version |
-| author | Author |
-| created_at | Creation timestamp |
+The ODD helper supports documentation. It does not replace scientific validation,
+calibration, sensitivity analysis, or methodological review.
 
 ## Output Formats
 
-Current:
-- Markdown (.md)
+Currently supported:
 
-Planned:
-- PDF
+- Markdown
+- JSON
+
+Planned or future formats may include:
+
 - HTML
-- JATS XML
+- PDF
+- journal-specific templates
 
-## Example
+## Recommended Workflow
 
-```python
-odd_text = model.to_odd()
-
-with open("model_odd.md", "w") as f:
-    f.write(odd_text)
+```text
+model class
+    ↓
+ODDDocument.from_model(...)
+    ↓
+manual review and completion
+    ↓
+ODD.md / ODD.json
+    ↓
+experiment archive or publication supplement
 ```
-
-## Future Extensions
-
-- Automatic diagram generation
-- UML export
-- Network visualization export
-- Publication-ready templates
-- Journal-specific ODD templates
 
 ## Versioning
 
-odd_version=1.0
+Current schema version:
+
+```text
+abmforge.odd.v1
+```
