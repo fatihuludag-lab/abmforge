@@ -1,0 +1,21 @@
+name: threshold-adoption-reproducible-study
+model: model.ThresholdAdoptionModel
+
+base_parameters:
+  population: 40
+  initial_adoption_rate: 0.10
+  peer_sample_size: 5
+  threshold_jitter: 0.04
+  advertising: 0.05
+
+experiment:
+  parameters:
+    peer_influence: [0.60, 0.90]
+    adoption_threshold: [0.25, 0.35]
+  seeds: [101, 202]
+
+run:
+  steps: 12
+
+outputs:
+  primary_metric: adoption_share
