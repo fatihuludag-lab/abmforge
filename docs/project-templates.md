@@ -23,6 +23,7 @@ abmforge new my-study --template grid
 abmforge new network-study --template network
 abmforge new epidemic-study --template epidemic
 abmforge new segregation-study --template segregation
+abmforge new policy-study --template policy
 ```
 
 ## Built-in templates
@@ -45,9 +46,6 @@ Individuals can be susceptible, infected, or recovered. Susceptible individuals
 can become infected through nearby infected neighbors; infected individuals
 recover with a configurable probability.
 
-The generated experiment varies infection probability, recovery probability, and
-contact radius. Its primary metric is `attack_rate`.
-
 ### `segregation`
 
 The `segregation` template is a minimal Schelling-style spatial segregation
@@ -55,8 +53,15 @@ model on a `GridWorld`. Residents belong to one of two groups. They evaluate
 local similarity, become unhappy below a homophily threshold, and relocate to
 empty cells.
 
-The generated experiment varies `homophily_threshold`. Its primary metric is
-`mean_similarity`.
+### `policy`
+
+The `policy` template is a minimal intervention study on a `GridWorld`.
+Residents differ in risk level. A policy assigns an intervention either randomly
+or by risk priority. Treated residents may comply with the intervention, which
+reduces accumulated outcome burden.
+
+The generated experiment varies intervention coverage, targeting rule, and
+compliance probability. Its primary metric is `outcome_burden`.
 
 ## Common workflow
 
@@ -70,6 +75,6 @@ abmforge report outputs/experiment
 
 ## Current scope
 
-The template layer currently includes grid, network, epidemic, and segregation
-starting points. Future templates may include policy and resource competition
+The template layer currently includes grid, network, epidemic, segregation, and
+policy starting points. Future templates may include resource competition
 starting points.
