@@ -1,0 +1,21 @@
+name: policy-template-baseline
+
+model: model.model.PolicyTemplateModel
+
+parameters:
+  width: 25
+  height: 25
+  n_agents: 300
+  high_risk_share: 0.30
+  intervention_coverage: 0.40
+  intervention_capacity: 140
+  targeting_rule: risk_priority
+  compliance_probability: 0.75
+  intervention_effect: 0.55
+  outcome_pressure: 1.00
+  neighborhood_radius: 1
+  spillover_weight: 0.10
+
+run:
+  seed: 42
+  steps: 50

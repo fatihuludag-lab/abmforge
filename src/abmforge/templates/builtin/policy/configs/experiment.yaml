@@ -1,0 +1,29 @@
+name: policy-template-experiment
+
+model: model.model.PolicyTemplateModel
+
+base_parameters:
+  width: 25
+  height: 25
+  n_agents: 300
+  high_risk_share: 0.30
+  intervention_capacity: 140
+  intervention_effect: 0.55
+  outcome_pressure: 1.00
+  neighborhood_radius: 1
+  spillover_weight: 0.10
+
+experiment:
+  parameters:
+    intervention_coverage: [0.20, 0.40, 0.60]
+    targeting_rule: [random, risk_priority]
+    compliance_probability: [0.50, 0.80]
+  seeds:
+    count: 5
+    master_seed: 20260625
+
+run:
+  steps: 50
+
+outputs:
+  primary_metric: outcome_burden
