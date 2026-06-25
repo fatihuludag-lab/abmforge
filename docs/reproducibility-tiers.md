@@ -260,7 +260,7 @@ source code, inputs, and environments for independent reproduction.
 
 Avoid stronger claims such as:
 
-- fully reproducible by default,
+- fully reconstruction-capable without additional artifacts,
 - self-contained reconstruction by default,
 - byte-identical archive reproduction,
 - mature replay/checkpoint support,
