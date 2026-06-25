@@ -1,0 +1,23 @@
+name: segregation-template-experiment
+
+model: model.model.SegregationTemplateModel
+
+base_parameters:
+  width: 25
+  height: 25
+  density: 0.75
+  group_a_share: 0.50
+  neighborhood_radius: 1
+
+experiment:
+  parameters:
+    homophily_threshold: [0.35, 0.50, 0.65]
+  seeds:
+    count: 5
+    master_seed: 20260625
+
+run:
+  steps: 50
+
+outputs:
+  primary_metric: mean_similarity
