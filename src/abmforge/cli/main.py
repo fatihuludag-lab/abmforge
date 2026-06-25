@@ -90,6 +90,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="Citation output format",
     )
 
+    templates_parser = subparsers.add_parser(
+        "templates",
+        help="List built-in project templates",
+    )
+    templates_parser.add_argument(
+        "--json",
+        action="store_true",
+        dest="as_json",
+        help="Print templates as JSON",
+    )
+
     template_choices = [template.name for template in list_templates()]
     new_parser = subparsers.add_parser(
         "new",
@@ -339,6 +350,38 @@ def main(argv: Sequence[str] | None = None) -> None:
             raise SystemExit(1)
 
         print("Archive validation passed")
+        return
+
+    if args.command == "templates":
+        templates = list_templates()
+
+        if args.as_json:
+            print(
+                json.dumps(
+                    [
+                        {
+                            "name": template.name,
+                            "description": template.description,
+                        }
+                        for template in templates
+                    ],
+                    indent=2,
+                )
+            )
+
+            return
+
+        print("Available ABMForge project templates:")
+
+        for template in templates:
+            print(f"- {template.name}: {template.description}")
+
+        print()
+
+        print("Create a project with:")
+
+        print("  abmforge new my-study --template <template>")
+
         return
 
     parser.print_help()
