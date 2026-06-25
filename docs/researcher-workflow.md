@@ -37,6 +37,18 @@ minimum research workflow:
 4. write a reproducible ABMForge archive;
 5. validate and summarize the output.
 
+## List available templates
+
+```bash
+abmforge templates
+```
+
+Use JSON output when another tool needs to inspect templates:
+
+```bash
+abmforge templates --json
+```
+
 ## Create a project
 
 ```bash
