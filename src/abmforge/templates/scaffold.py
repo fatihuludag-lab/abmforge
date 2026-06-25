@@ -29,6 +29,7 @@ _TEMPLATE_DESCRIPTIONS = {
     "epidemic": "Grid-based SIR epidemic ABM study template for researcher workflows.",
     "network": "Network-based diffusion ABM study template for researcher workflows.",
     "policy": "Policy intervention ABM study template for researcher workflows.",
+    "resource": ("Renewable resource competition ABM study template for researcher workflows."),
     "segregation": (
         "Schelling-style spatial segregation ABM study template for researcher workflows."
     ),

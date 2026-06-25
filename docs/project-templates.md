@@ -24,6 +24,7 @@ abmforge new network-study --template network
 abmforge new epidemic-study --template epidemic
 abmforge new segregation-study --template segregation
 abmforge new policy-study --template policy
+abmforge new resource-study --template resource
 ```
 
 ## Built-in templates
@@ -60,8 +61,14 @@ Residents differ in risk level. A policy assigns an intervention either randomly
 or by risk priority. Treated residents may comply with the intervention, which
 reduces accumulated outcome burden.
 
-The generated experiment varies intervention coverage, targeting rule, and
-compliance probability. Its primary metric is `outcome_burden`.
+### `resource`
+
+The `resource` template is a minimal renewable resource competition model on a
+`GridWorld`. Foragers move toward nearby high-resource cells, harvest renewable
+resources, pay a metabolism cost, and accumulate wealth.
+
+The generated experiment varies resource regrowth, metabolism, and harvest rate.
+Its primary metric is `mean_wealth`.
 
 ## Common workflow
 
@@ -75,6 +82,5 @@ abmforge report outputs/experiment
 
 ## Current scope
 
-The template layer currently includes grid, network, epidemic, segregation, and
-policy starting points. Future templates may include resource competition
-starting points.
+The template layer currently includes grid, network, epidemic, segregation,
+policy, and resource starting points.
