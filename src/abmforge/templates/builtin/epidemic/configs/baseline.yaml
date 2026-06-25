@@ -1,0 +1,16 @@
+name: epidemic-template-baseline
+
+model: model.model.EpidemicTemplateModel
+
+parameters:
+  width: 25
+  height: 25
+  n_agents: 300
+  initial_infected_share: 0.03
+  infection_probability: 0.06
+  recovery_probability: 0.08
+  contact_radius: 1
+
+run:
+  seed: 42
+  steps: 80

@@ -1,0 +1,24 @@
+name: epidemic-template-experiment
+
+model: model.model.EpidemicTemplateModel
+
+base_parameters:
+  width: 25
+  height: 25
+  n_agents: 300
+  initial_infected_share: 0.03
+
+experiment:
+  parameters:
+    infection_probability: [0.03, 0.06, 0.09]
+    recovery_probability: [0.05, 0.10]
+    contact_radius: [1, 2]
+  seeds:
+    count: 5
+    master_seed: 20260625
+
+run:
+  steps: 80
+
+outputs:
+  primary_metric: attack_rate

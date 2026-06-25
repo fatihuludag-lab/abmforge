@@ -26,6 +26,7 @@ class ProjectExistsError(FileExistsError):
 
 _TEMPLATE_DESCRIPTIONS = {
     "grid": "Minimal grid-based ABM study template for researcher workflows.",
+    "epidemic": "Grid-based SIR epidemic ABM study template for researcher workflows.",
     "network": "Network-based diffusion ABM study template for researcher workflows.",
 }
 

@@ -21,6 +21,7 @@ Create a new study project with:
 ```bash
 abmforge new my-study --template grid
 abmforge new network-study --template network
+abmforge new epidemic-study --template epidemic
 ```
 
 ## Built-in templates
@@ -49,25 +50,28 @@ The `network` template is a minimal network diffusion ABM study. It places
 residents on a `NetworkSpace`; residents adopt through neighboring adopters or a
 small broadcast probability.
 
-The template includes:
+Run the generated baseline with:
 
-```text
-README.md
-pyproject.toml
-configs/
-  baseline.yaml
-  experiment.yaml
-model/
-  __init__.py
-  agents.py
-  model.py
-scripts/
-  run_baseline.py
-tests/
-  test_smoke.py
-outputs/
-  .gitkeep
+```bash
+abmforge run configs/baseline.yaml --archive outputs/baseline --overwrite
 ```
+
+Run the generated experiment and report with:
+
+```bash
+abmforge experiment configs/experiment.yaml --archive outputs/experiment --overwrite
+abmforge report outputs/experiment
+```
+
+### `epidemic`
+
+The `epidemic` template is a minimal spatial SIR model on a `GridWorld`.
+Individuals can be susceptible, infected, or recovered. Susceptible individuals
+can become infected through nearby infected neighbors; infected individuals
+recover with a configurable probability.
+
+The generated experiment varies infection probability, recovery probability, and
+contact radius. Its primary metric is `attack_rate`.
 
 Run the generated baseline with:
 
@@ -84,6 +88,6 @@ abmforge report outputs/experiment
 
 ## Current scope
 
-The template layer currently includes grid and network starting points. Future
-templates may include epidemic, segregation, policy, and resource competition
-starting points.
+The template layer currently includes grid, network, and epidemic starting
+points. Future templates may include segregation, policy, and resource
+competition starting points.
