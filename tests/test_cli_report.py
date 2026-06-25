@@ -34,6 +34,7 @@ def test_cli_report_runs_on_scaffolded_experiment(tmp_path, monkeypatch) -> None
             "--overwrite",
         ]
     )
+    main(["validate", "outputs/experiment"])
     main(["report", "outputs/experiment"])
 
     output = Path("outputs") / "experiment" / "reports"

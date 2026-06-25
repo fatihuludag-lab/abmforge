@@ -39,5 +39,12 @@ def test_cli_experiment_runs_scaffolded_project(tmp_path, monkeypatch) -> None:
 
     assert (output / "configs" / "experiment.yaml").exists()
     assert (output / "data").exists()
+    assert (output / "data" / "runs.json").exists()
+    assert (output / "data" / "runs.csv").exists()
+    assert (output / "manifest.json").exists()
+    assert (output / "dataset_schema.json").exists()
+    assert (output / "run_index.json").exists()
     assert (output / "reports" / "experiment_summary.json").exists()
     assert (output / "reports" / "README_RESULTS.md").exists()
+
+    main(["validate", "outputs/experiment"])
