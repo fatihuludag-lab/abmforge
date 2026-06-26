@@ -1,120 +1,231 @@
-# API Stability
+# API Stability Policy
 
-ABMForge is alpha-stage software. Public APIs may still evolve before `v1.0.0`.
+ABMForge is currently alpha-stage research software.
 
-This document describes the intended stability level of the main user-facing APIs.
-As a rule, APIs exported from the root `abmforge` package are public. APIs that
-are not exported from `abmforge.__init__` should be considered internal unless a
-documentation page explicitly says otherwise.
+This document defines how public APIs, archive formats, dataset schemas, and
+deprecations should be handled while the project moves toward beta and 1.0.
 
-## Stability Levels
+## Status
 
-### Stable Candidate
+Current status:
 
-APIs in this category are expected to remain mostly stable until `v1.0.0`.
-Minor additions are allowed. Breaking changes should be avoided unless strongly
-justified by correctness, reproducibility, or API coherence.
+```text
+alpha
+```
+
+Alpha status means:
+
+- public APIs may still change;
+- archive and dataset contracts may still evolve;
+- breaking changes are allowed when they materially improve the research workflow;
+- breaking changes should be documented and tested;
+- users should pin exact versions or commits for published research.
+
+## Goals
+
+The API stability policy aims to:
+
+1. reduce accidental breakage;
+2. make public interfaces explicit;
+3. separate stable, provisional, and experimental APIs;
+4. document breaking changes before releases;
+5. provide migration guidance where practical;
+6. protect published research workflows from silent drift.
+
+## API Stability Levels
+
+ABMForge uses three stability levels.
+
+### Stable
+
+A stable API is intended to remain compatible within a major release line.
+
+Stable APIs should have:
+
+- documentation;
+- type hints where practical;
+- tests;
+- changelog coverage for changes;
+- deprecation warnings before removal.
+
+During alpha, very few APIs should be marked stable.
+
+### Provisional
+
+A provisional API is intended for normal users but may still change before beta
+or 1.0.
+
+Most user-facing ABMForge APIs are currently provisional.
+
+Examples include:
+
+- `Agent`;
+- `Model`;
+- `Scenario`;
+- `Experiment`;
+- `Dataset`;
+- `ExperimentArchive`;
+- built-in schedulers;
+- built-in spaces;
+- CLI commands.
+
+Provisional APIs should not be changed casually. When they change, the reason
+should be documented.
 
 ### Experimental
 
-APIs in this category may change as the framework evolves.
+An experimental API is intended for exploration and may change without a long
+deprecation window.
 
-### Internal
+Experimental APIs should be clearly marked in documentation.
 
-Internal APIs are not intended for direct user use.
+Examples may include:
 
-## Stable Candidate APIs
+- new storage backends;
+- replay internals;
+- plugin prototypes;
+- calibration prototypes;
+- future external-framework adapters.
 
-### Core
+## Public API Surface
 
-- `Agent`
-- `Model`
-- `AgentCollection`
+The public API includes:
 
-### Experiment
+- documented imports from `abmforge`;
+- documented submodules under `abmforge.core`;
+- documented submodules under `abmforge.experiment`;
+- documented submodules under `abmforge.data`;
+- documented CLI commands;
+- documented archive and dataset formats.
 
-- `Scenario`
-- `Experiment`
-- `ExperimentResult`
-- `ParameterGrid`
-- `RunResult`
-- `ExperimentArchive`
+Internal helpers are not public API simply because they are importable.
 
-### Spaces
+Names beginning with `_` are internal unless explicitly documented otherwise.
 
-- `GridWorld`
-- `NetworkSpace`
-- `ContinuousSpace`
+## CLI Stability
 
-`GISSpace` is available from the root package but should be treated as
-experimental until the GIS space contract is strengthened.
+The CLI is part of the public user interface.
 
-### Data
+Stable or provisional CLI behavior includes:
 
-- `Dataset`
-- `Recorder`
-- `DatasetSchemaV1`
-- `DATASET_SCHEMA_VERSION`
-- `SchemaValidationError`
+- command names;
+- required arguments;
+- output paths;
+- exit codes;
+- documented JSON output fields;
+- archive validation behavior.
 
-### Events
+CLI changes that affect scripts should be treated as compatibility-relevant.
 
-- `Event`
-- `EventQueue`
+## Archive and Dataset Compatibility
 
-### Scheduling
+Archive and dataset compatibility is especially important because researchers
+may cite or share generated artifacts.
 
-- `SequentialActivation`
-- `RandomActivation`
-- `SimultaneousActivation`
-- `StagedActivation`
+Changes to any of the following should be considered compatibility-relevant:
 
-### Visualization
+- archive directory layout;
+- `manifest.json`;
+- `dataset_schema.json`;
+- `run_index.json`;
+- standard dataset table names;
+- standard dataset column names;
+- logical meaning of standard fields;
+- validation behavior;
+- report output file names used by documented workflows.
 
-- `plot_timeseries`
-- `plot_multiple_runs`
-- `plot_grid`
+When possible, archive readers should detect unsupported versions clearly rather
+than failing with unclear parsing errors.
 
-### Analysis
+## Deprecation Policy
 
-- `SensitivityAnalysis`
-- `SALibProblem`
-- `sample_sobol`
-- `analyze_sobol`
-- `sample_morris`
-- `analyze_morris`
+A deprecated public API should:
 
-## Experimental APIs
+1. continue to work for at least one subsequent minor alpha release when practical;
+2. emit a clear warning when used;
+3. identify the replacement API;
+4. be documented in the changelog;
+5. include tests for the warning behavior.
 
-The following areas are considered experimental:
+During alpha, immediate removal may still be acceptable for unsafe or clearly
+broken APIs, but the reason should be documented.
 
-- full replay and model reconstruction
-- snapshot restoration beyond basic state reconstruction
-- `GISSpace` behavior beyond point-coordinate use
-- plugin architecture
-- advanced storage backends
-- high-performance columnar agent backends
-- advanced calibration interfaces
-- future AI-enabled ABM workflow interfaces
+## Breaking Changes
 
-## Breaking Change Policy
+Breaking changes should include:
 
-Before `v1.0.0`, breaking changes may occur, but they should follow these rules:
+- motivation;
+- affected APIs or files;
+- migration guidance;
+- test coverage;
+- documentation updates.
 
-1. Prefer additive changes.
-2. Avoid renaming public classes and methods unless necessary.
-3. Deprecate before removing when practical.
-4. Document migration steps.
-5. Update examples and tests in the same pull request.
+Examples of breaking changes:
 
-## v1.0.0 Criteria
+- renaming public classes or functions;
+- changing required constructor arguments;
+- changing CLI command behavior;
+- changing archive or dataset schema semantics;
+- removing documented fields;
+- changing default reproducibility or randomness behavior.
 
-ABMForge should reach `v1.0.0` only when:
+## Versioning Expectations
 
-- the public API is documented,
-- core examples are stable,
-- CI passes across supported Python versions,
-- documentation is published,
-- test coverage remains above the target threshold,
-- release notes clearly describe supported features,
-- and archive/reproducibility guarantees are explicitly defined.
+Before beta:
+
+- breaking changes are allowed but should be explicit;
+- release notes should identify breaking changes;
+- users should pin versions for research artifacts.
+
+After beta:
+
+- public APIs should change more slowly;
+- deprecations should be preferred over immediate removals;
+- archive and dataset migration paths should be provided for important changes.
+
+At 1.0:
+
+- stable public APIs should have stronger compatibility guarantees;
+- archive and dataset format versions should have documented migration rules;
+- breaking changes should require a major version bump.
+
+## Research Reproducibility Guidance
+
+For published research, users should record:
+
+- ABMForge version;
+- Python version;
+- operating system;
+- exact source commit when using an unreleased version;
+- scenario or experiment configuration;
+- archive manifest;
+- dataset schema version;
+- input data hashes when applicable.
+
+ABMForge can help capture some of this metadata, but users remain responsible
+for preserving source code, input data, and execution environments until higher
+reproducibility tiers are fully implemented.
+
+## Maintainer Checklist for API Changes
+
+Before merging a public API change, check:
+
+- Is this public, provisional, experimental, or internal?
+- Does documentation need to change?
+- Does a migration note need to be added?
+- Does the changelog need an entry?
+- Is a deprecation warning more appropriate than removal?
+- Does the change affect archive or dataset compatibility?
+- Do executable documentation examples still pass?
+- Do package smoke tests still pass?
+
+## Current Policy Summary
+
+```text
+Stable APIs: limited
+Provisional APIs: most documented user-facing APIs
+Experimental APIs: replay, plugin, calibration, and adapter prototypes
+Internal APIs: undocumented helpers and underscore-prefixed names
+```
+
+This policy should be revisited before the first beta release.
