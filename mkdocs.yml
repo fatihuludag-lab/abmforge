@@ -23,6 +23,7 @@ nav:
   - Scenario YAML Reference: scenario-yaml.md
   - Experiment Archive Format: archive-format.md
   - Experiment Archive Specification v1: experiment-archive-v1.md
+  - Archive Migration Strategy: archive-migration-strategy.md
   - Reference Reproducible Workflow: reference-reproducible-workflow.md
   - Experiment Archive: experiment-archive.md
   - Dataset Schema: dataset-schema-v1.md
