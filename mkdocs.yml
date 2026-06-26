@@ -35,6 +35,7 @@ nav:
   - GISSpace: gis.md
   - Examples: examples.md
   - API Reference: api.md
+  - Benchmarking: benchmarking.md
   - API Stability: api-stability.md
   - Release Process: releasing.md
   - Release Checklist: release-checklist.md
