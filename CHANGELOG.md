@@ -1,5 +1,42 @@
 # Changelog
 
+
+## [0.2.0a4.dev0] - Unreleased
+
+### Highlights
+
+- Continued release-readiness work for ABMForge as alpha-stage research software.
+- Strengthened the project around reproducible workflows, packaging, documentation, and publication preparation.
+
+### Added
+
+- Conservative release workflow for build artifacts and optional TestPyPI publishing.
+- Release metadata and changelog checklist.
+- Community health files, issue templates, and pull request template.
+- Public API stability policy.
+- Expanded public API reference aligned with root package exports.
+- Benchmark reference suite scaffold.
+- Researcher quickstart for install, scenario execution, archive validation, summary, report, and reproducible study workflow.
+
+### Changed
+
+- Improved release preparation guidance and strict release metadata checks.
+- Clarified alpha-stage API, archive, and research validity expectations.
+
+### Validation
+
+- Main CI matrix covers supported Python versions.
+- Package smoke workflow validates built wheel behavior.
+- Release metadata can be checked with `python scripts/check_release_metadata.py --strict`.
+- Documentation examples and key researcher workflows are covered by tests.
+
+### Known Limitations
+
+- ABMForge remains alpha-stage research software.
+- Most public APIs are provisional.
+- Benchmark support is a scaffold and does not yet support performance claims.
+- Production PyPI publishing and formal DOI archiving require separate maintainer action.
+
 All notable changes to this project are documented in this file.
 
 ABMForge is still alpha-stage software. APIs, archive formats, replay/snapshot
