@@ -8,6 +8,7 @@ theme:
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
+  - Researcher Quickstart: researcher-quickstart.md
   - Researcher Workflow: researcher-workflow.md
   - Project Templates: project-templates.md
   - Architecture Overview: architecture-overview.md
