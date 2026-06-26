@@ -37,6 +37,7 @@ nav:
   - API Reference: api.md
   - API Stability: api-stability.md
   - Release Process: releasing.md
+  - Release Checklist: release-checklist.md
   - Contributing: contributing.md
 
   - Recording Data: recording.md
