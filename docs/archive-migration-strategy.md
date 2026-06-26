@@ -118,6 +118,22 @@ Unsupported archive format: experiment-archive-v2
 The error should tell users what version is supported and where to find
 migration guidance.
 
+## Implemented Validator Behavior
+
+The current archive validator should fail early when `manifest.json` declares an
+unsupported `archive_format`.
+
+Expected unsupported-version message:
+
+```text
+Unsupported archive format: experiment-archive-v2
+```
+
+Archives that do not yet declare `archive_format` are treated as legacy alpha
+archives and continue through the rest of validation. This keeps older alpha
+archives inspectable while allowing new archives to declare
+`experiment-archive-v1` explicitly.
+
 ## Migration Principles
 
 Archive migration should be:

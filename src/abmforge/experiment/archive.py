@@ -19,6 +19,8 @@ from abmforge.experiment.registry import ExperimentRegistry
 from abmforge.experiment.run_index import RunIndex
 
 ArchiveFormat = Literal["json", "parquet"]
+ARCHIVE_FORMAT_VERSION = "experiment-archive-v1"
+_SUPPORTED_ARCHIVE_FORMATS = frozenset({ARCHIVE_FORMAT_VERSION})
 
 _DATASET_JSON_FILES = {
     "runs": "runs.json",
@@ -230,7 +232,14 @@ class ExperimentArchive:
 
     def write_manifest(self, dataset: Dataset) -> Path:
         """Write a reproducibility manifest into the archive root."""
-        return dataset.write_manifest(self.manifest_path)
+        manifest_path = dataset.write_manifest(self.manifest_path)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest.setdefault("archive_format", ARCHIVE_FORMAT_VERSION)
+        manifest_path.write_text(
+            json.dumps(manifest, indent=2, ensure_ascii=False, default=str),
+            encoding="utf-8",
+        )
+        return manifest_path
 
     def write_run_index(self, dataset: Dataset) -> Path:
         """Write a compact index of runs in this archive."""
@@ -286,12 +295,43 @@ class ExperimentArchive:
         if errors:
             return errors
 
+        errors.extend(self._validate_archive_format())
+        if errors:
+            return errors
+
         errors.extend(self._validate_dataset_schema_hash())
         errors.extend(self._validate_json_dataset_integrity())
         errors.extend(self._validate_parquet_dataset_integrity())
         errors.extend(self._validate_run_index())
 
         return errors
+
+    def _validate_archive_format(self) -> list[str]:
+        """Validate the archive format version declared by manifest.json.
+
+        Archives created before ``archive_format`` existed are treated as
+        legacy alpha archives and continue to validation. Archives that declare
+        a known-unsupported format fail early with a clear migration-aware
+        message.
+        """
+        try:
+            manifest = json.loads(self.manifest_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            return [f"Invalid manifest.json: {exc}"]
+
+        archive_format = manifest.get("archive_format")
+        if archive_format is None:
+            return []
+
+        if archive_format not in _SUPPORTED_ARCHIVE_FORMATS:
+            supported = ", ".join(sorted(_SUPPORTED_ARCHIVE_FORMATS))
+            return [
+                "Unsupported archive format: "
+                f"{archive_format}. Supported archive formats: {supported}. "
+                "See docs/archive-migration-strategy.md."
+            ]
+
+        return []
 
     def _validate_run_index(self) -> list[str]:
         """Validate run_index.json when present.
