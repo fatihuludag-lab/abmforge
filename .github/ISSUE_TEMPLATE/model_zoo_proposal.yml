@@ -1,0 +1,37 @@
+name: Model zoo proposal
+description: Propose a new model zoo example or improve an existing model.
+title: "[Model Zoo]: "
+labels: ["area:model-zoo", "type:feature"]
+body:
+  - type: textarea
+    id: model
+    attributes:
+      label: Model description
+      description: What model should be added or improved?
+    validations:
+      required: true
+  - type: textarea
+    id: reference
+    attributes:
+      label: Literature or teaching reference
+      description: Include papers, books, or teaching materials if relevant.
+    validations:
+      required: false
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected behavior or emergent pattern
+      description: What should the model demonstrate?
+    validations:
+      required: true
+  - type: checkboxes
+    id: artifacts
+    attributes:
+      label: Expected artifacts
+      options:
+        - label: Model code
+        - label: Scenario YAML
+        - label: Experiment YAML
+        - label: ODD or model card
+        - label: Tests or invariants
+        - label: Reference figure or table

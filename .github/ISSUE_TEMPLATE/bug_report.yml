@@ -1,0 +1,65 @@
+name: Bug report
+description: Report something that is broken or unexpected.
+title: "[Bug]: "
+labels: ["type:bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please include enough detail to reproduce it.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Include commands, Python code, YAML, or a small archive if possible.
+      render: python
+    validations:
+      required: false
+  - type: textarea
+    id: error
+    attributes:
+      label: Error output or traceback
+      render: text
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: ABMForge version or commit
+      placeholder: "0.2.0a4.dev0 or commit SHA"
+    validations:
+      required: false
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: "3.10, 3.11, 3.12, 3.13"
+    validations:
+      required: false
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "Windows 11, Ubuntu 24.04, macOS"
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I searched existing issues.
+        - label: I can reproduce this with the latest main branch or latest release.

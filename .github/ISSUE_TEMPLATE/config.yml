@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: ABMForge documentation
+    url: https://fatihuludag-lab.github.io/abmforge/
+    about: Read the documentation before opening an issue.

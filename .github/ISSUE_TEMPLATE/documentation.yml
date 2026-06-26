@@ -1,0 +1,36 @@
+name: Documentation issue
+description: Report confusing, missing, stale, or incorrect documentation.
+title: "[Docs]: "
+labels: ["type:documentation"]
+body:
+  - type: textarea
+    id: page
+    attributes:
+      label: Page or section
+      description: Link or name the documentation page.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is missing, unclear, stale, or incorrect?
+    validations:
+      required: true
+  - type: textarea
+    id: suggested
+    attributes:
+      label: Suggested improvement
+    validations:
+      required: false
+  - type: checkboxes
+    id: type
+    attributes:
+      label: Documentation type
+      options:
+        - label: API reference
+        - label: Tutorial or getting started
+        - label: Example
+        - label: CLI documentation
+        - label: Archive/reproducibility documentation
+        - label: Release or packaging documentation
