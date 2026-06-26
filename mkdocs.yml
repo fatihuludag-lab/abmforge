@@ -40,6 +40,7 @@ nav:
   - API Stability: api-stability.md
   - Release Process: releasing.md
   - Release Checklist: release-checklist.md
+  - Release Candidate Preparation: release-candidate-prep.md
   - Contributing: contributing.md
 
   - Recording Data: recording.md
