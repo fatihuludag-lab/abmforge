@@ -92,6 +92,10 @@ CI should initially test that:
 Full timing comparisons should not gate CI until the project has a stable
 performance baseline and variance policy.
 
+## Mesa Comparison Methodology
+
+ABMForge includes a separate Mesa comparison methodology document. Mesa comparisons should be fair, reproducible, and conservative. Do not make performance claims without equivalent models, repeated runs, raw results, and environment metadata.
+
 ## Future Benchmark Areas
 
 Future benchmark work should include:
