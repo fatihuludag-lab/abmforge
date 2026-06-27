@@ -1,0 +1,18 @@
+name: wealth-inequality-experiment
+model: model.WealthInequalityModel
+base_parameters:
+  population: 80
+  initial_wealth: 10
+  transfer_amount: 1
+  income_probability: 0.15
+  income_amount: 1
+experiment:
+  parameters:
+    transfer_probability: [0.35, 0.65, 0.90]
+  seeds:
+    count: 5
+    master_seed: 20260627
+run:
+  steps: 30
+outputs:
+  primary_metric: gini

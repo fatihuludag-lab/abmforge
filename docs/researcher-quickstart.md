@@ -279,6 +279,15 @@ assert result.status == "completed"
 For research workflows, prefer scenario or experiment YAML files when you want
 auditable, reusable, and shareable configuration.
 
+## Explore Research Model Zoo Examples
+
+ABMForge includes executable research-oriented model zoo examples:
+
+- `examples/model_zoo/wealth_inequality/`
+- `examples/model_zoo/network_diffusion/`
+
+Each example includes a baseline scenario, experiment configuration, analysis script, and expected output notes.
+
 ## Common Next Steps
 
 After completing this guide:

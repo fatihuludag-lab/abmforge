@@ -1,0 +1,13 @@
+name: network-diffusion-baseline
+model: model.NetworkDiffusionModel
+parameters:
+  population: 90
+  initial_adoption_share: 0.08
+  network_radius: 2
+  peer_influence: 0.85
+  external_influence: 0.04
+  base_threshold: 0.35
+  threshold_sd: 0.07
+run:
+  seed: 42
+  steps: 25

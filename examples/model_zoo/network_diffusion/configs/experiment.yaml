@@ -1,0 +1,19 @@
+name: network-diffusion-experiment
+model: model.NetworkDiffusionModel
+base_parameters:
+  population: 90
+  initial_adoption_share: 0.08
+  network_radius: 2
+  external_influence: 0.04
+  base_threshold: 0.35
+  threshold_sd: 0.07
+experiment:
+  parameters:
+    peer_influence: [0.45, 0.70, 0.95]
+  seeds:
+    count: 5
+    master_seed: 20260627
+run:
+  steps: 25
+outputs:
+  primary_metric: adoption_share
