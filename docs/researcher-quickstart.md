@@ -288,6 +288,10 @@ ABMForge includes executable research-oriented model zoo examples:
 
 Each example includes a baseline scenario, experiment configuration, analysis script, and expected output notes.
 
+## Prepare a Publishable ABM Study
+
+Before writing a manuscript, review the [ABM Study Checklist](abm-study-checklist.md). It covers model purpose, agents, environment, scheduling, parameters, seeds, archive validation, robustness summaries, calibration, validation, limitations, and code/data availability.
+
 ## Common Next Steps
 
 After completing this guide:
