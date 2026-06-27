@@ -2,7 +2,7 @@
   "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
   "@type": "SoftwareSourceCode",
   "name": "ABMForge",
-  "version": "0.2.0a4.dev0",
+  "version": "0.3.0a1",
   "description": "ABMForge is a lightweight, Python-first, experiment-native and dataset-first framework for reproducible agent-based modelling.",
   "codeRepository": "https://github.com/fatihuludag-lab/abmforge",
   "url": "https://github.com/fatihuludag-lab/abmforge",

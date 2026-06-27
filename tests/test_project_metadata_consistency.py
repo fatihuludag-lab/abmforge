@@ -7,7 +7,7 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_VERSION = "0.2.0a4.dev0"
+EXPECTED_VERSION = "0.3.0a1"
 
 
 def normalized_text(text: str) -> str:
