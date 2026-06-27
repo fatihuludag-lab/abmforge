@@ -93,6 +93,7 @@ abmforge = [
     "templates/builtin/*/*",
     "templates/builtin/*/configs/*",
     "templates/builtin/*/model/*.py",
+    "templates/builtin/*/analysis/*.py",
     "templates/builtin/*/outputs/*",
     "templates/builtin/*/scripts/*.py",
     "templates/builtin/*/tests/*.py",

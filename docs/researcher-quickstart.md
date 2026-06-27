@@ -84,6 +84,27 @@ python -m pip install abmforge
 For alpha-stage research artifacts, source checkout or pinned release versions
 are preferred over unpinned installs.
 
+## Start a Research Study from a Template
+
+ABMForge includes a research-oriented project template:
+
+```bash
+abmforge new my-study --template research
+cd my-study
+```
+
+Then run the generated workflow:
+
+```bash
+abmforge run configs/baseline.yaml --archive outputs/baseline_archive --overwrite
+abmforge validate outputs/baseline_archive
+abmforge summarize outputs/baseline_archive --json
+abmforge experiment configs/experiment.yaml --archive outputs/experiment_archive --overwrite
+python analysis/analyze.py outputs/experiment_archive
+```
+
+The template is intended to give researchers a reproducible starting structure with configuration files, model code, analysis code, and output directories.
+
 ## Run a Scenario
 
 ABMForge ships a small documented scenario:

@@ -33,6 +33,7 @@ _TEMPLATE_DESCRIPTIONS = {
     "segregation": (
         "Schelling-style spatial segregation ABM study template for researcher workflows."
     ),
+    "research": ("End-to-end reproducible ABM research study template with analysis scaffold."),
 }
 
 _TEXT_SUFFIXES = {
