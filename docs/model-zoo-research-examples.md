@@ -8,6 +8,33 @@ validated archives, analysis scripts, and robustness summaries.
 
 ## Current Research Examples
 
+### Threshold-Adoption Reference Study
+
+Path:
+
+```text
+examples/reproducible_study/
+```
+
+Run:
+
+```bash
+python examples/reproducible_study/reproduce.py
+```
+
+This example demonstrates a reviewer-facing ABMForge research bundle:
+
+- experiment YAML;
+- deterministic multi-seed parameter grid;
+- validated experiment archive;
+- JSON/CSV summary tables;
+- ODD Markdown and JSON documentation;
+- research protocol;
+- artifact manifest;
+- lightweight adoption-curve analysis artifacts.
+
+
+
 ### Wealth Inequality
 
 Path:
