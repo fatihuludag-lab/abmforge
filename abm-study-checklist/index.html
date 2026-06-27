@@ -1,0 +1,2423 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Reproducible, experiment-native agent-based modeling for Python">
+      
+      
+      
+      
+        <link rel="prev" href="../researcher-quickstart/">
+      
+      
+        <link rel="next" href="../archive-table-analysis/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>ABM Study Checklist - ABMForge</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#abm-study-checklist-and-reporting-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="ABMForge" class="md-header__button md-logo" aria-label="ABMForge" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ABMForge
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ABM Study Checklist
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/fatihuludag-lab/abmforge" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="ABMForge" class="md-nav__button md-logo" aria-label="ABMForge" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ABMForge
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/fatihuludag-lab/abmforge" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../researcher-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Researcher Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ABM Study Checklist
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ABM Study Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-use-this-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Use This Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-research-question-and-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Research Question and Scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-agents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Agents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-environment-and-space" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Environment and Space
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-time-scheduling-and-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Time, Scheduling, and Events
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-parameters-and-initial-conditions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Parameters and Initial Conditions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-randomness-and-seeds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Randomness and Seeds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-scenario-and-experiment-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Scenario and Experiment Design
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-output-data-and-archive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Output Data and Archive
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-analysis-and-robustness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Analysis and Robustness
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-calibration-and-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Calibration and Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-odd-and-model-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. ODD and Model Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-reproducibility-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Reproducibility Package
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-manuscript-reporting-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Manuscript Reporting Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-code-and-data-availability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Code and Data Availability
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-reviewer-facing-quick-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Reviewer-Facing Quick Check
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Limitations
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../archive-table-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Archive Table Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sensitivity-robustness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensitivity and Robustness
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../researcher-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Researcher Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../seed-sequence-policy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Seed Sequence Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment-replicates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiment Replicates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../archive-grouped-run-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Archive Grouped Run Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../first-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spaces
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scheduling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scheduling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agent-lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent Lifecycle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario-yaml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scenario YAML Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../archive-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiment Archive Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment-archive-v1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiment Archive Specification v1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../archive-migration-strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Archive Migration Strategy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-reproducible-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference Reproducible Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment-archive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiment Archive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-schema-v1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../failure-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Failure Handling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reproducibility-manifest-v1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducibility Manifest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../odd-export/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ODD Export
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-zoo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Zoo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-zoo-research-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Zoo Research Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../visualization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visualization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../replay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Replay
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GISSpace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mesa-comparison-methodology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mesa Comparison Methodology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-stability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Stability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releasing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-candidate-prep/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Candidate Preparation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testpypi-dry-run/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TestPyPI Dry Run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pypi-alpha-release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyPI Alpha Release
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recording/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recording Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-reproducible-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference Reproducible Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reproducibility-tiers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducibility Tiers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment-yaml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiment YAML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reporting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reporting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-use-this-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Use This Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-research-question-and-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Research Question and Scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-agents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Agents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-environment-and-space" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Environment and Space
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-time-scheduling-and-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Time, Scheduling, and Events
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-parameters-and-initial-conditions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Parameters and Initial Conditions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-randomness-and-seeds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Randomness and Seeds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-scenario-and-experiment-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Scenario and Experiment Design
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-output-data-and-archive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Output Data and Archive
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-analysis-and-robustness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Analysis and Robustness
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-calibration-and-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Calibration and Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-odd-and-model-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. ODD and Model Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-reproducibility-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Reproducibility Package
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-manuscript-reporting-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Manuscript Reporting Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-code-and-data-availability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Code and Data Availability
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-reviewer-facing-quick-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Reviewer-Facing Quick Check
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Limitations
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="abm-study-checklist-and-reporting-guide">ABM Study Checklist and Reporting Guide</h1>
+<p>This guide helps researchers use ABMForge to prepare transparent,
+reproducible, and reviewable agent-based modelling studies.</p>
+<p>It is a checklist, not a guarantee of scientific validity.</p>
+<p>A valid ABMForge archive means that the output artifact is structurally
+checkable. Scientific credibility still depends on model assumptions,
+calibration, validation, sensitivity analysis, and domain interpretation.</p>
+<h2 id="how-to-use-this-checklist">How to Use This Checklist</h2>
+<p>Use this checklist when:</p>
+<ul>
+<li>starting a new ABM study;</li>
+<li>preparing a reproducible archive;</li>
+<li>writing a manuscript;</li>
+<li>preparing supplementary materials;</li>
+<li>reviewing a model before submission;</li>
+<li>teaching ABM research workflows.</li>
+</ul>
+<p>Recommended workflow:</p>
+<pre><code class="language-bash">abmforge new my-study --template research
+cd my-study
+abmforge run configs/baseline.yaml --archive outputs/baseline_archive --overwrite
+abmforge validate outputs/baseline_archive
+abmforge summarize outputs/baseline_archive --json
+</code></pre>
+<p>For multi-run experiments:</p>
+<pre><code class="language-bash">abmforge experiment configs/experiment.yaml --archive outputs/experiment_archive --overwrite
+abmforge validate outputs/experiment_archive
+abmforge summarize outputs/experiment_archive --json
+</code></pre>
+<h2 id="1-research-question-and-scope">1. Research Question and Scope</h2>
+<p>Before writing model code, document:</p>
+<ul>
+<li>[ ] Model purpose.</li>
+<li>[ ] Research question.</li>
+<li>[ ] Target phenomenon.</li>
+<li>[ ] Unit of analysis.</li>
+<li>[ ] Spatial scope.</li>
+<li>[ ] Temporal scope.</li>
+<li>[ ] Intended audience.</li>
+<li>[ ] What the model is not intended to explain.</li>
+<li>[ ] Expected qualitative behavior or stylized facts.</li>
+<li>[ ] Main outcome variables.</li>
+</ul>
+<p>Reporting guidance:</p>
+<blockquote>
+<p>State the model's purpose before describing implementation details. A reader
+should understand what the model is for and what it deliberately omits.</p>
+</blockquote>
+<h2 id="2-agents">2. Agents</h2>
+<p>Document all agent types.</p>
+<p>For each agent type, report:</p>
+<ul>
+<li>[ ] Agent class name.</li>
+<li>[ ] Agent role.</li>
+<li>[ ] State variables.</li>
+<li>[ ] Decision rules.</li>
+<li>[ ] Behavioral assumptions.</li>
+<li>[ ] Heterogeneity.</li>
+<li>[ ] Initialization.</li>
+<li>[ ] Birth, death, entry, or exit rules.</li>
+<li>[ ] Interactions with other agents.</li>
+<li>[ ] Random components.</li>
+</ul>
+<p>Reporting guidance:</p>
+<blockquote>
+<p>Describe agent behavior in domain language first, then map it to code and
+parameters.</p>
+</blockquote>
+<h2 id="3-environment-and-space">3. Environment and Space</h2>
+<p>Document the environment in which agents interact.</p>
+<p>Checklist:</p>
+<ul>
+<li>[ ] Environment type.</li>
+<li>[ ] Grid, network, continuous, GIS, or abstract space.</li>
+<li>[ ] Boundary conditions.</li>
+<li>[ ] Neighborhood definition.</li>
+<li>[ ] Distance or adjacency rules.</li>
+<li>[ ] Exogenous resources or shocks.</li>
+<li>[ ] Environmental state variables.</li>
+<li>[ ] Whether the environment changes over time.</li>
+</ul>
+<p>ABMForge examples may use <code>GridWorld</code>, <code>NetworkSpace</code>, <code>ContinuousSpace</code>, or
+custom model logic.</p>
+<h2 id="4-time-scheduling-and-events">4. Time, Scheduling, and Events</h2>
+<p>Document time semantics.</p>
+<p>Checklist:</p>
+<ul>
+<li>[ ] Time unit.</li>
+<li>[ ] Number of steps.</li>
+<li>[ ] Scheduler or activation mechanism.</li>
+<li>[ ] Sequential, random, simultaneous, or staged activation.</li>
+<li>[ ] Event queue use, if any.</li>
+<li>[ ] Whether actions happen synchronously or asynchronously.</li>
+<li>[ ] How ties or simultaneous decisions are handled.</li>
+<li>[ ] Whether scheduling affects results.</li>
+</ul>
+<p>Reporting guidance:</p>
+<blockquote>
+<p>Scheduling can change ABM outcomes. Treat it as a modelling assumption, not a
+technical detail.</p>
+</blockquote>
+<h2 id="5-parameters-and-initial-conditions">5. Parameters and Initial Conditions</h2>
+<p>Provide a parameter table.</p>
+<p>Minimum fields:</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Meaning</th>
+<th>Type</th>
+<th>Baseline</th>
+<th>Range</th>
+<th>Source or rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Checklist:</p>
+<ul>
+<li>[ ] All parameters are listed.</li>
+<li>[ ] Baseline values are reported.</li>
+<li>[ ] Experiment ranges are reported.</li>
+<li>[ ] Initial conditions are documented.</li>
+<li>[ ] Parameter units are given where relevant.</li>
+<li>[ ] Parameter choices are justified.</li>
+<li>[ ] Fixed and varied parameters are separated.</li>
+<li>[ ] Values in the manuscript match scenario or experiment YAML.</li>
+</ul>
+<p>ABMForge guidance:</p>
+<ul>
+<li>Put baseline settings in <code>configs/baseline.yaml</code>.</li>
+<li>Put parameter sweeps in <code>configs/experiment.yaml</code>.</li>
+<li>Preserve both files with the archive.</li>
+</ul>
+<h2 id="6-randomness-and-seeds">6. Randomness and Seeds</h2>
+<p>Document all random processes.</p>
+<p>Checklist:</p>
+<ul>
+<li>[ ] Random seed policy.</li>
+<li>[ ] Number of seeds.</li>
+<li>[ ] Master seed, if used.</li>
+<li>[ ] Per-run seed generation rule.</li>
+<li>[ ] Stochastic components.</li>
+<li>[ ] Whether same-seed reproducibility was checked.</li>
+<li>[ ] Whether results are robust across seeds.</li>
+</ul>
+<p>Reporting guidance:</p>
+<blockquote>
+<p>A single seed is usually insufficient for stochastic ABM evidence. Report
+seed variation and robustness summaries where possible.</p>
+</blockquote>
+<h2 id="7-scenario-and-experiment-design">7. Scenario and Experiment Design</h2>
+<p>For each scenario or experiment, document:</p>
+<ul>
+<li>[ ] Scenario name.</li>
+<li>[ ] Model class.</li>
+<li>[ ] Baseline parameters.</li>
+<li>[ ] Number of steps.</li>
+<li>[ ] Stop conditions.</li>
+<li>[ ] Parameter grid.</li>
+<li>[ ] Seed count.</li>
+<li>[ ] Primary metric.</li>
+<li>[ ] Expected output archive path.</li>
+</ul>
+<p>ABMForge commands:</p>
+<pre><code class="language-bash">abmforge run configs/baseline.yaml --archive outputs/baseline_archive --overwrite
+abmforge experiment configs/experiment.yaml --archive outputs/experiment_archive --overwrite
+</code></pre>
+<h2 id="8-output-data-and-archive">8. Output Data and Archive</h2>
+<p>A research-ready ABMForge study should preserve the generated archive.</p>
+<p>Preserve:</p>
+<ul>
+<li>[ ] <code>manifest.json</code></li>
+<li>[ ] <code>dataset_schema.json</code></li>
+<li>[ ] <code>run_index.json</code></li>
+<li>[ ] <code>configs/</code></li>
+<li>[ ] <code>data/runs.*</code></li>
+<li>[ ] <code>data/model_records.*</code></li>
+<li>[ ] <code>data/agent_records.*</code>, if used</li>
+<li>[ ] <code>data/event_records.*</code>, if used</li>
+<li>[ ] <code>data/errors.*</code>, if present</li>
+<li>[ ] <code>reports/</code></li>
+<li>[ ] analysis scripts</li>
+<li>[ ] environment metadata</li>
+<li>[ ] source commit hash</li>
+</ul>
+<p>Validate:</p>
+<pre><code class="language-bash">abmforge validate outputs/experiment_archive
+</code></pre>
+<p>Reporting guidance:</p>
+<blockquote>
+<p>State whether archive validation passed and preserve the archive with the
+manuscript's supplementary materials or repository.</p>
+</blockquote>
+<h2 id="9-analysis-and-robustness">9. Analysis and Robustness</h2>
+<p>Use archive table helpers for custom analysis:</p>
+<pre><code class="language-python">from abmforge.analysis import load_archive_tables
+
+tables = load_archive_tables(&quot;outputs/experiment_archive&quot;)
+model_records = tables[&quot;model_records&quot;]
+</code></pre>
+<p>Use robustness helpers for grouped summaries:</p>
+<pre><code class="language-python">from abmforge.analysis import summarize_metric_by_parameters, write_summary_csv
+
+rows = summarize_metric_by_parameters(
+    &quot;outputs/experiment_archive&quot;,
+    metric=&quot;adoption_share&quot;,
+    group_by=[&quot;peer_influence&quot;],
+)
+
+write_summary_csv(rows, &quot;reports/robustness_summary.csv&quot;)
+</code></pre>
+<p>Checklist:</p>
+<ul>
+<li>[ ] Primary outcome metric is defined.</li>
+<li>[ ] Final-step and time-series metrics are distinguished.</li>
+<li>[ ] Seed variability is reported.</li>
+<li>[ ] Parameter variability is reported.</li>
+<li>[ ] Robustness summary table is generated.</li>
+<li>[ ] Sensitivity analysis is described.</li>
+<li>[ ] Figures and tables are generated from archived data.</li>
+<li>[ ] Analysis scripts are preserved.</li>
+</ul>
+<h2 id="10-calibration-and-validation">10. Calibration and Validation</h2>
+<p>Separate calibration from validation.</p>
+<p>Calibration asks:</p>
+<blockquote>
+<p>How were model parameters chosen or estimated?</p>
+</blockquote>
+<p>Validation asks:</p>
+<blockquote>
+<p>Does the model reproduce relevant observed patterns or stylized facts?</p>
+</blockquote>
+<p>Checklist:</p>
+<ul>
+<li>[ ] Calibration target is defined, if any.</li>
+<li>[ ] Validation target is defined, if any.</li>
+<li>[ ] Observed data source is described, if used.</li>
+<li>[ ] Stylized facts are listed, if used.</li>
+<li>[ ] Goodness-of-fit or distance metric is reported, if used.</li>
+<li>[ ] Out-of-sample or holdout logic is described, if applicable.</li>
+<li>[ ] Limitations of validation evidence are stated.</li>
+</ul>
+<p>Reporting guidance:</p>
+<blockquote>
+<p>Do not treat successful execution or archive validation as model validation.</p>
+</blockquote>
+<h2 id="11-odd-and-model-documentation">11. ODD and Model Documentation</h2>
+<p>ABM studies should be understandable outside the codebase.</p>
+<p>Checklist:</p>
+<ul>
+<li>[ ] ODD document is prepared or exported.</li>
+<li>[ ] Purpose is stated.</li>
+<li>[ ] Entities, state variables, and scales are described.</li>
+<li>[ ] Process overview is described.</li>
+<li>[ ] Scheduling is described.</li>
+<li>[ ] Design concepts are described.</li>
+<li>[ ] Initialization is described.</li>
+<li>[ ] Input data is described.</li>
+<li>[ ] Submodels are described.</li>
+<li>[ ] Model limitations are stated.</li>
+</ul>
+<p>ABMForge can help generate ODD-style skeletons, but scientific review and
+manual editing are still required.</p>
+<h2 id="12-reproducibility-package">12. Reproducibility Package</h2>
+<p>A reproducibility package should include:</p>
+<ul>
+<li>[ ] Source code.</li>
+<li>[ ] ABMForge version.</li>
+<li>[ ] Python version.</li>
+<li>[ ] Dependency lock file or environment description.</li>
+<li>[ ] Scenario and experiment YAML files.</li>
+<li>[ ] Archive outputs.</li>
+<li>[ ] Validation logs.</li>
+<li>[ ] Analysis scripts.</li>
+<li>[ ] Figures and tables.</li>
+<li>[ ] README with reproduction commands.</li>
+<li>[ ] License.</li>
+<li>[ ] Citation metadata.</li>
+<li>[ ] DOI or repository link when available.</li>
+</ul>
+<p>Recommended command summary:</p>
+<pre><code class="language-bash">abmforge info
+abmforge validate outputs/experiment_archive
+abmforge summarize outputs/experiment_archive --json
+</code></pre>
+<h2 id="13-manuscript-reporting-checklist">13. Manuscript Reporting Checklist</h2>
+<p>A manuscript should report:</p>
+<ul>
+<li>[ ] Model purpose.</li>
+<li>[ ] Agent types.</li>
+<li>[ ] Environment.</li>
+<li>[ ] Decision rules.</li>
+<li>[ ] Scheduling.</li>
+<li>[ ] Parameters.</li>
+<li>[ ] Initial conditions.</li>
+<li>[ ] Random seed policy.</li>
+<li>[ ] Experiment design.</li>
+<li>[ ] Number of runs.</li>
+<li>[ ] Outcome metrics.</li>
+<li>[ ] Sensitivity or robustness checks.</li>
+<li>[ ] Calibration approach.</li>
+<li>[ ] Validation evidence.</li>
+<li>[ ] Limitations.</li>
+<li>[ ] Code availability.</li>
+<li>[ ] Data availability.</li>
+<li>[ ] Archive availability.</li>
+<li>[ ] Software citation.</li>
+</ul>
+<h2 id="14-code-and-data-availability">14. Code and Data Availability</h2>
+<p>Report:</p>
+<ul>
+<li>repository URL;</li>
+<li>release tag or commit hash;</li>
+<li>ABMForge version;</li>
+<li>input data availability;</li>
+<li>generated archive availability;</li>
+<li>analysis scripts;</li>
+<li>license;</li>
+<li>citation instructions.</li>
+</ul>
+<p>Example wording:</p>
+<pre><code class="language-text">The ABMForge experiment archive, scenario configuration, experiment
+configuration, and analysis scripts are available in the accompanying repository.
+The archive was validated using `abmforge validate`.
+</code></pre>
+<h2 id="15-reviewer-facing-quick-check">15. Reviewer-Facing Quick Check</h2>
+<p>Before submission, verify:</p>
+<ul>
+<li>[ ] A new user can install the software.</li>
+<li>[ ] A new user can run the baseline scenario.</li>
+<li>[ ] A new user can validate the archive.</li>
+<li>[ ] A new user can reproduce the main table.</li>
+<li>[ ] A new user can reproduce the main figure.</li>
+<li>[ ] The paper's parameter values match the configuration files.</li>
+<li>[ ] The reported number of runs matches <code>run_index.json</code>.</li>
+<li>[ ] The code and data availability statement is accurate.</li>
+</ul>
+<h2 id="current-limitations">Current Limitations</h2>
+<p>This guide does not yet provide:</p>
+<ul>
+<li>domain-specific validation standards;</li>
+<li>automatic calibration workflows;</li>
+<li>automatic manuscript generation;</li>
+<li>full ODD completeness checking;</li>
+<li>statistical inference guarantees;</li>
+<li>peer-review acceptance guarantees.</li>
+</ul>
+<p>It is intended to make ABM research workflows more transparent, not to replace
+scientific judgment.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
