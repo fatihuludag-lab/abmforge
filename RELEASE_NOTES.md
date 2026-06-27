@@ -1,6 +1,6 @@
 # ABMForge Alpha Development Notes
 
-Current development version: `0.2.0a4.dev0`.
+Current development version: `0.3.0a1`.
 
 ABMForge is currently alpha-stage research software. The current `main` branch
 contains changes after the `v0.2.0a3` tag and should be treated as a development

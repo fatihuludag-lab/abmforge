@@ -8,6 +8,11 @@ on:
         required: true
         default: false
         type: boolean
+      publish_pypi:
+        description: "Publish the built distributions to production PyPI; requires a v* tag ref"
+        required: true
+        default: false
+        type: boolean
   push:
     tags:
       - "v*"
@@ -63,5 +68,30 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+          packages-dir: dist/
+          verbose: true
+
+  pypi:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_pypi && startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: pypi
+      url: https://pypi.org/project/abmforge/
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: abmforge-dist
+          path: dist
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
           packages-dir: dist/
           verbose: true
