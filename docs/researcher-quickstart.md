@@ -208,6 +208,23 @@ If pandas is installed, request DataFrames:
 tables = load_archive_tables("outputs/baseline_archive", as_dataframe=True)
 ```
 
+## Summarize Robustness Across Runs
+
+For multi-run archives, summarize final metrics by parameter values:
+
+```python
+from abmforge.analysis import summarize_metric_by_parameters, write_summary_csv
+
+rows = summarize_metric_by_parameters(
+    "outputs/experiment_archive",
+    metric="adoption_share",
+    group_by=["peer_influence"],
+)
+write_summary_csv(rows, "reports/robustness_summary.csv")
+```
+
+This produces descriptive statistics such as count, mean, standard deviation, minimum, and maximum for the selected metric.
+
 ## Files to Preserve for Research
 
 For a reproducible ABMForge study, preserve:

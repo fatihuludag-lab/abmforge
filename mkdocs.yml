@@ -10,6 +10,7 @@ nav:
   - Getting Started: getting-started.md
   - Researcher Quickstart: researcher-quickstart.md
   - Archive Table Analysis: archive-table-analysis.md
+  - Sensitivity and Robustness: sensitivity-robustness.md
   - Researcher Workflow: researcher-workflow.md
   - Project Templates: project-templates.md
   - Architecture Overview: architecture-overview.md
