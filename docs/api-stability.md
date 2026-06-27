@@ -229,3 +229,31 @@ Internal APIs: undocumented helpers and underscore-prefixed names
 ```
 
 This policy should be revisited before the first beta release.
+
+## Machine-readable API declarations
+
+The current top-level import contract is declared in `abmforge.api`:
+
+```python
+from abmforge.api import (
+    API_STABILITY_LEVELS,
+    EXPERIMENTAL_API,
+    PROVISIONAL_API,
+    PUBLIC_API,
+    STABLE_ALPHA_API,
+)
+```
+
+`PUBLIC_API` is the authoritative source for `abmforge.__all__`. The stability
+groups must partition `PUBLIC_API`, and `tests/test_public_api.py` verifies this
+contract. Any pull request that adds, removes, or reclassifies a top-level import
+should update `abmforge.api`, this policy, and the changelog together.
+
+The current groups mean:
+
+- `STABLE_ALPHA_API`: core imports that should not disappear accidentally during
+  the alpha line.
+- `PROVISIONAL_API`: user-facing imports that are documented but may still
+  evolve before beta or 1.0.
+- `EXPERIMENTAL_API`: optional, replay, analysis, or visualization helpers that
+  can change more freely while their contracts mature.

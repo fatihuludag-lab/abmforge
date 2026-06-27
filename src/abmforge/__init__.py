@@ -1,4 +1,10 @@
-"""ABMForge public API."""
+# ruff: noqa: F401
+"""ABMForge public API.
+
+The top-level imports in this module are the package's alpha-stage public import
+surface. The authoritative list and stability grouping live in
+``abmforge.api`` so accidental public API changes are caught by tests.
+"""
 
 from abmforge._version import __version__
 from abmforge.analysis import (
@@ -9,6 +15,7 @@ from abmforge.analysis import (
     sample_morris,
     sample_sobol,
 )
+from abmforge.api import PUBLIC_API
 from abmforge.core.agent import Agent
 from abmforge.core.collection import AgentCollection
 from abmforge.core.model import Model
@@ -50,50 +57,4 @@ from abmforge.world.gis import GISSpace
 from abmforge.world.grid import GridWorld
 from abmforge.world.network import NetworkSpace
 
-__all__ = [
-    "Agent",
-    "AgentCollection",
-    "ContinuousSpace",
-    "Recorder",
-    "Dataset",
-    "DATASET_SCHEMA_VERSION",
-    "DatasetSchemaV1",
-    "Event",
-    "EventQueue",
-    "Experiment",
-    "ExperimentArchive",
-    "ExperimentRegistry",
-    "ExperimentResult",
-    "GISSpace",
-    "GridWorld",
-    "Model",
-    "NetworkSpace",
-    "ODDDocument",
-    "ParameterGrid",
-    "RandomActivation",
-    "ReplayValidationReport",
-    "ReproducibilityManifest",
-    "RunResult",
-    "SALibProblem",
-    "Scenario",
-    "Scheduler",
-    "SchemaValidationError",
-    "SensitivityAnalysis",
-    "SequentialActivation",
-    "SimultaneousActivation",
-    "StagedActivation",
-    "__version__",
-    "analyze_morris",
-    "analyze_sobol",
-    "attach_snapshot_hash",
-    "link_snapshot",
-    "plot_grid",
-    "plot_multiple_runs",
-    "plot_timeseries",
-    "read_snapshot",
-    "sample_morris",
-    "sample_sobol",
-    "snapshot_hash",
-    "validate_replay",
-    "write_snapshot",
-]
+__all__ = list(PUBLIC_API)
