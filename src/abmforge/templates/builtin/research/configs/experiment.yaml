@@ -1,0 +1,18 @@
+name: research-template-experiment
+model: model.model.ResearchStudyModel
+base_parameters:
+  population: 80
+  initial_adoption_share: 0.10
+  base_threshold: 0.35
+  threshold_sd: 0.08
+  external_influence: 0.05
+experiment:
+  parameters:
+    peer_influence: [0.45, 0.70, 0.90]
+  seeds:
+    count: 5
+    master_seed: 20260627
+run:
+  steps: 20
+outputs:
+  primary_metric: adoption_share

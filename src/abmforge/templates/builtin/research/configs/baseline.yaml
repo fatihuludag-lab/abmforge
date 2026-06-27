@@ -1,0 +1,12 @@
+name: research-template-baseline
+model: model.model.ResearchStudyModel
+parameters:
+  population: 80
+  initial_adoption_share: 0.10
+  base_threshold: 0.35
+  threshold_sd: 0.08
+  peer_influence: 0.70
+  external_influence: 0.05
+run:
+  seed: 42
+  steps: 20
