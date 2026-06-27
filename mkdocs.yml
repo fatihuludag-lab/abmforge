@@ -42,6 +42,7 @@ nav:
   - Release Process: releasing.md
   - Release Checklist: release-checklist.md
   - Release Candidate Preparation: release-candidate-prep.md
+  - TestPyPI Dry Run: testpypi-dry-run.md
   - Contributing: contributing.md
 
   - Recording Data: recording.md
