@@ -190,6 +190,24 @@ This workflow exercises:
 Expected outputs are written under the example output directory used by the
 script.
 
+## Load Archive Tables in Python
+
+After validating an archive, you can load tables for custom analysis:
+
+```python
+from abmforge.analysis import load_archive_tables
+
+tables = load_archive_tables("outputs/baseline_archive")
+runs = tables["runs"]
+model_records = tables["model_records"]
+```
+
+If pandas is installed, request DataFrames:
+
+```python
+tables = load_archive_tables("outputs/baseline_archive", as_dataframe=True)
+```
+
 ## Files to Preserve for Research
 
 For a reproducible ABMForge study, preserve:
