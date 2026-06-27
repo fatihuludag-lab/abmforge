@@ -337,6 +337,14 @@ pytest
 python3 -m build
 ```
 
+## API stability
+
+ABMForge is alpha-stage software. The top-level import surface is declared in
+`abmforge.api` and documented in `docs/api-stability.md`. Core research
+entrypoints such as `Agent`, `Model`, `Scenario`, `Experiment`, `Dataset`, and
+`Recorder` are treated as stable-alpha imports; replay, optional analysis, and
+visualization helpers remain experimental until their contracts mature.
+
 ## Project status
 
 ABMForge is currently an alpha-stage framework.
