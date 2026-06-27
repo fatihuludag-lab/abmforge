@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from abmforge.core.model import Model
-from abmforge.experiment.scenario import Scenario
+from abmforge.experiment.scenario import Scenario, ScenarioValidationError
 
 
 class ScenarioValidationModel(Model):
@@ -172,3 +172,48 @@ run:
     assert scenario.parameters == {"value": 1}
     assert scenario.seed == 42
     assert scenario.steps == 1
+
+
+def test_scenario_validation_error_includes_file_field_and_hint(tmp_path) -> None:
+    scenario_file = tmp_path / "scenario.yaml"
+    scenario_file.write_text("name: missing_model\nrun:\n  steps: 1\n", encoding="utf-8")
+
+    with pytest.raises(ScenarioValidationError) as exc_info:
+        Scenario.from_yaml(scenario_file)
+
+    message = str(exc_info.value)
+    assert "Missing required field: model" in message
+    assert f"file: {scenario_file}" in message
+    assert "field: model" in message
+    assert "Hint:" in message
+
+
+def test_scenario_yaml_parse_errors_are_validation_errors(tmp_path) -> None:
+    scenario_file = tmp_path / "scenario.yaml"
+    scenario_file.write_text("model: [\n", encoding="utf-8")
+
+    with pytest.raises(
+        ScenarioValidationError,
+        match="Scenario YAML could not be parsed",
+    ) as exc_info:
+        Scenario.from_yaml(scenario_file)
+
+    message = str(exc_info.value)
+    assert f"file: {scenario_file}" in message
+    assert "Hint:" in message
+
+
+def test_scenario_yaml_import_errors_are_validation_errors(tmp_path) -> None:
+    scenario_file = tmp_path / "scenario.yaml"
+    scenario_file.write_text(
+        "model: missing_package.missing_module.MissingModel\nrun:\n  steps: 1\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ScenarioValidationError) as exc_info:
+        Scenario.from_yaml(scenario_file)
+
+    message = str(exc_info.value)
+    assert "field: model" in message
+    assert "importable" in message
+    assert f"file: {scenario_file}" in message

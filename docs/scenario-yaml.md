@@ -161,6 +161,32 @@ run:
 
 ## Validation errors
 
+
+### Error message contract
+
+`Scenario.from_yaml(...)` raises `ScenarioValidationError`, a `ValueError`
+subclass, when the YAML document cannot be parsed or validated.
+
+Scenario validation errors are designed to be readable in both Python and the
+CLI. They include:
+
+- the human-readable validation problem,
+- the scenario file path when available,
+- the failing field path when the problem is field-specific,
+- a short hint for common fixes.
+
+Example CLI output:
+
+```text
+Scenario validation failed:
+- Missing required field: run.steps (file: configs/baseline.yaml; field: run.steps). Hint: Set a non-negative integer number of simulation steps.
+```
+
+This error contract is part of the public alpha scenario workflow. The exact
+wording may still improve before 1.0, but validation errors should remain
+field-oriented and actionable.
+
+
 ABMForge validates scenario YAML files before running the model.
 
 Common validation errors include:
