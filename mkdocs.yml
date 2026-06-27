@@ -9,6 +9,7 @@ nav:
   - Home: index.md
   - Getting Started: getting-started.md
   - Researcher Quickstart: researcher-quickstart.md
+  - ABM Study Checklist: abm-study-checklist.md
   - Archive Table Analysis: archive-table-analysis.md
   - Sensitivity and Robustness: sensitivity-robustness.md
   - Researcher Workflow: researcher-workflow.md
