@@ -41,6 +41,7 @@ nav:
   - Examples: examples.md
   - API Reference: api.md
   - Benchmarking: benchmarking.md
+  - Mesa Comparison Methodology: mesa-comparison-methodology.md
   - API Stability: api-stability.md
   - Release Process: releasing.md
   - Release Checklist: release-checklist.md
