@@ -1,0 +1,12 @@
+name: wealth-inequality-baseline
+model: model.WealthInequalityModel
+parameters:
+  population: 80
+  initial_wealth: 10
+  transfer_probability: 0.65
+  transfer_amount: 1
+  income_probability: 0.15
+  income_amount: 1
+run:
+  seed: 42
+  steps: 30

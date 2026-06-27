@@ -33,6 +33,7 @@ nav:
   - Reproducibility Manifest: reproducibility-manifest-v1.md
   - ODD Export: odd-export.md
   - Model Zoo: model-zoo.md
+  - Model Zoo Research Examples: model-zoo-research-examples.md
   - Visualization: visualization.md
   - Analysis: analysis.md
   - Replay: replay.md
