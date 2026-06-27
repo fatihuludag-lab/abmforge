@@ -15,3 +15,16 @@ __all__ = [
     "sample_morris",
     "analyze_morris",
 ]
+
+from .archive_tables import (
+    ArchiveTableError as ArchiveTableError,
+)
+from .archive_tables import (
+    list_archive_tables as list_archive_tables,
+)
+from .archive_tables import (
+    load_archive_table as load_archive_table,
+)
+from .archive_tables import (
+    load_archive_tables as load_archive_tables,
+)
