@@ -97,3 +97,17 @@ This example is not meant to be a scientific claim about real adoption dynamics.
 
 Its purpose is to show that ABMForge can help structure a stochastic simulation
 study as a reusable and inspectable research artifact.
+
+## Reviewer-facing artifacts
+
+The `reproduce.py` script also writes a small documentation bundle into the
+archive `reports/` directory:
+
+- `ODD.md` and `ODD.json` document the model using ABMForge's ODD helper.
+- `research_protocol.md` states the workflow purpose, experimental design,
+  primary metric, reproducibility contract, and limitations.
+- `artifact_manifest.json` records whether the expected reviewer-facing
+  artifacts exist in the archive.
+
+These files are intended to make the example easier to inspect during software
+review, teaching, and reproducibility demonstrations.

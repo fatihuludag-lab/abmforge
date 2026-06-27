@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -22,15 +23,36 @@ def test_reproducible_study_example_creates_valid_archive(tmp_path: Path) -> Non
         check=True,
     )
 
-    assert (archive / "manifest.json").exists()
-    assert (archive / "dataset_schema.json").exists()
-    assert (archive / "run_index.json").exists()
-    assert (archive / "configs" / "experiment.yaml").exists()
-    assert (archive / "data" / "runs.json").exists()
-    assert (archive / "data" / "runs.csv").exists()
-    assert (archive / "data" / "model_records.csv").exists()
-    assert (archive / "reports" / "experiment_summary.json").exists()
-    assert (archive / "reports" / "summary.md").exists()
-    assert (archive / "reports" / "reproducible_study_summary.csv").exists()
-    assert (archive / "reports" / "reproducible_study_adoption_curve.csv").exists()
-    assert (archive / "reports" / "reproducible_study_adoption_curve.svg").exists()
+    expected_files = [
+        "manifest.json",
+        "dataset_schema.json",
+        "run_index.json",
+        "configs/experiment.yaml",
+        "data/runs.json",
+        "data/runs.csv",
+        "data/model_records.csv",
+        "reports/experiment_summary.json",
+        "reports/summary.md",
+        "reports/reproducible_study_summary.csv",
+        "reports/reproducible_study_adoption_curve.csv",
+        "reports/reproducible_study_adoption_curve.svg",
+        "reports/ODD.md",
+        "reports/ODD.json",
+        "reports/research_protocol.md",
+        "reports/artifact_manifest.json",
+    ]
+
+    for relative_path in expected_files:
+        assert (archive / relative_path).exists(), relative_path
+
+    odd_payload = json.loads((archive / "reports" / "ODD.json").read_text(encoding="utf-8"))
+    assert odd_payload["model"]["name"] == "ThresholdAdoptionModel"
+    assert odd_payload["manual_review_required"] is True
+    assert odd_payload["completeness"]["entities"] is True
+    assert odd_payload["completeness"]["process_overview"] is True
+
+    artifact_manifest = json.loads(
+        (archive / "reports" / "artifact_manifest.json").read_text(encoding="utf-8")
+    )
+    assert artifact_manifest["schema_version"] == "abmforge.example_artifacts.v1"
+    assert all(item["exists"] for item in artifact_manifest["artifacts"])

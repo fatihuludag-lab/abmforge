@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 from analyze import analyze_archive
+from documentation import write_research_documentation
 
 from abmforge.cli.main import main as abmforge_main
 
@@ -39,6 +40,7 @@ def reproduce(output: str | Path) -> Path:
         abmforge_main(["summarize", str(archive_path), "--json"])
         abmforge_main(["report", str(archive_path)])
         analyze_archive(archive_path)
+        write_research_documentation(archive_path)
     finally:
         os.chdir(original_cwd)
 
