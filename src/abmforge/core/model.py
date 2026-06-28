@@ -202,6 +202,40 @@ class Model:
         """Return NumPy RNG state for Snapshot Schema v1."""
         return dict(self.rng.bit_generator.state)
 
+    def _scheduler_metadata(self) -> dict[str, Any]:
+        """Return JSON-serializable metadata for an attached scheduler.
+
+        ABMForge models do not require a scheduler attribute, so this method
+        treats scheduler metadata as optional audit data. It does not imply
+        that scheduler instances are restored by ``from_snapshot``.
+        """
+
+        scheduler = None
+        for attribute in ("_scheduler", "scheduler", "schedule"):
+            candidate = getattr(self, attribute, None)
+            if candidate is not None and hasattr(candidate, "step"):
+                scheduler = candidate
+                break
+
+        if scheduler is None:
+            return {
+                "schema_version": "scheduler-metadata-v1",
+                "attached": False,
+            }
+
+        to_metadata = getattr(scheduler, "to_metadata", None)
+        if callable(to_metadata):
+            metadata = dict(to_metadata())
+        else:
+            metadata = {
+                "scheduler_type": type(scheduler).__name__,
+                "module": type(scheduler).__module__,
+            }
+
+        metadata.setdefault("schema_version", "scheduler-metadata-v1")
+        metadata.setdefault("attached", True)
+        return metadata
+
     def snapshot(self) -> dict[str, Any]:
         """Return a JSON-serializable model snapshot.
 
@@ -240,6 +274,7 @@ class Model:
             "model_state": self._model_snapshot_state(),
             "agents": agents,
             "event_queue": self.events.snapshot_metadata(),
+            "scheduler": self._scheduler_metadata(),
             "snapshot_id": f"snapshot-{uuid4().hex}",
             "created_at": datetime.now(timezone.utc).isoformat(),
             "parent_snapshot": None,

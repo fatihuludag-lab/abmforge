@@ -71,3 +71,23 @@ event replay contract. Callback functions are not serialized and
 
 Use `model.events.snapshot_metadata(include_cancelled=True)` when cancelled
 events should be included in the audit view.
+
+## Scheduler metadata
+
+Model snapshots include a `scheduler` metadata block. When a model has no
+attached scheduler, the block records:
+
+```json
+{
+  "schema_version": "scheduler-metadata-v1",
+  "attached": false
+}
+```
+
+When a scheduler object is attached to the model through `_scheduler`,
+`scheduler`, or `schedule`, ABMForge records its scheduler type, module, and
+available scheduler-specific metadata. For example, `StagedActivation` records
+its stage list and shuffle setting.
+
+This metadata is not a scheduler restore contract. `Model.from_snapshot(...)`
+does not reconstruct scheduler instances from snapshot metadata.
