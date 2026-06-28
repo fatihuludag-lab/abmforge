@@ -46,6 +46,7 @@ nav:
   - API Stability: api-stability.md
   - Software Paper Package: software-paper-package.md
   - Release Process: releasing.md
+  - Release Readiness Without Publishing: release-readiness-no-publish.md
   - Release Checklist: release-checklist.md
   - Release Candidate Preparation: release-candidate-prep.md
   - TestPyPI Dry Run: testpypi-dry-run.md
