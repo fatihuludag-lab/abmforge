@@ -230,6 +230,57 @@ class EventQueue:
 
         return self.next_event_time() is not None
 
+    def snapshot_metadata(self, *, include_cancelled: bool = False) -> dict[str, Any]:
+        """Return JSON-serializable metadata for queued events.
+
+        This is audit metadata, not a replay contract. Event callbacks are not
+        serialized; only their module/name metadata is recorded.
+        """
+
+        events = [
+            event for event in self._events.values() if include_cancelled or not event.cancelled
+        ]
+        events = sorted(
+            events,
+            key=lambda event: (
+                event.time,
+                event.priority,
+                event.sequence,
+                event.event_id,
+            ),
+        )
+
+        return {
+            "schema_version": "event-queue-metadata-v1",
+            "pending_count": sum(1 for event in self._events.values() if not event.cancelled),
+            "cancelled_count": sum(1 for event in self._events.values() if event.cancelled),
+            "next_event_time": events[0].time if events else None,
+            "events": [self._event_metadata(event) for event in events],
+            "callback_restore_supported": False,
+        }
+
+    @staticmethod
+    def _event_metadata(event: Event) -> dict[str, Any]:
+        callback = event.callback
+        return {
+            "event_id": event.event_id,
+            "time": event.time,
+            "priority": event.priority,
+            "sequence": event.sequence,
+            "owner": event.owner,
+            "tags": list(event.tags),
+            "cancel_on_owner_removed": event.cancel_on_owner_removed,
+            "cancelled": event.cancelled,
+            "callback": {
+                "module": getattr(callback, "__module__", type(callback).__module__),
+                "qualname": getattr(
+                    callback,
+                    "__qualname__",
+                    getattr(callback, "__name__", type(callback).__name__),
+                ),
+            },
+        }
+
     def process_due(self, *, time: float) -> int:
         """Execute all due events.
 
