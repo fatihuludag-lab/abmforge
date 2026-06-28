@@ -71,3 +71,20 @@ ABMForge is maintained as an open research software project. Response times may
 vary depending on teaching, research, and release priorities.
 
 Pull requests with tests and clear motivation are welcome.
+
+## Issue reporting
+
+Use GitHub Issues for reproducible bugs, documentation problems, feature
+requests, and reproducibility reports.
+
+Please choose the most specific issue template:
+
+- bug report for reproducible software problems;
+- feature request for proposed improvements;
+- reproducibility report for scenario, archive, manifest, checksum, seed, ODD,
+  or validation problems.
+
+Security issues should follow `SECURITY.md` rather than public issues.
+
+If GitHub issue creation is temporarily restricted, maintainers should document
+the alternative support channel here before a public release.

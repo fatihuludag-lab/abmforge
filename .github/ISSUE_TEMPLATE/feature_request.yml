@@ -1,20 +1,24 @@
 name: Feature request
-description: Suggest a new feature or improvement.
+description: Suggest an improvement or new capability
 title: "[Feature]: "
-labels: ["type:feature"]
+labels: ["enhancement", "needs-triage"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Please describe the research, teaching, or software-engineering need behind the request.
   - type: textarea
     id: problem
     attributes:
-      label: Problem or research workflow need
-      description: What user or research problem would this solve?
+      label: Problem or use case
+      description: What problem would this feature solve?
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
       label: Proposed solution
-      description: Describe the behavior or API you would like.
+      description: What would you like ABMForge to provide?
     validations:
       required: true
   - type: dropdown
@@ -22,28 +26,28 @@ body:
     attributes:
       label: Area
       options:
-        - core
-        - experiment
-        - archive
-        - dataset
+        - Core model/agent API
+        - Scheduling/time
+        - World/space
+        - Scenario/experiment workflow
+        - Dataset/archive/storage
+        - Reproducibility/manifest
         - CLI
-        - documentation
-        - model zoo
-        - packaging/release
-        - performance
-        - other
+        - Documentation/examples
+        - Other
     validations:
       required: true
   - type: textarea
     id: alternatives
     attributes:
       label: Alternatives considered
+      description: Are there workarounds or related tools?
     validations:
       required: false
   - type: textarea
     id: impact
     attributes:
       label: Expected impact
-      description: Explain who would benefit and how.
+      description: How would this improve research, teaching, reproducibility, or maintenance?
     validations:
       required: false

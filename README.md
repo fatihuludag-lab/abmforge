@@ -409,3 +409,11 @@ python3 -m build
 ## License
 
 ABMForge is distributed under the Apache-2.0 license. See `LICENSE`.
+
+## Community and support
+
+Please use GitHub Issues for reproducible bugs, feature requests, documentation
+problems, and reproducibility reports. Use the reproducibility report template
+for scenario, archive, manifest, checksum, seed, ODD, or validation issues.
+
+For support details, see `SUPPORT.md` and `docs/community-and-issues.md`.

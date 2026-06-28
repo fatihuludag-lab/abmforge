@@ -51,6 +51,7 @@ nav:
   - Release Candidate Preparation: release-candidate-prep.md
   - TestPyPI Dry Run: testpypi-dry-run.md
   - PyPI Alpha Release: pypi-alpha-release.md
+  - Community and Issues: community-and-issues.md
   - Contributing: contributing.md
 
   - Recording Data: recording.md
