@@ -46,3 +46,14 @@ Its strongest contribution is the research workflow around ABM experiments.
 - PyPI release status should match the actual release state at submission time;
 - generated ODD artifacts require manual scientific review;
 - examples are workflow demonstrations, not empirical validation studies.
+
+## Readiness review
+
+The publication readiness review is tracked separately in:
+
+```text
+docs/publication-readiness-review.md
+```
+
+That page separates submission blockers, non-blockers, defensible claims,
+claims to avoid, and pre-submission checks.
