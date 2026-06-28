@@ -17,6 +17,7 @@ from abmforge.experiment.archive_summary import (
 )
 from abmforge.experiment.registry import ExperimentRegistry
 from abmforge.experiment.run_index import RunIndex
+from abmforge.repro.manifest import describe_file_artifact, sha256_file
 
 ArchiveFormat = Literal["json", "parquet"]
 ARCHIVE_FORMAT_VERSION = "experiment-archive-v1"
@@ -39,6 +40,27 @@ _DATASET_PARQUET_FILES = {
     "lifecycle_records": "lifecycle_records.parquet",
     "errors": "errors.parquet",
 }
+
+
+def _artifact_role(relative_path: Path) -> str:
+    parts = relative_path.parts
+    if parts and parts[0] == "configs":
+        return "input_config"
+    if parts and parts[0] == "data":
+        return "dataset_table"
+    if parts and parts[0] == "reports":
+        return "report"
+    if parts and parts[0] == "snapshots":
+        return "snapshot"
+    if parts and parts[0] == "logs":
+        return "log"
+    if relative_path.name == "dataset_schema.json":
+        return "dataset_schema"
+    if relative_path.name == "run_index.json":
+        return "run_index"
+    if relative_path.name == "registry.json":
+        return "registry"
+    return "archive_file"
 
 
 def _canonical_json_bytes(data: Any) -> bytes:
@@ -235,11 +257,32 @@ class ExperimentArchive:
         manifest_path = dataset.write_manifest(self.manifest_path)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest.setdefault("archive_format", ARCHIVE_FORMAT_VERSION)
+        manifest["artifacts"] = self._build_artifact_inventory()
+        manifest["artifact_count"] = len(manifest["artifacts"])
         manifest_path.write_text(
             json.dumps(manifest, indent=2, ensure_ascii=False, default=str),
             encoding="utf-8",
         )
         return manifest_path
+
+    def _build_artifact_inventory(self) -> list[dict[str, Any]]:
+        """Return checksum metadata for files already written to this archive."""
+
+        artifacts: list[dict[str, Any]] = []
+        for artifact_path in sorted(self.path.rglob("*")):
+            if not artifact_path.is_file():
+                continue
+            relative_path = artifact_path.relative_to(self.path)
+            if relative_path.as_posix() == "manifest.json":
+                continue
+            artifacts.append(
+                describe_file_artifact(
+                    artifact_path,
+                    root=self.path,
+                    role=_artifact_role(relative_path),
+                )
+            )
+        return artifacts
 
     def write_run_index(self, dataset: Dataset) -> Path:
         """Write a compact index of runs in this archive."""
@@ -266,8 +309,8 @@ class ExperimentArchive:
             raise ValueError(f"Unsupported archive format: {format}")
 
         self.write_dataset_schema(dataset)
-        self.write_manifest(dataset)
         self.write_run_index(dataset)
+        self.write_manifest(dataset)
 
     def validate(self) -> list[str]:
         """Return archive validation errors.
@@ -300,6 +343,7 @@ class ExperimentArchive:
             return errors
 
         errors.extend(self._validate_dataset_schema_hash())
+        errors.extend(self._validate_manifest_artifacts())
         errors.extend(self._validate_json_dataset_integrity())
         errors.extend(self._validate_parquet_dataset_integrity())
         errors.extend(self._validate_run_index())
@@ -371,6 +415,76 @@ class ExperimentArchive:
             ]
 
         return []
+
+    def _validate_manifest_artifacts(self) -> list[str]:
+        """Validate manifest artifact checksums when present.
+
+        Archives created before artifact inventories existed are treated as
+        legacy alpha archives and continue validation.
+        """
+
+        try:
+            manifest = json.loads(self.manifest_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            return [f"Invalid manifest.json: {exc}"]
+
+        artifacts = manifest.get("artifacts")
+        if artifacts is None:
+            return []
+        if not isinstance(artifacts, list):
+            return ["manifest.json artifacts must be a list"]
+
+        errors: list[str] = []
+        archive_root = self.path.resolve()
+        for index, artifact in enumerate(artifacts):
+            if not isinstance(artifact, dict):
+                errors.append(f"manifest.json artifacts[{index}] must be an object")
+                continue
+
+            relative_path = artifact.get("path")
+            if not isinstance(relative_path, str) or not relative_path:
+                errors.append(f"manifest.json artifacts[{index}].path must be a non-empty string")
+                continue
+
+            artifact_path = (self.path / relative_path).resolve()
+            try:
+                artifact_path.relative_to(archive_root)
+            except ValueError:
+                errors.append(f"manifest.json artifact path escapes archive: {relative_path}")
+                continue
+
+            if not artifact_path.is_file():
+                if relative_path == "run_index.json" and artifact.get("role") == "run_index":
+                    # Legacy alpha archives may not include a run index. Keep this
+                    # compatibility path while still validating required data,
+                    # schema, config, and report artifacts when they are listed.
+                    continue
+                errors.append(f"Missing manifest artifact: {relative_path}")
+                continue
+
+            expected_size = artifact.get("size_bytes")
+            actual_size = artifact_path.stat().st_size
+            if not isinstance(expected_size, int):
+                errors.append(f"manifest.json artifact size missing for: {relative_path}")
+            elif actual_size != expected_size:
+                errors.append(
+                    f"artifact size mismatch for {relative_path}: "
+                    f"manifest has {expected_size}, actual is {actual_size}"
+                )
+
+            expected_hash = artifact.get("sha256")
+            if not isinstance(expected_hash, str) or not expected_hash:
+                errors.append(f"manifest.json artifact sha256 missing for: {relative_path}")
+                continue
+
+            actual_hash = sha256_file(artifact_path)
+            if actual_hash != expected_hash:
+                errors.append(
+                    f"artifact sha256 mismatch for {relative_path}: "
+                    f"manifest has {expected_hash}, actual is {actual_hash}"
+                )
+
+        return errors
 
     def _validate_json_dataset_integrity(self) -> list[str]:
         """Validate JSON/JSONL dataset files against manifest counts and hashes.

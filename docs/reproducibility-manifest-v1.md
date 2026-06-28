@@ -84,3 +84,32 @@ outputs/
 - failure artifacts
 - ODD/TRACE export
 - CoMSES packaging
+
+
+## Artifact inventory and checksums
+
+Manifest v1 can include an `artifacts` array. Each artifact records a portable
+archive-relative path, file size in bytes, SHA-256 checksum, and an optional
+role such as `input_config`, `dataset_table`, `dataset_schema`, `run_index`, or
+`report`.
+
+Example:
+
+```json
+{
+  "path": "configs/scenario.yaml",
+  "role": "input_config",
+  "size_bytes": 128,
+  "sha256": "..."
+}
+```
+
+Archive validation checks these artifact records when they are present. This
+means that changes to archived configuration files, dataset tables, schema
+files, or other registered artifacts can be detected after the archive is
+written.
+
+Archives created before artifact inventories existed remain valid as legacy
+alpha archives; artifact checksum validation only runs when `artifacts` is
+present in `manifest.json`.
+

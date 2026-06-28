@@ -207,3 +207,12 @@ The run index is intentionally small and JSON-based. It is useful for discoverin
 which runs exist in an archive before loading the full dataset tables.
 
 Archives produced before this feature may not contain `run_index.json`.
+
+## Manifest artifact checksum validation
+
+Archives written with manifest artifact inventories include archive-relative
+file paths, sizes, SHA-256 checksums, and artifact roles for files that already
+exist when `manifest.json` is written. `abmforge validate` checks these records
+when they are present and reports missing or tampered files.
+
+Archives without an `artifacts` array remain valid as legacy alpha archives.
