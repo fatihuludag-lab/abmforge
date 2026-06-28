@@ -239,6 +239,7 @@ class Model:
             "rng_state": self._rng_snapshot_state(),
             "model_state": self._model_snapshot_state(),
             "agents": agents,
+            "event_queue": self.events.snapshot_metadata(),
             "snapshot_id": f"snapshot-{uuid4().hex}",
             "created_at": datetime.now(timezone.utc).isoformat(),
             "parent_snapshot": None,
