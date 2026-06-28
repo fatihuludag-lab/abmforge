@@ -96,6 +96,18 @@ Production PyPI publishing must require all of the following:
 The release workflow should build on tag pushes but should not publish to PyPI
 automatically on tag push.
 
+## Credential-Free Readiness Path
+
+If TestPyPI or production PyPI access is unavailable, do not run the publishing
+steps on this page. Use the no-publish release-readiness path instead:
+
+```text
+docs/release-readiness-no-publish.md
+```
+
+That path validates metadata, tests, documentation, build artifacts, and
+`twine check` without uploading distributions.
+
 ## Release Sequence
 
 Recommended sequence:

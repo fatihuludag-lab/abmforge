@@ -84,6 +84,21 @@ cd /tmp
 /tmp/abmforge-wheel-smoke/bin/python /path/to/abmforge/scripts/smoke_installed_package.py
 ```
 
+## No-Publish Release Readiness
+
+When TestPyPI or production PyPI access is unavailable, maintainers should run
+the no-publish release-readiness path instead of attempting package uploads.
+
+See:
+
+```text
+docs/release-readiness-no-publish.md
+```
+
+This path verifies version metadata, strict release metadata, tests,
+documentation, package build artifacts, and `twine check` without running
+`twine upload`, `publish_testpypi=true`, or `publish_pypi=true`.
+
 ## TestPyPI Dry Run
 
 The safe release path is:
