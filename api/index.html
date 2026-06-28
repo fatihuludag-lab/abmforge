@@ -1,0 +1,3812 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Reproducible, experiment-native agent-based modeling for Python">
+      
+      
+      
+      
+        <link rel="prev" href="../examples/">
+      
+      
+        <link rel="next" href="../benchmarking/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>API Reference - ABMForge</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#public-api-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="ABMForge" class="md-header__button md-logo" aria-label="ABMForge" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ABMForge
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              API Reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/fatihuludag-lab/abmforge" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="ABMForge" class="md-nav__button md-logo" aria-label="ABMForge" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ABMForge
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/fatihuludag-lab/abmforge" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../researcher-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Researcher Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../abm-study-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ABM Study Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../archive-table-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Archive Table Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sensitivity-robustness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensitivity and Robustness
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../researcher-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Researcher Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../seed-sequence-policy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Seed Sequence Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment-replicates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiment Replicates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../archive-grouped-run-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Archive Grouped Run Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../first-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spaces
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scheduling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scheduling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../delayed-events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Delayed Events
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agent-lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent Lifecycle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../typed-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typed Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario-yaml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scenario YAML Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../archive-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiment Archive Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment-archive-v1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiment Archive Specification v1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../archive-migration-strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Archive Migration Strategy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-reproducible-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference Reproducible Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment-archive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiment Archive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-schema-v1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../failure-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Failure Handling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reproducibility-manifest-v1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducibility Manifest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../odd-export/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ODD Export
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-zoo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Zoo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-zoo-research-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Zoo Research Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../visualization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visualization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../replay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Replay
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GISSpace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#import-convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Import Convention
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stability-legend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stability Legend
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-modelling-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Modelling API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Core Modelling API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#agentcollection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AgentCollection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#experiment-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Experiment API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Experiment API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#experiment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Experiment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#experimentresult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExperimentResult
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runresult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RunResult
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parametergrid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ParameterGrid
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#experimentarchive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExperimentArchive
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#experimentregistry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExperimentRegistry
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-and-recording-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data and Recording API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data and Recording API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dataset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recorder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recorder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datasetschemav1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DatasetSchemaV1
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dataset_schema_version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DATASET_SCHEMA_VERSION
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schemavalidationerror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SchemaValidationError
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scheduling-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scheduling API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scheduling API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scheduler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scheduler
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sequentialactivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SequentialActivation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#randomactivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RandomActivation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simultaneousactivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SimultaneousActivation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stagedactivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StagedActivation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#time-and-event-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Time and Event API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Time and Event API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#event" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eventqueue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EventQueue
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#space-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Space API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Space API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gridworld" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GridWorld
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#networkspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NetworkSpace
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#continuousspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ContinuousSpace
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gisspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GISSpace
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#odd-and-methods-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ODD and Methods API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ODD and Methods API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#odddocument" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ODDDocument
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sensitivity-analysis-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sensitivity Analysis API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sensitivity Analysis API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#salibproblem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SALibProblem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sensitivityanalysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SensitivityAnalysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sample_sobol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sample_sobol
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#analyze_sobol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        analyze_sobol
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sample_morris" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sample_morris
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#analyze_morris" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        analyze_morris
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reproducibility-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reproducibility API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Reproducibility API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reproducibilitymanifest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ReproducibilityManifest
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#replay-and-snapshot-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replay and Snapshot API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Replay and Snapshot API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#write_snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        write_snapshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#read_snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        read_snapshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snapshot_hash" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        snapshot_hash
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attach_snapshot_hash" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        attach_snapshot_hash
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#link_snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        link_snapshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_replay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_replay
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#replayvalidationreport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ReplayValidationReport
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visualization-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualization API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Visualization API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#plot_timeseries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot_timeseries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plot_multiple_runs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot_multiple_runs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plot_grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot_grid
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#__version__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        __version__
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-public-export-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full Public Export Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#internal-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Internal APIs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typed-agent-protocols" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Typed-agent protocols
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mesa-comparison-methodology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mesa Comparison Methodology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-stability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Stability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../publication-readiness-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publication Readiness Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../software-paper-package/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Software Paper Package
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releasing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-readiness-no-publish/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Readiness Without Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-candidate-prep/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Candidate Preparation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testpypi-dry-run/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TestPyPI Dry Run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pypi-alpha-release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyPI Alpha Release
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../community-and-issues/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Community and Issues
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recording/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recording Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-reproducible-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference Reproducible Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reproducibility-tiers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducibility Tiers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment-yaml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiment YAML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reporting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reporting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#import-convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Import Convention
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stability-legend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stability Legend
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-modelling-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Modelling API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Core Modelling API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#agentcollection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AgentCollection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#experiment-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Experiment API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Experiment API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#experiment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Experiment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#experimentresult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExperimentResult
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runresult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RunResult
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parametergrid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ParameterGrid
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#experimentarchive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExperimentArchive
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#experimentregistry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExperimentRegistry
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-and-recording-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data and Recording API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data and Recording API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dataset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recorder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recorder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datasetschemav1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DatasetSchemaV1
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dataset_schema_version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DATASET_SCHEMA_VERSION
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schemavalidationerror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SchemaValidationError
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scheduling-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scheduling API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scheduling API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scheduler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scheduler
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sequentialactivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SequentialActivation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#randomactivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RandomActivation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simultaneousactivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SimultaneousActivation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stagedactivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StagedActivation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#time-and-event-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Time and Event API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Time and Event API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#event" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eventqueue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EventQueue
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#space-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Space API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Space API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gridworld" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GridWorld
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#networkspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NetworkSpace
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#continuousspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ContinuousSpace
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gisspace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GISSpace
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#odd-and-methods-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ODD and Methods API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ODD and Methods API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#odddocument" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ODDDocument
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sensitivity-analysis-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sensitivity Analysis API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sensitivity Analysis API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#salibproblem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SALibProblem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sensitivityanalysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SensitivityAnalysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sample_sobol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sample_sobol
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#analyze_sobol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        analyze_sobol
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sample_morris" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sample_morris
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#analyze_morris" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        analyze_morris
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reproducibility-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reproducibility API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Reproducibility API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reproducibilitymanifest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ReproducibilityManifest
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#replay-and-snapshot-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replay and Snapshot API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Replay and Snapshot API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#write_snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        write_snapshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#read_snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        read_snapshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snapshot_hash" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        snapshot_hash
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#attach_snapshot_hash" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        attach_snapshot_hash
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#link_snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        link_snapshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate_replay" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate_replay
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#replayvalidationreport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ReplayValidationReport
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visualization-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualization API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Visualization API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#plot_timeseries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot_timeseries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plot_multiple_runs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot_multiple_runs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plot_grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot_grid
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#__version__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        __version__
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-public-export-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full Public Export Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#internal-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Internal APIs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#typed-agent-protocols" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Typed-agent protocols
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="public-api-reference">Public API Reference</h1>
+<p><strong>Status:</strong> Alpha<br />
+<strong>Audience:</strong> ABMForge users, contributors, reviewers, and downstream research projects.</p>
+<p>This page documents the main public API exported by the root <code>abmforge</code> package
+and the most important user-facing subpackages.</p>
+<p>ABMForge is still alpha-stage software. Most documented APIs should be treated
+as <strong>provisional</strong> until the project reaches beta or 1.0.</p>
+<p>For compatibility expectations, see the API stability policy.</p>
+<h2 id="import-convention">Import Convention</h2>
+<p>Most user-facing projects should start with root imports:</p>
+<pre><code class="language-python">from abmforge import Agent, Experiment, Model, Scenario
+</code></pre>
+<p>Use subpackage imports when you need a specific scheduler, space, storage helper,
+or method module.</p>
+<h2 id="stability-legend">Stability Legend</h2>
+<table>
+<thead>
+<tr>
+<th>Label</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stable</td>
+<td>Intended to remain compatible within a major release line. Very limited during alpha.</td>
+</tr>
+<tr>
+<td>Provisional</td>
+<td>Intended for normal users, but may change before beta or 1.0.</td>
+</tr>
+<tr>
+<td>Experimental</td>
+<td>Useful for exploration; may change more quickly.</td>
+</tr>
+<tr>
+<td>Internal</td>
+<td>Not part of the documented public contract.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="core-modelling-api">Core Modelling API</h2>
+<h3 id="agent"><code>Agent</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import Agent</code></p>
+<p>Base class for individual agents.</p>
+<p>Use it when defining agent-level state and behavior.</p>
+<p>Typical responsibilities:</p>
+<ul>
+<li>hold agent attributes;</li>
+<li>implement <code>step()</code>;</li>
+<li>interact with other agents;</li>
+<li>read model parameters;</li>
+<li>use model-level random number generation;</li>
+<li>request spawn/remove behavior through the model or collection API.</li>
+</ul>
+<h3 id="model"><code>Model</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import Model</code></p>
+<p>Base class for simulation models.</p>
+<p>Typical responsibilities:</p>
+<ul>
+<li>initialize agents and spaces in <code>setup()</code>;</li>
+<li>advance the model in <code>step()</code>;</li>
+<li>own model parameters;</li>
+<li>own the model-level random number generator;</li>
+<li>configure recorders;</li>
+<li>manage simulation time and status.</li>
+</ul>
+<p>Minimal shape:</p>
+<pre><code class="language-python">from abmforge import Agent, Model
+
+
+class Person(Agent):
+    def step(self) -&gt; None:
+        self.wealth += 1
+
+
+class WealthModel(Model):
+    def setup(self) -&gt; None:
+        self.agents.create(Person, n=10, wealth=0)
+
+    def step(self) -&gt; None:
+        self.agents.do(&quot;step&quot;)
+</code></pre>
+<h3 id="agentcollection"><code>AgentCollection</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import AgentCollection</code></p>
+<p>Container and helper API for model agents.</p>
+<p>Common uses:</p>
+<ul>
+<li>create agents;</li>
+<li>iterate over agents;</li>
+<li>apply methods to all agents;</li>
+<li>shuffle activation;</li>
+<li>filter or aggregate agent attributes;</li>
+<li>query by type or state.</li>
+</ul>
+<h2 id="experiment-api">Experiment API</h2>
+<h3 id="scenario"><code>Scenario</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import Scenario</code></p>
+<p>A single model run configuration.</p>
+<p>A scenario usually combines:</p>
+<ul>
+<li>model class;</li>
+<li>parameters;</li>
+<li>seed;</li>
+<li>number of steps;</li>
+<li>optional name;</li>
+<li>optional stop condition.</li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-python">from abmforge import Scenario
+
+scenario = Scenario(
+    model=WealthModel,
+    parameters={&quot;population&quot;: 10},
+    seed=42,
+    steps=5,
+    name=&quot;baseline&quot;,
+)
+
+result = scenario.run()
+</code></pre>
+<h3 id="experiment"><code>Experiment</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import Experiment</code></p>
+<p>A multi-run experiment configuration.</p>
+<p>Use it for:</p>
+<ul>
+<li>parameter sweeps;</li>
+<li>multiple seeds;</li>
+<li>stochastic replicates;</li>
+<li>comparative scenarios.</li>
+</ul>
+<h3 id="experimentresult"><code>ExperimentResult</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import ExperimentResult</code></p>
+<p>Container for multi-run experiment results.</p>
+<p>Typical uses:</p>
+<ul>
+<li>summarize runs;</li>
+<li>write CSV tables;</li>
+<li>collect model records;</li>
+<li>collect agent records;</li>
+<li>inspect failed runs.</li>
+</ul>
+<h3 id="runresult"><code>RunResult</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import RunResult</code></p>
+<p>Container for one run result.</p>
+<p>Typical fields include:</p>
+<ul>
+<li>run status;</li>
+<li>number of completed steps;</li>
+<li>dataset;</li>
+<li>stop reason;</li>
+<li>error information when a run fails.</li>
+</ul>
+<h3 id="parametergrid"><code>ParameterGrid</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import ParameterGrid</code></p>
+<p>Helper for expanding parameter combinations.</p>
+<h3 id="experimentarchive"><code>ExperimentArchive</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import ExperimentArchive</code></p>
+<p>Directory-based experiment archive API.</p>
+<p>Use it to:</p>
+<ul>
+<li>create archive roots;</li>
+<li>write scenario or experiment configuration files;</li>
+<li>write dataset tables;</li>
+<li>write schema and manifest files;</li>
+<li>validate archives;</li>
+<li>read run indexes.</li>
+</ul>
+<h3 id="experimentregistry"><code>ExperimentRegistry</code></h3>
+<p><strong>Status:</strong> Experimental<br />
+<strong>Import:</strong> <code>from abmforge import ExperimentRegistry</code></p>
+<p>Registry helper for tracking experiment archive components and runs.</p>
+<p>This API may evolve as archive migration and resumable experiments mature.</p>
+<h2 id="data-and-recording-api">Data and Recording API</h2>
+<h3 id="dataset"><code>Dataset</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import Dataset</code></p>
+<p>Structured simulation output container.</p>
+<p>Standard logical tables include:</p>
+<ul>
+<li><code>runs</code>;</li>
+<li><code>model_records</code>;</li>
+<li><code>agent_records</code>;</li>
+<li><code>event_records</code>;</li>
+<li><code>lifecycle_records</code>;</li>
+<li><code>errors</code>.</li>
+</ul>
+<h3 id="recorder"><code>Recorder</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import Recorder</code></p>
+<p>Model-attached recording helper.</p>
+<p>Use it to record:</p>
+<ul>
+<li>model-level metrics;</li>
+<li>agent-level attributes;</li>
+<li>lifecycle events;</li>
+<li>event records;</li>
+<li>error records.</li>
+</ul>
+<h3 id="datasetschemav1"><code>DatasetSchemaV1</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import DatasetSchemaV1</code></p>
+<p>Dataset schema validator and contract helper.</p>
+<h3 id="dataset_schema_version"><code>DATASET_SCHEMA_VERSION</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import DATASET_SCHEMA_VERSION</code></p>
+<p>Current dataset schema version identifier.</p>
+<h3 id="schemavalidationerror"><code>SchemaValidationError</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import SchemaValidationError</code></p>
+<p>Raised for dataset schema validation failures.</p>
+<h2 id="scheduling-api">Scheduling API</h2>
+<h3 id="scheduler"><code>Scheduler</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import Scheduler</code></p>
+<p>Base scheduler abstraction.</p>
+<h3 id="sequentialactivation"><code>SequentialActivation</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import SequentialActivation</code></p>
+<p>Activates agents in collection order.</p>
+<h3 id="randomactivation"><code>RandomActivation</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import RandomActivation</code></p>
+<p>Activates agents in random order using the model-level random generator.</p>
+<h3 id="simultaneousactivation"><code>SimultaneousActivation</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import SimultaneousActivation</code></p>
+<p>Supports staged simultaneous-style activation.</p>
+<h3 id="stagedactivation"><code>StagedActivation</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import StagedActivation</code></p>
+<p>Runs named activation stages in order.</p>
+<h2 id="time-and-event-api">Time and Event API</h2>
+<h3 id="event"><code>Event</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import Event</code></p>
+<p>Scheduled event object.</p>
+<h3 id="eventqueue"><code>EventQueue</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import EventQueue</code></p>
+<p>Priority queue for scheduled events.</p>
+<p>Time and event semantics are still evolving. Users should treat advanced event
+behavior as provisional until the time model is finalized.</p>
+<h2 id="space-api">Space API</h2>
+<h3 id="gridworld"><code>GridWorld</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import GridWorld</code></p>
+<p>Grid-based space.</p>
+<h3 id="networkspace"><code>NetworkSpace</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import NetworkSpace</code></p>
+<p>Network-based space.</p>
+<h3 id="continuousspace"><code>ContinuousSpace</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import ContinuousSpace</code></p>
+<p>Continuous coordinate space.</p>
+<h3 id="gisspace"><code>GISSpace</code></h3>
+<p><strong>Status:</strong> Experimental<br />
+<strong>Import:</strong> <code>from abmforge import GISSpace</code></p>
+<p>Lightweight GIS-oriented space.</p>
+<p>GIS support is intentionally limited during alpha.</p>
+<h2 id="odd-and-methods-api">ODD and Methods API</h2>
+<h3 id="odddocument"><code>ODDDocument</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import ODDDocument</code></p>
+<p>Structured ODD-style model documentation helper.</p>
+<p>Generated ODD files are skeleton documents and require manual scientific review.</p>
+<h2 id="sensitivity-analysis-api">Sensitivity Analysis API</h2>
+<h3 id="salibproblem"><code>SALibProblem</code></h3>
+<p><strong>Status:</strong> Experimental<br />
+<strong>Import:</strong> <code>from abmforge import SALibProblem</code></p>
+<p>Problem specification helper for SALib-style sensitivity analysis.</p>
+<h3 id="sensitivityanalysis"><code>SensitivityAnalysis</code></h3>
+<p><strong>Status:</strong> Experimental<br />
+<strong>Import:</strong> <code>from abmforge import SensitivityAnalysis</code></p>
+<p>Sensitivity analysis helper.</p>
+<h3 id="sample_sobol"><code>sample_sobol</code></h3>
+<p><strong>Status:</strong> Experimental<br />
+<strong>Import:</strong> <code>from abmforge import sample_sobol</code></p>
+<p>Generate Sobol samples.</p>
+<h3 id="analyze_sobol"><code>analyze_sobol</code></h3>
+<p><strong>Status:</strong> Experimental<br />
+<strong>Import:</strong> <code>from abmforge import analyze_sobol</code></p>
+<p>Analyze Sobol outputs.</p>
+<h3 id="sample_morris"><code>sample_morris</code></h3>
+<p><strong>Status:</strong> Experimental<br />
+<strong>Import:</strong> <code>from abmforge import sample_morris</code></p>
+<p>Generate Morris samples.</p>
+<h3 id="analyze_morris"><code>analyze_morris</code></h3>
+<p><strong>Status:</strong> Experimental<br />
+<strong>Import:</strong> <code>from abmforge import analyze_morris</code></p>
+<p>Analyze Morris outputs.</p>
+<h2 id="reproducibility-api">Reproducibility API</h2>
+<h3 id="reproducibilitymanifest"><code>ReproducibilityManifest</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import ReproducibilityManifest</code></p>
+<p>Manifest helper for reproducibility metadata.</p>
+<h2 id="replay-and-snapshot-api">Replay and Snapshot API</h2>
+<p>Replay is currently experimental.</p>
+<h3 id="write_snapshot"><code>write_snapshot</code></h3>
+<p><strong>Status:</strong> Experimental<br />
+<strong>Import:</strong> <code>from abmforge import write_snapshot</code></p>
+<p>Write a model snapshot.</p>
+<h3 id="read_snapshot"><code>read_snapshot</code></h3>
+<p><strong>Status:</strong> Experimental<br />
+<strong>Import:</strong> <code>from abmforge import read_snapshot</code></p>
+<p>Read a model snapshot.</p>
+<h3 id="snapshot_hash"><code>snapshot_hash</code></h3>
+<p><strong>Status:</strong> Experimental<br />
+<strong>Import:</strong> <code>from abmforge import snapshot_hash</code></p>
+<p>Compute a snapshot hash.</p>
+<h3 id="attach_snapshot_hash"><code>attach_snapshot_hash</code></h3>
+<p><strong>Status:</strong> Experimental<br />
+<strong>Import:</strong> <code>from abmforge import attach_snapshot_hash</code></p>
+<p>Attach a hash to snapshot metadata.</p>
+<h3 id="link_snapshot"><code>link_snapshot</code></h3>
+<p><strong>Status:</strong> Experimental<br />
+<strong>Import:</strong> <code>from abmforge import link_snapshot</code></p>
+<p>Link snapshot metadata to a run or archive.</p>
+<h3 id="validate_replay"><code>validate_replay</code></h3>
+<p><strong>Status:</strong> Experimental<br />
+<strong>Import:</strong> <code>from abmforge import validate_replay</code></p>
+<p>Validate replay behavior where supported.</p>
+<h3 id="replayvalidationreport"><code>ReplayValidationReport</code></h3>
+<p><strong>Status:</strong> Experimental<br />
+<strong>Import:</strong> <code>from abmforge import ReplayValidationReport</code></p>
+<p>Report object for replay validation.</p>
+<h2 id="visualization-api">Visualization API</h2>
+<p>Visualization helpers are optional convenience APIs.</p>
+<h3 id="plot_timeseries"><code>plot_timeseries</code></h3>
+<p><strong>Status:</strong> Experimental<br />
+<strong>Import:</strong> <code>from abmforge import plot_timeseries</code></p>
+<p>Plot a time series.</p>
+<h3 id="plot_multiple_runs"><code>plot_multiple_runs</code></h3>
+<p><strong>Status:</strong> Experimental<br />
+<strong>Import:</strong> <code>from abmforge import plot_multiple_runs</code></p>
+<p>Plot multiple run outputs.</p>
+<h3 id="plot_grid"><code>plot_grid</code></h3>
+<p><strong>Status:</strong> Experimental<br />
+<strong>Import:</strong> <code>from abmforge import plot_grid</code></p>
+<p>Plot a grid model state.</p>
+<h2 id="version-api">Version API</h2>
+<h3 id="__version__"><code>__version__</code></h3>
+<p><strong>Status:</strong> Provisional<br />
+<strong>Import:</strong> <code>from abmforge import __version__</code></p>
+<p>Current ABMForge package version.</p>
+<h2 id="full-public-export-checklist">Full Public Export Checklist</h2>
+<p>The following names are exported from the root <code>abmforge</code> package and should
+remain documented while they are part of <code>abmforge.__all__</code>:</p>
+<ul>
+<li><code>Agent</code></li>
+<li><code>AgentCollection</code></li>
+<li><code>ContinuousSpace</code></li>
+<li><code>Recorder</code></li>
+<li><code>Dataset</code></li>
+<li><code>DATASET_SCHEMA_VERSION</code></li>
+<li><code>DatasetSchemaV1</code></li>
+<li><code>Event</code></li>
+<li><code>EventQueue</code></li>
+<li><code>Experiment</code></li>
+<li><code>ExperimentArchive</code></li>
+<li><code>ExperimentRegistry</code></li>
+<li><code>ExperimentResult</code></li>
+<li><code>GISSpace</code></li>
+<li><code>GridWorld</code></li>
+<li><code>Model</code></li>
+<li><code>NetworkSpace</code></li>
+<li><code>ODDDocument</code></li>
+<li><code>ParameterGrid</code></li>
+<li><code>RandomActivation</code></li>
+<li><code>ReplayValidationReport</code></li>
+<li><code>ReproducibilityManifest</code></li>
+<li><code>RunResult</code></li>
+<li><code>SALibProblem</code></li>
+<li><code>Scenario</code></li>
+<li><code>Scheduler</code></li>
+<li><code>SchemaValidationError</code></li>
+<li><code>SensitivityAnalysis</code></li>
+<li><code>SequentialActivation</code></li>
+<li><code>SimultaneousActivation</code></li>
+<li><code>StagedActivation</code></li>
+<li><code>__version__</code></li>
+<li><code>analyze_morris</code></li>
+<li><code>analyze_sobol</code></li>
+<li><code>attach_snapshot_hash</code></li>
+<li><code>link_snapshot</code></li>
+<li><code>plot_grid</code></li>
+<li><code>plot_multiple_runs</code></li>
+<li><code>plot_timeseries</code></li>
+<li><code>read_snapshot</code></li>
+<li><code>sample_morris</code></li>
+<li><code>sample_sobol</code></li>
+<li><code>snapshot_hash</code></li>
+<li><code>validate_replay</code></li>
+<li><code>write_snapshot</code></li>
+</ul>
+<h2 id="internal-apis">Internal APIs</h2>
+<p>The following should generally be treated as internal unless documented
+elsewhere:</p>
+<ul>
+<li>underscore-prefixed modules, classes, functions, or variables;</li>
+<li>implementation helpers;</li>
+<li>test fixtures;</li>
+<li>private archive helpers;</li>
+<li>storage implementation details not listed in the public docs;</li>
+<li>experimental plugin prototypes.</li>
+</ul>
+<h2 id="documentation-contract">Documentation Contract</h2>
+<p>When a new symbol is added to <code>abmforge.__all__</code>, this page should be updated.
+When a public symbol is removed or renamed, the API stability policy and
+changelog should be updated as appropriate.</p>
+<h2 id="typed-agent-protocols">Typed-agent protocols</h2>
+<p>These provisional protocol helpers provide a backward-compatible typed-agent
+layer without replacing the dynamic base <code>Agent</code> class.</p>
+<ul>
+<li><code>AgentID</code></li>
+<li><code>AgentLike</code></li>
+<li><code>SteppableAgent</code></li>
+<li><code>AdvanceableAgent</code></li>
+<li><code>StatefulAgent</code></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
