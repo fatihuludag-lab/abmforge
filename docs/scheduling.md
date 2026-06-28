@@ -116,3 +116,31 @@ Built-in schedulers skip agents with `is_alive == False`.
 ### Simultaneous update
 
 With `SimultaneousActivation`, state changes should usually be committed in `advance()`, not directly in `step()`.
+
+## Staged scheduler contract
+
+`StagedActivation` validates its stage list at construction time. The stage list
+must be a non-empty sequence of non-empty strings. Passing a single string is
+rejected because it would otherwise be interpreted as a sequence of characters.
+
+Each living agent must provide a callable method for each declared stage. If a
+stage method is missing or non-callable, ABMForge raises an `AttributeError`
+that names the agent type, agent id, and missing stage.
+
+Models may define optional hooks:
+
+```python
+def before_stage(self, stage: str) -> None:
+    ...
+
+def after_stage(self, stage: str) -> None:
+    ...
+```
+
+These hooks are called before and after each declared stage. They are useful for
+recording stage-level diagnostics, enforcing invariants, or teaching multi-phase
+scheduler semantics. Hooks must be callable when defined.
+
+The scheduler still operates on a snapshot of living agents selected at the
+beginning of the scheduler step. Agents spawned during a staged scheduler pass
+are not activated until a later pass.

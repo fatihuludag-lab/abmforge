@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from abmforge.core.agent import Agent
 from abmforge.core.model import Model
 from abmforge.scheduling import (
@@ -171,3 +173,75 @@ def test_staged_activation_shuffle_is_reproducible_with_same_seed() -> None:
         return list(model.activation_log)
 
     assert order(123) == order(123)
+
+
+class MissingStageAgent(Agent):
+    def sense(self) -> None:
+        self.model.activation_log.append(f"sense-{self.unique_id}")
+
+
+def test_staged_activation_rejects_empty_stages() -> None:
+    model = _model()
+
+    with pytest.raises(ValueError, match="at least one stage"):
+        StagedActivation(model, stages=[])
+
+
+def test_staged_activation_rejects_string_as_stage_sequence() -> None:
+    model = _model()
+
+    with pytest.raises(ValueError, match="sequence of stage names"):
+        StagedActivation(model, stages="act")  # type: ignore[arg-type]
+
+
+def test_staged_activation_rejects_non_empty_string_stage_names() -> None:
+    model = _model()
+
+    with pytest.raises(ValueError, match=r"stages\[0\] must be a non-empty string"):
+        StagedActivation(model, stages=[""])
+
+
+def test_staged_activation_reports_missing_stage_method() -> None:
+    model = _model()
+    model.agents.create(MissingStageAgent, n=1)
+
+    scheduler = StagedActivation(model, stages=["sense", "act"])
+
+    with pytest.raises(AttributeError, match="stage method 'act'"):
+        scheduler.step()
+
+
+def test_staged_activation_calls_optional_model_stage_hooks() -> None:
+    model = _model()
+
+    def before_stage(stage: str) -> None:
+        model.activation_log.append(f"before-{stage}")
+
+    def after_stage(stage: str) -> None:
+        model.activation_log.append(f"after-{stage}")
+
+    model.before_stage = before_stage
+    model.after_stage = after_stage
+    model.agents.create(StagedAgent, n=1)
+
+    StagedActivation(model, stages=["sense", "act"]).step()
+
+    assert model.activation_log == [
+        "before-sense",
+        "sense-1",
+        "after-sense",
+        "before-act",
+        "act-1",
+        "after-act",
+    ]
+
+
+def test_staged_activation_rejects_non_callable_stage_hooks() -> None:
+    model = _model()
+    model.before_stage = "not-callable"
+    model.agents.create(StagedAgent, n=1)
+
+    scheduler = StagedActivation(model, stages=["sense"])
+
+    with pytest.raises(TypeError, match="model.before_stage must be callable"):
+        scheduler.step()
