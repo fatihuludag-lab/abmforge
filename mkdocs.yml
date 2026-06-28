@@ -44,6 +44,7 @@ nav:
   - Benchmarking: benchmarking.md
   - Mesa Comparison Methodology: mesa-comparison-methodology.md
   - API Stability: api-stability.md
+  - Software Paper Package: software-paper-package.md
   - Release Process: releasing.md
   - Release Checklist: release-checklist.md
   - Release Candidate Preparation: release-candidate-prep.md
