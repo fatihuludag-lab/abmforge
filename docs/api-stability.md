@@ -68,6 +68,7 @@ Examples include:
 - built-in schedulers;
 - built-in spaces;
 - CLI commands.
+- typed-agent protocols such as `AgentLike`, `SteppableAgent`, and `StatefulAgent`.
 
 Provisional APIs should not be changed casually. When they change, the reason
 should be documented.
