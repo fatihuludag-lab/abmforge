@@ -39,3 +39,17 @@ python -m build
 - Document any public API addition.
 - Avoid adding heavy dependencies to the core package.
 - Put experimental features under an explicit experimental namespace in future releases.
+
+## Issue templates
+
+Before opening a pull request, consider whether an issue should be created first.
+ABMForge provides issue templates for bug reports, feature requests, and
+reproducibility reports.
+
+Use the reproducibility report template for problems involving scenarios,
+experiment archives, manifests, artifact checksums, deterministic seeds,
+ODD outputs, or archive validation.
+
+Good issues should include the ABMForge version or commit, Python version,
+operating system, installation method, exact commands, and a minimal
+reproducible example when possible.

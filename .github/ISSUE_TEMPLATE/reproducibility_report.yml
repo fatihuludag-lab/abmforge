@@ -1,0 +1,61 @@
+name: Reproducibility report
+description: Report a reproducibility, archive, manifest, or validation issue
+title: "[Reproducibility]: "
+labels: ["reproducibility", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for problems involving scenarios, experiment archives, manifests, checksums, seeds, ODD artifacts, or reproduced outputs.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What reproducibility problem did you observe?
+    validations:
+      required: true
+  - type: textarea
+    id: commands
+    attributes:
+      label: Commands run
+      description: Paste the exact commands used to create, validate, or reproduce the archive.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: archive
+    attributes:
+      label: Archive structure or validation output
+      description: Paste `abmforge validate` output or a small archive file listing.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: manifest
+    attributes:
+      label: Manifest / checksum details
+      description: Include relevant `manifest.json` fields or checksum mismatch messages.
+      render: json
+    validations:
+      required: false
+  - type: input
+    id: seed
+    attributes:
+      label: Seed or seed sequence
+      placeholder: "Example: 42, 1001, or seed sequence settings"
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: ABMForge version or commit
+      placeholder: "0.3.0a1 or commit hash"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Python / OS environment
+      placeholder: "Python 3.11 on Windows, Python 3.12 on Ubuntu, etc."
+    validations:
+      required: true
