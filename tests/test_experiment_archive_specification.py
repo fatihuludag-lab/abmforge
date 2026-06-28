@@ -33,6 +33,12 @@ def test_experiment_archive_v1_spec_mentions_required_contract_parts() -> None:
         "Validation Requirements",
         "Compatibility Rules",
         "Non-Goals for v1",
+        "archive_v1_contract",
+        "required_directories",
+        "required_top_level_files",
+        "legacy_optional_top_level_files",
+        "json_dataset_files",
+        "parquet_dataset_files",
     ]
 
     for term in required_terms:
