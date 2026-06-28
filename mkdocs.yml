@@ -21,6 +21,7 @@ nav:
   - First Model: first-model.md
   - Spaces: spaces.md
   - Scheduling: scheduling.md
+  - Delayed Events: delayed-events.md
   - Agent Lifecycle: agent-lifecycle.md
   - Typed Agents: typed-agents.md
   - Experiments: experiments.md
