@@ -48,6 +48,39 @@ def _sha256_json(data: Any) -> str:
     return hashlib.sha256(_canonical_json_bytes(data)).hexdigest()
 
 
+def sha256_file(path: str | Path, *, chunk_size: int = 1024 * 1024) -> str:
+    """Return the SHA-256 digest for a file's raw bytes."""
+
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as handle:
+        for chunk in iter(lambda: handle.read(chunk_size), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def describe_file_artifact(
+    path: str | Path,
+    *,
+    root: str | Path | None = None,
+    role: str | None = None,
+) -> dict[str, Any]:
+    """Return a portable manifest artifact record for a file."""
+
+    artifact_path = Path(path)
+    relative_path = artifact_path
+    if root is not None:
+        relative_path = artifact_path.relative_to(Path(root))
+
+    artifact: dict[str, Any] = {
+        "path": relative_path.as_posix(),
+        "size_bytes": artifact_path.stat().st_size,
+        "sha256": sha256_file(artifact_path),
+    }
+    if role is not None:
+        artifact["role"] = role
+    return artifact
+
+
 def _optional_str(value: Any) -> str | None:
     if value is None:
         return None
@@ -291,6 +324,21 @@ class ReproducibilityManifest:
             if table_name not in self.record_hashes:
                 raise ValueError(f"Missing record hash for table: {table_name}")
 
+        if not isinstance(self.artifacts, list):
+            raise ValueError("artifacts must be a list")
+        for index, artifact in enumerate(self.artifacts):
+            if not isinstance(artifact, dict):
+                raise ValueError(f"artifacts[{index}] must be an object")
+            artifact_path = artifact.get("path")
+            if not isinstance(artifact_path, str) or not artifact_path:
+                raise ValueError(f"artifacts[{index}].path must be a non-empty string")
+            artifact_hash = artifact.get("sha256")
+            if not isinstance(artifact_hash, str) or not artifact_hash:
+                raise ValueError(f"artifacts[{index}].sha256 must be a non-empty string")
+            size_bytes = artifact.get("size_bytes")
+            if not isinstance(size_bytes, int) or size_bytes < 0:
+                raise ValueError(f"artifacts[{index}].size_bytes must be a non-negative integer")
+
     def to_dict(self) -> dict[str, Any]:
         """Return the manifest as a JSON-serializable dictionary."""
         return {
@@ -314,6 +362,7 @@ class ReproducibilityManifest:
             "git": self.git,
             "packages": self.packages,
             "artifacts": self.artifacts,
+            "artifact_count": len(self.artifacts),
             "metadata": self.metadata,
             "n_runs": self.record_counts["runs"],
             "n_model_records": self.record_counts["model_records"],

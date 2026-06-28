@@ -82,3 +82,38 @@ def test_archive_validate_detects_tampered_dataset_schema(tmp_path) -> None:
     errors = archive.validate()
 
     assert any("dataset_schema_hash mismatch" in error for error in errors)
+
+
+def test_archive_manifest_records_artifact_inventory(tmp_path) -> None:
+    dataset = _make_dataset()
+    archive = ExperimentArchive.create(tmp_path / "archive")
+    (archive.configs_dir / "scenario.yaml").write_text(
+        "model: test.Model\nrun:\n  steps: 1\n",
+        encoding="utf-8",
+    )
+
+    archive.write_run_outputs(dataset, format="json")
+
+    manifest = json.loads(archive.manifest_path.read_text(encoding="utf-8"))
+    artifacts = {artifact["path"]: artifact for artifact in manifest["artifacts"]}
+
+    assert manifest["artifact_count"] == len(manifest["artifacts"])
+    assert artifacts["configs/scenario.yaml"]["role"] == "input_config"
+    assert artifacts["dataset_schema.json"]["role"] == "dataset_schema"
+    assert artifacts["run_index.json"]["role"] == "run_index"
+    assert artifacts["data/runs.json"]["role"] == "dataset_table"
+    assert artifacts["data/model_records.jsonl"]["sha256"]
+    assert archive.validate() == []
+
+
+def test_archive_validate_detects_tampered_manifest_artifact(tmp_path) -> None:
+    dataset = _make_dataset()
+    archive = ExperimentArchive.create(tmp_path / "archive")
+    scenario_path = archive.configs_dir / "scenario.yaml"
+    scenario_path.write_text("model: test.Model\nrun:\n  steps: 1\n", encoding="utf-8")
+
+    archive.write_run_outputs(dataset, format="json")
+    scenario_path.write_text("model: test.Model\nrun:\n  steps: 2\n", encoding="utf-8")
+
+    errors = archive.validate()
+    assert any("artifact sha256 mismatch for configs/scenario.yaml" in error for error in errors)

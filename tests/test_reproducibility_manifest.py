@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 import abmforge
 from abmforge import Model, ReproducibilityManifest, Scenario
 from abmforge.data.dataset import Dataset
+from abmforge.repro import describe_file_artifact, sha256_file
 
 
 class EmptyModel(Model):
@@ -156,3 +159,54 @@ def test_manifest_content_hash_is_stable_for_same_content() -> None:
     )
 
     assert manifest_a.record_hashes == manifest_b.record_hashes
+
+
+def test_file_artifact_description_uses_relative_paths_and_hashes(tmp_path) -> None:
+    artifact_path = tmp_path / "configs" / "scenario.yaml"
+    artifact_path.parent.mkdir()
+    artifact_path.write_text("model: demo.Model\nrun:\n  steps: 1\n", encoding="utf-8")
+
+    artifact = describe_file_artifact(
+        artifact_path,
+        root=tmp_path,
+        role="input_config",
+    )
+
+    assert artifact["path"] == "configs/scenario.yaml"
+    assert artifact["role"] == "input_config"
+    assert artifact["size_bytes"] == artifact_path.stat().st_size
+    assert artifact["sha256"] == sha256_file(artifact_path)
+
+
+def test_manifest_validates_artifact_records() -> None:
+    dataset = _sample_dataset()
+    manifest = ReproducibilityManifest.from_dataset(
+        dataset,
+        include_git=False,
+        include_packages=False,
+        include_command=False,
+    )
+    manifest.artifacts = [
+        {
+            "path": "configs/scenario.yaml",
+            "sha256": "0" * 64,
+            "size_bytes": 10,
+            "role": "input_config",
+        }
+    ]
+
+    manifest.validate()
+
+
+def test_manifest_rejects_invalid_artifact_records() -> None:
+    dataset = _sample_dataset()
+    manifest = ReproducibilityManifest.from_dataset(
+        dataset,
+        include_git=False,
+        include_packages=False,
+        include_command=False,
+    )
+    manifest.artifacts = [{"path": "configs/scenario.yaml"}]
+
+    with pytest.raises(ValueError, match="sha256"):
+        manifest.validate()
