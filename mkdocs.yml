@@ -22,6 +22,7 @@ nav:
   - Spaces: spaces.md
   - Scheduling: scheduling.md
   - Agent Lifecycle: agent-lifecycle.md
+  - Typed Agents: typed-agents.md
   - Experiments: experiments.md
   - Scenario YAML Reference: scenario-yaml.md
   - Experiment Archive Format: archive-format.md

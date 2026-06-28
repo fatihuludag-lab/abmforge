@@ -19,6 +19,13 @@ from abmforge.api import PUBLIC_API
 from abmforge.core.agent import Agent
 from abmforge.core.collection import AgentCollection
 from abmforge.core.model import Model
+from abmforge.core.protocols import (
+    AdvanceableAgent,
+    AgentID,
+    AgentLike,
+    StatefulAgent,
+    SteppableAgent,
+)
 from abmforge.data import (
     DATASET_SCHEMA_VERSION,
     Dataset,

@@ -573,3 +573,14 @@ elsewhere:
 When a new symbol is added to `abmforge.__all__`, this page should be updated.
 When a public symbol is removed or renamed, the API stability policy and
 changelog should be updated as appropriate.
+
+## Typed-agent protocols
+
+These provisional protocol helpers provide a backward-compatible typed-agent
+layer without replacing the dynamic base `Agent` class.
+
+- `AgentID`
+- `AgentLike`
+- `SteppableAgent`
+- `AdvanceableAgent`
+- `StatefulAgent`
