@@ -75,6 +75,18 @@ class StagedActivation(Scheduler):
         self.stages = _validate_stages(stages)
         self.shuffle = shuffle
 
+    def to_metadata(self) -> dict[str, object]:
+        """Return JSON-serializable staged scheduler audit metadata."""
+
+        metadata = super().to_metadata()
+        metadata.update(
+            {
+                "stages": list(self.stages),
+                "shuffle": self.shuffle,
+            }
+        )
+        return metadata
+
     def step(self) -> None:
         agents = [agent for agent in self.model.agents if getattr(agent, "is_alive", True)]
         for stage in self.stages:

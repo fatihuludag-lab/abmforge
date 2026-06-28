@@ -144,3 +144,20 @@ scheduler semantics. Hooks must be callable when defined.
 The scheduler still operates on a snapshot of living agents selected at the
 beginning of the scheduler step. Agents spawned during a staged scheduler pass
 are not activated until a later pass.
+
+## Scheduler metadata
+
+Schedulers expose `to_metadata()` for JSON-serializable audit metadata. The base
+scheduler metadata uses schema version `scheduler-metadata-v1` and includes:
+
+- `schema_version`;
+- `scheduler_type`;
+- `module`;
+- `attached`.
+
+`StagedActivation.to_metadata()` also records:
+
+- `stages`;
+- `shuffle`.
+
+This metadata is intended for inspection and snapshot audit trails. It is not a scheduler restore contract.
