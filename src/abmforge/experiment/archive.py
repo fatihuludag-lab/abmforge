@@ -23,6 +23,11 @@ ArchiveFormat = Literal["json", "parquet"]
 ARCHIVE_FORMAT_VERSION = "experiment-archive-v1"
 _SUPPORTED_ARCHIVE_FORMATS = frozenset({ARCHIVE_FORMAT_VERSION})
 
+_ARCHIVE_DIRECTORIES = ("configs", "data", "reports", "logs", "snapshots")
+_OPTIONAL_ARCHIVE_DIRECTORIES = ("artifacts",)
+_REQUIRED_TOP_LEVEL_FILES = ("manifest.json", "dataset_schema.json")
+_LEGACY_OPTIONAL_TOP_LEVEL_FILES = ("run_index.json", "registry.json")
+
 _DATASET_JSON_FILES = {
     "runs": "runs.json",
     "model_records": "model_records.jsonl",
@@ -40,6 +45,25 @@ _DATASET_PARQUET_FILES = {
     "lifecycle_records": "lifecycle_records.parquet",
     "errors": "errors.parquet",
 }
+
+
+def archive_v1_contract() -> dict[str, Any]:
+    # Return the machine-readable Experiment Archive v1 storage contract.
+    #
+    # The contract is intentionally small and conservative. It describes the
+    # current minimum archive surface that writers should create and validators
+    # should understand during the public-alpha period.
+
+    return {
+        "archive_format": ARCHIVE_FORMAT_VERSION,
+        "supported_archive_formats": sorted(_SUPPORTED_ARCHIVE_FORMATS),
+        "required_directories": list(_ARCHIVE_DIRECTORIES),
+        "optional_directories": list(_OPTIONAL_ARCHIVE_DIRECTORIES),
+        "required_top_level_files": list(_REQUIRED_TOP_LEVEL_FILES),
+        "legacy_optional_top_level_files": list(_LEGACY_OPTIONAL_TOP_LEVEL_FILES),
+        "json_dataset_files": dict(_DATASET_JSON_FILES),
+        "parquet_dataset_files": dict(_DATASET_PARQUET_FILES),
+    }
 
 
 def _artifact_role(relative_path: Path) -> str:
@@ -139,7 +163,7 @@ class ExperimentArchive:
                 archive_path.unlink()
 
         archive_path.mkdir(parents=True, exist_ok=False)
-        for subdir in ("data", "snapshots", "reports", "logs", "configs"):
+        for subdir in _ARCHIVE_DIRECTORIES:
             (archive_path / subdir).mkdir(exist_ok=False)
         return cls(path=archive_path)
 
@@ -322,15 +346,13 @@ class ExperimentArchive:
         if not self.path.exists():
             return [f"Archive does not exist: {self.path}"]
 
-        for subdir in ("data", "snapshots", "reports", "logs", "configs"):
+        for subdir in _ARCHIVE_DIRECTORIES:
             if not (self.path / subdir).is_dir():
                 errors.append(f"Missing directory: {subdir}")
 
-        if not self.manifest_path.is_file():
-            errors.append("Missing manifest.json")
-
-        if not self.dataset_schema_path.is_file():
-            errors.append("Missing dataset_schema.json")
+        for filename in _REQUIRED_TOP_LEVEL_FILES:
+            if not (self.path / filename).is_file():
+                errors.append(f"Missing {filename}")
 
         if self.data_dir.exists() and not any(self.data_dir.iterdir()):
             errors.append("Data directory is empty")

@@ -16,6 +16,26 @@ abmforge validate outputs/wealth_baseline_archive
 abmforge summarize outputs/wealth_baseline_archive
 ```
 
+## Archive v1 contract helper
+
+ABMForge exposes a small machine-readable archive contract through
+`abmforge.experiment.archive.archive_v1_contract()`.
+
+Use this helper in tests, downstream tooling, and documentation checks when you
+need the current public-alpha archive surface:
+
+- archive format version;
+- required archive directories;
+- optional archive directories;
+- required top-level files;
+- legacy-optional top-level files;
+- JSON dataset table file names;
+- Parquet dataset table file names.
+
+The helper is intentionally descriptive. It does not replace
+`ExperimentArchive.validate(...)`, which remains the authoritative runtime
+archive validator.
+
 ## Archive layout
 
 A typical JSON-based ABMForge archive has the following structure:

@@ -63,6 +63,51 @@ archive/
 
 Implementations may omit files that do not apply to a particular archive type, but the absence of optional files must not break validation.
 
+## Machine-readable implementation contract
+
+The Python implementation exposes the current public-alpha storage contract via
+`abmforge.experiment.archive.archive_v1_contract()`.
+
+The contract includes:
+
+- `archive_format`;
+- `supported_archive_formats`;
+- `required_directories`;
+- `optional_directories`;
+- `required_top_level_files`;
+- `legacy_optional_top_level_files`;
+- `json_dataset_files`;
+- `parquet_dataset_files`.
+
+Current required directories are:
+
+```text
+configs/
+data/
+reports/
+logs/
+snapshots/
+```
+
+The `artifacts/` directory is optional in the current alpha contract. It may be
+used for additional analysis or review artifacts, but validators must not require
+it for minimum archive validity.
+
+Current required top-level files are:
+
+```text
+manifest.json
+dataset_schema.json
+```
+
+`run_index.json` and `registry.json` are part of the v1 design, but remain
+legacy-optional during alpha. New archive writers should create `run_index.json`;
+readers and validators should continue to tolerate older archives without it.
+
+The JSON and Parquet storage backends use the same logical dataset table names:
+`runs`, `model_records`, `agent_records`, `event_records`, `lifecycle_records`,
+and `errors`.
+
 ## 4. Required Top-Level Files
 
 ### `manifest.json`
