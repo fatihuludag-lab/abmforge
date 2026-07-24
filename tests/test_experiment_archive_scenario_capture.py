@@ -1,3 +1,6 @@
+import pytest
+
+from abmforge._internal.filesystem import UnsafePathError
 from abmforge.experiment.archive import ExperimentArchive
 
 
@@ -32,3 +35,35 @@ def test_archive_write_scenario_file_rejects_missing_file(tmp_path) -> None:
         assert "Scenario file does not exist" in str(exc)
     else:
         raise AssertionError("Expected FileNotFoundError")
+
+
+def test_archive_write_scenario_file_rejects_parent_traversal_filename(
+    tmp_path,
+):
+    archive = ExperimentArchive.create(tmp_path / "archive")
+
+    scenario = tmp_path / "scenario.yaml"
+    scenario.write_text("seed: 42\n", encoding="utf-8")
+
+    with pytest.raises(UnsafePathError):
+        archive.write_scenario_file(
+            scenario,
+            filename="../../evil.yaml",
+        )
+
+
+def test_archive_write_scenario_file_rejects_absolute_filename(
+    tmp_path,
+):
+    archive = ExperimentArchive.create(tmp_path / "archive")
+
+    scenario = tmp_path / "scenario.yaml"
+    scenario.write_text("seed: 42\n", encoding="utf-8")
+
+    absolute_destination = (tmp_path / "outside.yaml").resolve()
+
+    with pytest.raises(UnsafePathError):
+        archive.write_scenario_file(
+            scenario,
+            filename=str(absolute_destination),
+        )
