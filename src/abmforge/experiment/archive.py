@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Literal
 from uuid import uuid4
 
+from abmforge._internal.filesystem import ensure_safe_destination
 from abmforge.data.dataset import Dataset
 from abmforge.data.storage.parquet import ParquetStorage
 from abmforge.experiment.archive_loader import load_archive_runs
@@ -252,7 +253,10 @@ class ExperimentArchive:
             raise FileNotFoundError(f"Scenario file does not exist: {source_path}")
 
         self.configs_dir.mkdir(exist_ok=True)
-        destination = self.configs_dir / filename
+        destination = ensure_safe_destination(
+            self.configs_dir / filename,
+            allowed_root=self.configs_dir,
+        )
         shutil.copy2(source_path, destination)
 
         return destination
