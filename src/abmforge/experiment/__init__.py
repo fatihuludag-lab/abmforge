@@ -12,6 +12,11 @@ from abmforge.experiment.archive_summary import (
 from abmforge.experiment.config import ExperimentConfig, write_experiment_outputs
 from abmforge.experiment.experiment import Experiment, ExperimentResult
 from abmforge.experiment.parameter_grid import ParameterGrid
+from abmforge.experiment.recovery import (
+    RunKey,
+    completed_run_keys,
+    missing_scenarios,
+)
 from abmforge.experiment.registry import ExperimentRegistry
 from abmforge.experiment.replicates import (
     ReplicatePlanEntry,
@@ -54,4 +59,7 @@ __all__ = [
     "summarize_run_records_by",
     "summarize_archive_runs_by",
     "load_archive_run_records",
+    "RunKey",
+    "completed_run_keys",
+    "missing_scenarios",
 ]
