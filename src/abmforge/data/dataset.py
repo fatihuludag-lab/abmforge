@@ -206,7 +206,9 @@ class Dataset:
         return DatasetSchemaV1.write(path)
 
     def write_json(self, path: str | Path) -> Path:
-        """Write dataset tables to a directory as JSON/JSONL files."""
+        """Write validated dataset tables as JSON/JSONL files."""
+        self.validate()
+
         output_dir = Path(path)
         output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -223,7 +225,9 @@ class Dataset:
         return output_dir
 
     def write_csv(self, path: str | Path) -> Path:
-        """Write dataset tables to a directory as CSV files."""
+        """Write validated dataset tables as CSV files."""
+        self.validate()
+
         output_dir = Path(path)
         output_dir.mkdir(parents=True, exist_ok=True)
 

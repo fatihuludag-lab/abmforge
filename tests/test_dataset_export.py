@@ -1,7 +1,9 @@
 import csv
 
+import pytest
+
 from abmforge.data.dataset import Dataset
-from abmforge.data.schema import DatasetSchemaV1
+from abmforge.data.schema import DatasetSchemaV1, SchemaValidationError
 
 
 def _csv_header(path):
@@ -76,3 +78,30 @@ def test_dataset_write_csv_uses_schema_headers_before_extra_fields(tmp_path):
 
     assert header[: len(schema_fields)] == schema_fields
     assert "custom_metric" in header[len(schema_fields) :]
+
+
+@pytest.mark.parametrize(
+    "writer_name",
+    [
+        "write_json",
+        "write_csv",
+    ],
+)
+def test_dataset_export_rejects_schema_invalid_records(
+    tmp_path,
+    writer_name: str,
+) -> None:
+    dataset = Dataset(run_id="run-1")
+    dataset.runs.append(
+        {
+            "status": "completed",
+        }
+    )
+
+    writer = getattr(dataset, writer_name)
+
+    with pytest.raises(
+        SchemaValidationError,
+        match=r"runs\[0\]\.run_id: missing required field",
+    ):
+        writer(tmp_path / writer_name)
