@@ -26,6 +26,15 @@ class SpawningAgent(Agent):
             self.spawn(LoggingAgent)
 
 
+class StubRng:
+    def __init__(self, order: list[int]) -> None:
+        self.order = order
+
+    def permutation(self, size: int) -> list[int]:
+        assert size == len(self.order)
+        return list(self.order)
+
+
 class SimultaneousAgent(Agent):
     def step(self) -> None:
         self.model.activation_log.append(f"step-{self.unique_id}")
@@ -245,3 +254,79 @@ def test_staged_activation_rejects_non_callable_stage_hooks() -> None:
 
     with pytest.raises(TypeError, match="model.before_stage must be callable"):
         scheduler.step()
+
+
+class RemovingAgent(Agent):
+    def __init__(
+        self,
+        model: Model,
+        unique_id: int,
+        *,
+        target: Agent | None = None,
+    ) -> None:
+        super().__init__(model, unique_id)
+        self.target = target
+        self.step_calls = 0
+        self.advance_calls = 0
+
+    def step(self) -> None:
+        self.step_calls += 1
+
+        if self.target is not None and self.target.is_alive:
+            self.model.remove_agent(self.target)
+
+    def advance(self) -> None:
+        self.advance_calls += 1
+
+
+def test_random_activation_skips_agent_removed_earlier_in_same_step() -> None:
+    model = Model(seed=42)
+
+    removed_agent = RemovingAgent(
+        model,
+        unique_id=2,
+    )
+    removing_agent = RemovingAgent(
+        model,
+        unique_id=1,
+        target=removed_agent,
+    )
+
+    model.agents.add(removing_agent)
+    model.agents.add(removed_agent)
+
+    scheduler = RandomActivation(model)
+
+    model.rng = StubRng([0, 1])
+
+    scheduler.step()
+
+    assert removing_agent.step_calls == 1
+    assert removed_agent.step_calls == 0
+    assert not removed_agent.is_alive
+
+
+def test_simultaneous_activation_skips_agent_removed_before_step_turn() -> None:
+    model = Model()
+
+    removed_agent = RemovingAgent(
+        model,
+        unique_id=2,
+    )
+    removing_agent = RemovingAgent(
+        model,
+        unique_id=1,
+        target=removed_agent,
+    )
+
+    model.agents.add(removing_agent)
+    model.agents.add(removed_agent)
+
+    scheduler = SimultaneousActivation(model)
+    scheduler.step()
+
+    assert removing_agent.step_calls == 1
+    assert removing_agent.advance_calls == 1
+    assert removed_agent.step_calls == 0
+    assert removed_agent.advance_calls == 0
+    assert not removed_agent.is_alive

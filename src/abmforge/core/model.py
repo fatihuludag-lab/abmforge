@@ -85,6 +85,8 @@ class Model:
         """Remove an agent from the model, world, and owned event queue entries."""
         unique_id = getattr(agent_or_id, "unique_id", agent_or_id)
         agent = self.agents.get(unique_id)
+        if hasattr(agent_or_id, "model") and agent_or_id.model is not self:
+            raise ValueError("agent does not belong to this model")
 
         if agent is None:
             raise KeyError(f"Agent not found: {unique_id}")
