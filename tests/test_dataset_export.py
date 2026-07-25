@@ -105,3 +105,40 @@ def test_dataset_export_rejects_schema_invalid_records(
         match=r"runs\[0\]\.run_id: missing required field",
     ):
         writer(tmp_path / writer_name)
+
+
+@pytest.mark.parametrize(
+    "writer_name",
+    [
+        "write_json",
+        "write_csv",
+    ],
+)
+@pytest.mark.parametrize(
+    "invalid_time",
+    [
+        float("nan"),
+        float("inf"),
+        float("-inf"),
+    ],
+)
+def test_dataset_export_rejects_non_finite_numeric_fields(
+    tmp_path,
+    writer_name: str,
+    invalid_time: float,
+) -> None:
+    dataset = Dataset(run_id="run-1")
+    dataset.record_model(
+        step=0,
+        time=invalid_time,
+        metric="wealth",
+        value=10,
+    )
+
+    writer = getattr(dataset, writer_name)
+
+    with pytest.raises(
+        SchemaValidationError,
+        match=r"model_records\[0\]\.time: expected finite number",
+    ):
+        writer(tmp_path / writer_name)

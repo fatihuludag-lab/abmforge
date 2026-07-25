@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -28,7 +29,13 @@ def _is_integer(value: Any) -> bool:
 
 
 def _is_number(value: Any) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    if isinstance(value, bool):
+        return False
+
+    if not isinstance(value, (int, float)):
+        return False
+
+    return math.isfinite(value)
 
 
 def _is_identifier(value: Any) -> bool:
@@ -93,6 +100,10 @@ class FieldSpec:
         if self.enum is not None and value not in self.enum:
             allowed = ", ".join(str(item) for item in self.enum)
             errors.append(f"{path}.{self.name}: expected one of {{{allowed}}}, got {value!r}")
+            return errors
+
+        if self.kind == "number" and isinstance(value, (int, float)) and not math.isfinite(value):
+            errors.append(f"{path}.{self.name}: expected finite number")
             return errors
 
         if not _matches_kind(value, self.kind):
