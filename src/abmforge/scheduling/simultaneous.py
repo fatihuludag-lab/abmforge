@@ -10,7 +10,8 @@ class SimultaneousActivation(Scheduler):
         agents = [agent for agent in self.model.agents if getattr(agent, "is_alive", True)]
 
         for agent in agents:
-            agent.step()
+            if getattr(agent, "is_alive", True):
+                agent.step()
 
         for agent in agents:
             if getattr(agent, "is_alive", True) and hasattr(agent, "advance"):

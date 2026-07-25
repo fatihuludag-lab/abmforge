@@ -11,4 +11,7 @@ class RandomActivation(Scheduler):
         order = self.model.rng.permutation(len(agents))
 
         for idx in order:
-            agents[int(idx)].step()
+            agent = agents[int(idx)]
+
+            if getattr(agent, "is_alive", True):
+                agent.step()

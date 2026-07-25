@@ -27,7 +27,8 @@ class AgentCollection:
 
     def __contains__(self, agent_or_id: object) -> bool:
         if isinstance(agent_or_id, Agent):
-            return agent_or_id.unique_id in self._agents
+            stored = self._agents.get(agent_or_id.unique_id)
+            return stored is agent_or_id
         return agent_or_id in self._agents
 
     def _new_id(self) -> int:
@@ -37,11 +38,18 @@ class AgentCollection:
 
     def add(self, agent: Agent) -> Agent:
         """Add an existing agent to the collection."""
+
+        if agent.model is not self.model:
+            raise ValueError("agent belongs to another model")
+
         if agent.unique_id in self._agents:
             raise ValueError(f"agent id already exists: {agent.unique_id!r}")
+
         self._agents[agent.unique_id] = agent
+
         if isinstance(agent.unique_id, int) and agent.unique_id >= self._next_id:
             self._next_id = agent.unique_id + 1
+
         return agent
 
     def create(self, agent_cls: type[AgentT], n: int = 1, **attrs: Any) -> list[AgentT]:
@@ -59,9 +67,26 @@ class AgentCollection:
             created.append(agent)
         return created
 
-    def remove(self, agent_or_id: Agent | int | str) -> Agent:
+    def remove(
+        self,
+        agent_or_id: Agent | int | str,
+    ) -> Agent:
         """Remove and return an agent."""
-        unique_id = agent_or_id.unique_id if isinstance(agent_or_id, Agent) else agent_or_id
+
+        if isinstance(agent_or_id, Agent):
+            stored = self._agents.get(agent_or_id.unique_id)
+
+            if stored is None:
+                raise KeyError(f"unknown agent id: {agent_or_id.unique_id!r}")
+
+            if stored is not agent_or_id:
+                raise ValueError("agent does not belong to this collection")
+
+            unique_id = agent_or_id.unique_id
+
+        else:
+            unique_id = agent_or_id
+
         try:
             return self._agents.pop(unique_id)
         except KeyError as exc:

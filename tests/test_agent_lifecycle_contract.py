@@ -152,3 +152,28 @@ def test_removing_unknown_agent_raises_key_error() -> None:
 
     with pytest.raises(KeyError, match="unknown agent id"):
         model.remove_agent(999)
+
+
+def test_model_remove_agent_rejects_foreign_agent_with_same_id() -> None:
+    first_model = Model()
+    second_model = Model()
+
+    local_agent = Agent(
+        model=first_model,
+        unique_id=1,
+    )
+    foreign_agent = Agent(
+        model=second_model,
+        unique_id=1,
+    )
+
+    first_model.agents.add(local_agent)
+
+    with pytest.raises(
+        ValueError,
+        match="does not belong to this model",
+    ):
+        first_model.remove_agent(foreign_agent)
+
+    assert first_model.agents.get(1) is local_agent
+    assert local_agent.is_alive

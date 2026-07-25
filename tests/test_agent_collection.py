@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from abmforge import Agent, Model
+import pytest
+
+from abmforge.core.agent import Agent
+from abmforge.core.model import Model
 
 
 class Person(Agent):
@@ -40,3 +43,65 @@ def test_where_and_count_where() -> None:
 
     assert len(model.agents.where(state="a")) == 2
     assert model.agents.count_where(state="b") == 3
+
+
+def test_collection_rejects_agent_from_another_model() -> None:
+    first_model = Model()
+    second_model = Model()
+
+    foreign_agent = Agent(
+        model=first_model,
+        unique_id=1,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="belongs to another model",
+    ):
+        second_model.agents.add(foreign_agent)
+
+    assert len(second_model.agents) == 0
+
+
+def test_collection_contains_checks_agent_identity() -> None:
+    first_model = Model()
+    second_model = Model()
+
+    local_agent = Agent(
+        model=first_model,
+        unique_id=1,
+    )
+    foreign_agent = Agent(
+        model=second_model,
+        unique_id=1,
+    )
+
+    first_model.agents.add(local_agent)
+
+    assert local_agent in first_model.agents
+    assert foreign_agent not in first_model.agents
+    assert 1 in first_model.agents
+
+
+def test_collection_remove_rejects_foreign_agent_with_same_id() -> None:
+    first_model = Model()
+    second_model = Model()
+
+    local_agent = Agent(
+        model=first_model,
+        unique_id=1,
+    )
+    foreign_agent = Agent(
+        model=second_model,
+        unique_id=1,
+    )
+
+    first_model.agents.add(local_agent)
+
+    with pytest.raises(
+        ValueError,
+        match="does not belong to this collection",
+    ):
+        first_model.agents.remove(foreign_agent)
+
+    assert first_model.agents.get(1) is local_agent
