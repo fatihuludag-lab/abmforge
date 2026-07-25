@@ -46,6 +46,7 @@ def test_missing_scenarios_skips_completed_archive_run() -> None:
 
     assert result == [missing]
 
+
 def test_missing_scenarios_ignores_parameter_order() -> None:
     scenario = Scenario(
         model=RecoveryTestModel,
