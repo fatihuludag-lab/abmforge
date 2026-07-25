@@ -11,7 +11,7 @@ import yaml
 
 from abmforge.core.model import Model
 from abmforge.data.dataset import Dataset
-from abmforge.experiment.archive import ExperimentArchive
+from abmforge.experiment.archive_transaction import ArchiveTransaction
 from abmforge.experiment.experiment import Experiment, ExperimentResult
 
 
@@ -126,43 +126,51 @@ def write_experiment_outputs(
     the current researcher-facing report generator.
     """
 
-    archive = ExperimentArchive.create(output_dir, overwrite=overwrite)
-    archive.write_scenario_file(config_path, filename="experiment.yaml")
+    output_path = Path(output_dir)
 
-    dataset = _combined_experiment_dataset(result, config)
-    archive.write_run_outputs(dataset, format="json")
+    with ArchiveTransaction(
+        output_path,
+        overwrite=overwrite,
+    ) as archive:
+        archive.write_scenario_file(
+            config_path,
+            filename="experiment.yaml",
+        )
 
-    # Keep CSV outputs for researcher reports and spreadsheet-friendly review.
-    result.write_csv(archive.data_dir)
+        dataset = _combined_experiment_dataset(result, config)
+        archive.write_run_outputs(dataset, format="json")
 
-    summary = {
-        "name": config.name,
-        "model": config.model_path,
-        "steps": config.steps,
-        "seed_count": len(config.seeds),
-        "run_count_expected": _expected_run_count(config),
-        "base_parameters": config.base_parameters,
-        "parameters": config.parameters,
-        "primary_metric": config.primary_metric,
-        "result_summary": _safe_summary(result),
-        "archive_format": "experiment-archive-v1",
-        "data_format": "json",
-        "csv_compatibility_outputs": True,
-    }
+        # Keep CSV outputs for researcher reports and spreadsheet-friendly review.
+        result.write_csv(archive.data_dir)
 
-    summary_path = archive.reports_dir / "experiment_summary.json"
-    summary_path.write_text(
-        json.dumps(summary, indent=2, default=str),
-        encoding="utf-8",
-    )
+        summary = {
+            "name": config.name,
+            "model": config.model_path,
+            "steps": config.steps,
+            "seed_count": len(config.seeds),
+            "run_count_expected": _expected_run_count(config),
+            "base_parameters": config.base_parameters,
+            "parameters": config.parameters,
+            "primary_metric": config.primary_metric,
+            "result_summary": _safe_summary(result),
+            "archive_format": "experiment-archive-v1",
+            "data_format": "json",
+            "csv_compatibility_outputs": True,
+        }
 
-    readme_path = archive.reports_dir / "README_RESULTS.md"
-    readme_path.write_text(
-        _format_results_readme(config, summary_path),
-        encoding="utf-8",
-    )
+        summary_path = archive.reports_dir / "experiment_summary.json"
+        summary_path.write_text(
+            json.dumps(summary, indent=2, default=str),
+            encoding="utf-8",
+        )
 
-    return archive.path
+        readme_path = archive.reports_dir / "README_RESULTS.md"
+        readme_path.write_text(
+            _format_results_readme(config, summary_path),
+            encoding="utf-8",
+        )
+
+    return output_path
 
 
 def _combined_experiment_dataset(
