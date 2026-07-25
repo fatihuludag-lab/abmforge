@@ -157,3 +157,29 @@ def test_manifest_includes_dataset_schema_metadata() -> None:
 
     assert data["dataset_schema_version"] == "abmforge.dataset.v1"
     assert data["dataset_schema_hash"]
+
+
+@pytest.mark.parametrize(
+    "invalid_number",
+    [
+        float("nan"),
+        float("inf"),
+        float("-inf"),
+    ],
+)
+def test_dataset_schema_rejects_non_finite_number_fields(
+    invalid_number: float,
+) -> None:
+    dataset = Dataset(run_id="run-1")
+    dataset.record_model(
+        step=0,
+        time=invalid_number,
+        metric="wealth",
+        value=10,
+    )
+
+    with pytest.raises(
+        SchemaValidationError,
+        match=r"model_records\[0\]\.time: expected finite number",
+    ):
+        dataset.validate()
