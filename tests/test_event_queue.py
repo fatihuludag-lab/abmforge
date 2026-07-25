@@ -128,3 +128,131 @@ def test_schedule_at_rejects_past_time() -> None:
 
     with pytest.raises(ValueError, match="cannot schedule an event in the past"):
         model.events.schedule_at(9, callback=lambda: None)
+
+
+@pytest.mark.parametrize(
+    "invalid_time",
+    [
+        float("nan"),
+        float("inf"),
+        float("-inf"),
+    ],
+)
+def test_schedule_at_rejects_non_finite_time(invalid_time: float) -> None:
+    model = Model(seed=1)
+
+    with pytest.raises(ValueError, match="event time must be finite"):
+        model.events.schedule_at(invalid_time, callback=lambda: None)
+
+
+@pytest.mark.parametrize(
+    "invalid_delay",
+    [
+        float("nan"),
+        float("inf"),
+        float("-inf"),
+    ],
+)
+def test_schedule_after_rejects_non_finite_delay(invalid_delay: float) -> None:
+    model = Model(seed=1)
+
+    with pytest.raises(ValueError, match="after must be finite"):
+        model.events.schedule_after(invalid_delay, callback=lambda: None)
+
+
+def test_schedule_rejects_non_callable_callback() -> None:
+    model = Model(seed=1)
+
+    with pytest.raises(TypeError, match="callback must be callable"):
+        model.events.schedule_after(1, callback=42)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    "invalid_priority",
+    [
+        1.5,
+        "high",
+        None,
+        True,
+    ],
+)
+def test_schedule_rejects_non_integer_priority(invalid_priority: object) -> None:
+    model = Model(seed=1)
+
+    with pytest.raises(TypeError, match="priority must be an integer"):
+        model.events.schedule_after(
+            1,
+            callback=lambda: None,
+            priority=invalid_priority,  # type: ignore[arg-type]
+        )
+
+
+@pytest.mark.parametrize(
+    "invalid_tags",
+    [
+        ["valid", 1],
+        [None],
+        [object()],
+    ],
+)
+def test_schedule_rejects_non_string_tags(invalid_tags: list[object]) -> None:
+    model = Model(seed=1)
+
+    with pytest.raises(TypeError, match="tags must contain only strings"):
+        model.events.schedule_after(
+            1,
+            callback=lambda: None,
+            tags=invalid_tags,  # type: ignore[arg-type]
+        )
+
+
+def test_callback_can_schedule_same_time_event_deterministically() -> None:
+    model = Model(seed=1)
+    execution_order: list[str] = []
+
+    def first_callback() -> None:
+        execution_order.append("first")
+        model.events.schedule_at(
+            0,
+            callback=lambda: execution_order.append("scheduled-during-callback"),
+        )
+
+    model.events.schedule_at(0, callback=first_callback)
+    model.events.schedule_at(
+        0,
+        callback=lambda: execution_order.append("already-pending"),
+    )
+
+    executed = model.events.process_due(time=0)
+
+    assert executed == 3
+    assert execution_order == [
+        "first",
+        "already-pending",
+        "scheduled-during-callback",
+    ]
+    assert model.events.pending_count() == 0
+
+
+def test_callback_failure_preserves_other_due_events() -> None:
+    model = Model(seed=1)
+    execution_order: list[str] = []
+
+    def failing_callback() -> None:
+        execution_order.append("failed")
+        raise RuntimeError("boom")
+
+    model.events.schedule_at(0, callback=failing_callback)
+    model.events.schedule_at(
+        0,
+        callback=lambda: execution_order.append("remaining"),
+    )
+
+    with pytest.raises(RuntimeError, match="boom"):
+        model.events.process_due(time=0)
+
+    assert execution_order == ["failed"]
+    assert model.events.pending_count() == 1
+
+    assert model.events.process_due(time=0) == 1
+    assert execution_order == ["failed", "remaining"]
