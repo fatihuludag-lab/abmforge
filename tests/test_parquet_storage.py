@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import pytest
 
+from abmforge.data.schema import DatasetSchemaV1, SchemaValidationError
 from abmforge.data.storage import ParquetStorage
 
 pd = pytest.importorskip("pandas")
+pytest.importorskip("pyarrow")
 
 
 def test_parquet_storage_writes_tables(tmp_path):
@@ -77,3 +79,54 @@ def test_parquet_storage_normalizes_nested_values(tmp_path):
 
     assert isinstance(lifecycle_records.loc[0, "details"], str)
     assert '"nested"' in lifecycle_records.loc[0, "details"]
+
+
+def test_parquet_storage_validates_before_writing(tmp_path) -> None:
+    storage = ParquetStorage(run_id="run-1")
+    storage.runs.append(
+        {
+            "status": "completed",
+        }
+    )
+
+    output_dir = tmp_path / "parquet"
+
+    with pytest.raises(
+        SchemaValidationError,
+        match=r"runs\[0\]\.run_id: missing required field",
+    ):
+        storage.write_parquet(output_dir)
+
+    assert not output_dir.exists()
+
+
+def test_parquet_storage_preserves_schema_columns_for_empty_tables(tmp_path) -> None:
+    storage = ParquetStorage(run_id="empty-run")
+
+    output_dir = storage.write_parquet(tmp_path / "parquet")
+
+    for table_name, table_schema in DatasetSchemaV1.tables.items():
+        frame = pd.read_parquet(output_dir / f"{table_name}.parquet")
+        expected_columns = [field.name for field in table_schema.fields]
+
+        assert list(frame.columns) == expected_columns
+        assert frame.empty
+
+
+def test_parquet_storage_preserves_schema_columns_before_extra_fields(
+    tmp_path,
+) -> None:
+    storage = ParquetStorage(run_id="run-1")
+    storage.add_run(
+        run_id="run-1",
+        scenario="custom",
+        custom_metric="kept",
+    )
+
+    output_dir = storage.write_parquet(tmp_path / "parquet")
+    frame = pd.read_parquet(output_dir / "runs.parquet")
+
+    schema_columns = [field.name for field in DatasetSchemaV1.tables["runs"].fields]
+
+    assert list(frame.columns[: len(schema_columns)]) == schema_columns
+    assert "custom_metric" in frame.columns[len(schema_columns) :]
