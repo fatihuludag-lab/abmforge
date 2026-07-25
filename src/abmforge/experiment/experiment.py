@@ -7,8 +7,11 @@ from pathlib import Path
 from typing import Any
 
 from abmforge.core.model import Model
+from abmforge.experiment.archive import ExperimentArchive
 from abmforge.experiment.parameter_grid import ParameterGrid
+from abmforge.experiment.recovery import missing_scenarios
 from abmforge.experiment.result import RunResult
+from abmforge.experiment.run_index import RunIndex
 from abmforge.experiment.scenario import Scenario
 
 
@@ -179,11 +182,33 @@ class Experiment:
 
         return scenarios
 
-    def run(self) -> ExperimentResult:
-        """Run scenarios sequentially."""
-        experiment_result = ExperimentResult()
+    def run(
+        self,
+        *,
+        run_index: RunIndex | None = None,
+        archive: ExperimentArchive | None = None,
+    ) -> ExperimentResult:
+        """Run scenarios sequentially.
 
-        for scenario in self.scenarios():
+        When ``run_index`` is provided, scenarios already archived with
+        ``status="completed"`` are skipped.
+
+        When ``archive`` is provided, its run index is read automatically
+        and used for recovery planning.
+        """
+        if run_index is not None and archive is not None:
+            raise ValueError("Provide either run_index or archive, not both.")
+
+        if archive is not None:
+            run_index = archive.read_run_index() if archive.run_index_path.exists() else RunIndex()
+
+        experiment_result = ExperimentResult()
+        scenarios = self.scenarios()
+
+        if run_index is not None:
+            scenarios = missing_scenarios(scenarios, run_index)
+
+        for scenario in scenarios:
             result = scenario.run(raise_on_error=not self.continue_on_error)
             experiment_result.append(result)
 

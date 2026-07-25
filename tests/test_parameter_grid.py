@@ -1,4 +1,8 @@
+import pytest
+
 from abmforge import Agent, Experiment, Model, ParameterGrid
+from abmforge.experiment.archive import ExperimentArchive
+from abmforge.experiment.run_index import RunIndex, RunIndexEntry
 
 
 class DummyAgent(Agent):
@@ -122,3 +126,97 @@ def test_parameter_grid_can_be_iterated_multiple_times_with_generators():
     ]
     assert second == first
     assert len(grid) == 4
+
+
+def test_experiment_run_skips_completed_scenarios_from_run_index() -> None:
+    experiment = Experiment(
+        model=DummyModel,
+        parameters={"a": [1, 2]},
+        seeds=[10],
+        steps=2,
+        name="grid-test",
+    )
+
+    run_index = RunIndex(
+        entries=[
+            RunIndexEntry(
+                run_id="run-existing",
+                scenario="grid-test",
+                model_name="DummyModel",
+                seed=10,
+                status="completed",
+                parameters={"a": 1},
+            )
+        ]
+    )
+
+    result = experiment.run(run_index=run_index)
+
+    assert result.run_count == 1
+    assert result.results[0].dataset.runs[0]["parameters"] == {"a": 2}
+
+
+def test_experiment_run_reads_completed_runs_from_archive(tmp_path) -> None:
+    experiment = Experiment(
+        model=DummyModel,
+        parameters={"a": [1, 2]},
+        seeds=[10],
+        steps=2,
+        name="grid-test",
+    )
+
+    archive = ExperimentArchive.create(tmp_path / "archive")
+    RunIndex(
+        entries=[
+            RunIndexEntry(
+                run_id="run-existing",
+                scenario="grid-test",
+                model_name="DummyModel",
+                seed=10,
+                status="completed",
+                parameters={"a": 1},
+            )
+        ]
+    ).write(archive.run_index_path)
+
+    result = experiment.run(archive=archive)
+
+    assert result.run_count == 1
+    assert result.results[0].dataset.runs[0]["parameters"] == {"a": 2}
+
+
+def test_experiment_run_executes_all_when_archive_has_no_run_index(tmp_path) -> None:
+    experiment = Experiment(
+        model=DummyModel,
+        parameters={"a": [1, 2]},
+        seeds=[10],
+        steps=1,
+        name="grid-test",
+    )
+
+    archive = ExperimentArchive.create(tmp_path / "archive")
+
+    result = experiment.run(archive=archive)
+
+    assert result.run_count == 2
+    assert {run.dataset.runs[0]["parameters"]["a"] for run in result} == {1, 2}
+
+
+def test_experiment_run_rejects_run_index_and_archive_together(tmp_path) -> None:
+    experiment = Experiment(
+        model=DummyModel,
+        parameters={"a": [1]},
+        seeds=[10],
+        steps=1,
+    )
+
+    archive = ExperimentArchive.create(tmp_path / "archive")
+
+    with pytest.raises(
+        ValueError,
+        match="Provide either run_index or archive, not both",
+    ):
+        experiment.run(
+            run_index=RunIndex(),
+            archive=archive,
+        )
