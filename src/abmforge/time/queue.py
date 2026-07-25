@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import heapq
+import math
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
@@ -89,6 +90,26 @@ class EventQueue:
             cancel_on_owner_removed=cancel_on_owner_removed,
         )
 
+    @staticmethod
+    def _validate_callback(callback: Callable[[], Any]) -> None:
+        if not callable(callback):
+            raise TypeError("callback must be callable")
+
+    @staticmethod
+    def _validate_priority(priority: int) -> None:
+        if isinstance(priority, bool) or not isinstance(priority, int):
+            raise TypeError("priority must be an integer")
+
+    @staticmethod
+    def _validate_tags(
+        tags: list[str] | tuple[str, ...] | None,
+    ) -> None:
+        if tags is None:
+            return
+
+        if not all(isinstance(tag, str) for tag in tags):
+            raise TypeError("tags must contain only strings")
+
     def _resolve_event_time(
         self,
         *,
@@ -100,14 +121,28 @@ class EventQueue:
 
         if at is not None:
             event_time = float(at)
+
+            if not math.isfinite(event_time):
+                raise ValueError("event time must be finite")
         else:
             assert after is not None
-            if after < 0:
+
+            delay = float(after)
+
+            if not math.isfinite(delay):
+                raise ValueError("after must be finite")
+
+            if delay < 0:
                 raise ValueError("after must be non-negative")
-            event_time = self.model.time + float(after)
+
+            event_time = self.model.time + delay
+
+            if not math.isfinite(event_time):
+                raise ValueError("event time must be finite")
 
         if event_time < self.model.time:
             raise ValueError("cannot schedule an event in the past")
+
         return event_time
 
     def _schedule_resolved(
@@ -120,6 +155,9 @@ class EventQueue:
         tags: list[str] | tuple[str, ...] | None,
         cancel_on_owner_removed: bool,
     ) -> Event:
+        self._validate_callback(callback)
+        self._validate_priority(priority)
+        self._validate_tags(tags)
         event_id = self._next_id
         self._next_id += 1
         self._sequence += 1
