@@ -9,6 +9,7 @@ from typing import Any, cast
 from abmforge.data.dataset import Dataset
 
 RUN_INDEX_SCHEMA_VERSION = "run-index-v1"
+RUN_IDENTITY_SCHEMA_VERSION = "run-identity-v1"
 
 
 @dataclass(slots=True)
@@ -18,6 +19,9 @@ class RunIndexEntry:
     run_id: str
     scenario: str | None = None
     model_name: str | None = None
+    model_module: str | None = None
+    model_qualname: str | None = None
+    run_identity_version: str | None = None
     seed: int | None = None
     status: str | None = None
     steps: int | None = None
@@ -46,6 +50,9 @@ class RunIndexEntry:
             run_id=_required_str(data, "run_id"),
             scenario=_optional_str(data.get("scenario")),
             model_name=_optional_str(data.get("model_name")),
+            model_module=_optional_str(data.get("model_module")),
+            model_qualname=_optional_str(data.get("model_qualname")),
+            run_identity_version=_optional_str(data.get("run_identity_version")),
             seed=_optional_int(data.get("seed")),
             status=_optional_str(data.get("status")),
             steps=_optional_int(data.get("steps")),

@@ -211,6 +211,9 @@ A typical entry contains:
 - `run_id`
 - `scenario`
 - `model_name`
+- `model_module`
+- `model_qualname`
+- `run_identity_version`
 - `seed`
 - `status`
 - `steps`
@@ -227,6 +230,15 @@ The run index is intentionally small and JSON-based. It is useful for discoverin
 which runs exist in an archive before loading the full dataset tables.
 
 Archives produced before this feature may not contain `run_index.json`.
+
+Recovery uses a fail-closed execution identity. A completed archived run matches
+a planned scenario only when the identity schema version, model name, module,
+qualified class name, scenario name, seed, step count, and canonical parameters
+agree. Legacy entries
+missing these identity fields are not trusted as completed matches.
+
+Programmatic scenarios with `stop_when` callbacks are also treated as missing
+until ABMForge has a persisted and stable stop-condition identity contract.
 
 ## Manifest artifact checksum validation
 

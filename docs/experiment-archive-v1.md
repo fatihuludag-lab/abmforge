@@ -149,7 +149,26 @@ Required for new v1 archives.
 
 Older alpha archives may omit it, but new archive writers should create it.
 
-The run index is a compact discovery layer for archived runs. It should not replace `data/runs.json`; instead, it provides fast access to run identifiers, parameters, seeds, statuses, and output locations.
+The run index is a compact discovery layer for archived runs. It should not replace `data/runs.json`; instead, it provides fast access to run identifiers, parameters, seeds, statuses, execution identity, and output locations.
+
+For recovery, new entries should preserve at least:
+
+- model class name;
+- model module;
+- model qualified name;
+- recovery identity schema version;
+- scenario name;
+- seed;
+- requested or completed step count;
+- canonical run parameters;
+- completion status.
+
+Recovery must fail closed when execution identity is incomplete. Older entries
+without identity version, model module, qualified name, or step count remain
+readable, but they must not silently suppress a newly planned run. Programmatic
+`stop_when`
+callbacks are not recoverable matches until a stable persisted callback identity
+is defined.
 
 ### `registry.json`
 

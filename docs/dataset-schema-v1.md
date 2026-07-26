@@ -32,6 +32,9 @@ Run-level metadata table.
 | `run_id` | string | yes | no | Unique run identifier |
 | `scenario` | string | no | yes | Scenario name |
 | `model_name` | string | no | yes | Model class name |
+| `model_module` | string | no | yes | Python module containing the model class |
+| `model_qualname` | string | no | yes | Qualified model class name |
+| `run_identity_version` | string | no | yes | Recovery execution-identity schema version |
 | `parameters` | object | no | yes | Run parameters |
 | `seed` | integer | no | yes | Random seed |
 | `status` | string | no | yes | Run status |

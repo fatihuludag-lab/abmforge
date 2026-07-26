@@ -3,7 +3,10 @@ from pathlib import Path
 
 from abmforge.data.dataset import Dataset
 from abmforge.experiment import ExperimentArchive, RunIndex
-from abmforge.experiment.run_index import RUN_INDEX_SCHEMA_VERSION
+from abmforge.experiment.run_index import (
+    RUN_IDENTITY_SCHEMA_VERSION,
+    RUN_INDEX_SCHEMA_VERSION,
+)
 
 
 def _dataset_with_run() -> Dataset:
@@ -12,6 +15,9 @@ def _dataset_with_run() -> Dataset:
         run_id="run-001",
         scenario="baseline",
         model_name="ToyModel",
+        model_module="example.models",
+        model_qualname="ToyModel",
+        run_identity_version=RUN_IDENTITY_SCHEMA_VERSION,
         parameters={"alpha": 0.2, "n": 10},
         seed=42,
         status="completed",
@@ -41,6 +47,9 @@ def test_run_index_round_trips_from_dataset(tmp_path: Path) -> None:
     assert entry.run_id == "run-001"
     assert entry.scenario == "baseline"
     assert entry.model_name == "ToyModel"
+    assert entry.model_module == "example.models"
+    assert entry.model_qualname == "ToyModel"
+    assert entry.run_identity_version == RUN_IDENTITY_SCHEMA_VERSION
     assert entry.seed == 42
     assert entry.status == "completed"
     assert entry.steps == 5

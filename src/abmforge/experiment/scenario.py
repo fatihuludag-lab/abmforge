@@ -18,6 +18,7 @@ from abmforge.core.model import Model
 from abmforge.core.status import COMPLETED, CREATED, FAILED, STOPPED
 from abmforge.data.dataset import Dataset
 from abmforge.experiment.result import RunResult
+from abmforge.experiment.run_index import RUN_IDENTITY_SCHEMA_VERSION
 
 
 class ScenarioValidationError(ValueError):
@@ -257,6 +258,9 @@ class Scenario:
             run_id=model.run_id,
             scenario=scenario_name,
             model_name=self.model.__name__,
+            model_module=self.model.__module__,
+            model_qualname=self.model.__qualname__,
+            run_identity_version=RUN_IDENTITY_SCHEMA_VERSION,
             parameters=dict(self.parameters),
             seed=run_seed,
             status="running",
@@ -385,6 +389,9 @@ class Scenario:
             run_id=run_id,
             scenario=scenario_name,
             model_name=self.model.__name__,
+            model_module=self.model.__module__,
+            model_qualname=self.model.__qualname__,
+            run_identity_version=RUN_IDENTITY_SCHEMA_VERSION,
             parameters=dict(self.parameters),
             seed=run_seed,
             status=FAILED,
