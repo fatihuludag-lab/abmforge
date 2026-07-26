@@ -183,3 +183,17 @@ def test_dataset_schema_rejects_non_finite_number_fields(
         match=r"model_records\[0\]\.time: expected finite number",
     ):
         dataset.validate()
+
+
+def test_run_schema_declares_model_execution_identity_fields() -> None:
+    run_fields = {field.name: field for field in DatasetSchemaV1.tables["runs"].fields}
+
+    assert "model_module" in run_fields
+    assert "model_qualname" in run_fields
+    assert "run_identity_version" in run_fields
+    assert run_fields["model_module"].kind == "string"
+    assert run_fields["model_qualname"].kind == "string"
+    assert run_fields["run_identity_version"].kind == "string"
+    assert run_fields["model_module"].required is False
+    assert run_fields["model_qualname"].required is False
+    assert run_fields["run_identity_version"].required is False

@@ -181,6 +181,9 @@ class DatasetSchemaV1:
                 FieldSpec("run_id", "string", description="Unique run identifier."),
                 FieldSpec("scenario", "string", required=False, nullable=True),
                 FieldSpec("model_name", "string", required=False, nullable=True),
+                FieldSpec("model_module", "string", required=False, nullable=True),
+                FieldSpec("model_qualname", "string", required=False, nullable=True),
+                FieldSpec("run_identity_version", "string", required=False, nullable=True),
                 FieldSpec("parameters", "object", required=False, nullable=True),
                 FieldSpec("seed", "integer", required=False, nullable=True),
                 FieldSpec(

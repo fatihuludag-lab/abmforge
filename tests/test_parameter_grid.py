@@ -2,7 +2,11 @@ import pytest
 
 from abmforge import Agent, Experiment, Model, ParameterGrid
 from abmforge.experiment.archive import ExperimentArchive
-from abmforge.experiment.run_index import RunIndex, RunIndexEntry
+from abmforge.experiment.run_index import (
+    RUN_IDENTITY_SCHEMA_VERSION,
+    RunIndex,
+    RunIndexEntry,
+)
 
 
 class DummyAgent(Agent):
@@ -143,8 +147,12 @@ def test_experiment_run_skips_completed_scenarios_from_run_index() -> None:
                 run_id="run-existing",
                 scenario="grid-test",
                 model_name="DummyModel",
+                model_module=DummyModel.__module__,
+                model_qualname=DummyModel.__qualname__,
+                run_identity_version=RUN_IDENTITY_SCHEMA_VERSION,
                 seed=10,
                 status="completed",
+                steps=2,
                 parameters={"a": 1},
             )
         ]
@@ -172,8 +180,12 @@ def test_experiment_run_reads_completed_runs_from_archive(tmp_path) -> None:
                 run_id="run-existing",
                 scenario="grid-test",
                 model_name="DummyModel",
+                model_module=DummyModel.__module__,
+                model_qualname=DummyModel.__qualname__,
+                run_identity_version=RUN_IDENTITY_SCHEMA_VERSION,
                 seed=10,
                 status="completed",
+                steps=2,
                 parameters={"a": 1},
             )
         ]
