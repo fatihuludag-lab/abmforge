@@ -88,6 +88,7 @@ def test_plugin_manager_activates_plugin() -> None:
 
     assert plugin.activated is True
 
+
 def test_plugin_context_stores_extension_state() -> None:
     context = PluginContext(
         experiment="experiment",
@@ -100,6 +101,7 @@ def test_plugin_context_stores_extension_state() -> None:
     assert context.scenario is None
     assert context.result is None
     assert context.metadata == {"source": "test"}
+
 
 def test_plugin_manager_emits_before_experiment_to_active_plugins() -> None:
     calls: list[PluginContext] = []
@@ -120,6 +122,7 @@ def test_plugin_manager_emits_before_experiment_to_active_plugins() -> None:
     manager.emit_before_experiment(context)
 
     assert calls == [context]
+
 
 def test_plugin_manager_emits_after_experiment_to_active_plugins() -> None:
     calls: list[PluginContext] = []
@@ -144,6 +147,7 @@ def test_plugin_manager_emits_after_experiment_to_active_plugins() -> None:
 
     assert calls == [context]
 
+
 def test_plugin_manager_emits_named_hook_to_active_plugins() -> None:
     calls: list[PluginContext] = []
 
@@ -162,6 +166,7 @@ def test_plugin_manager_emits_named_hook_to_active_plugins() -> None:
     manager.emit("before_experiment", context)
 
     assert calls == [context]
+
 
 def test_plugin_manager_does_not_emit_to_inactive_plugins() -> None:
     calls: list[str] = []

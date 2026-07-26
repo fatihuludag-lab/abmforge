@@ -87,9 +87,7 @@ class PluginManager:
                 continue
 
             if not callable(hook):
-                raise TypeError(
-                    f"Plugin '{name}' hook '{hook_name}' must be callable"
-                )
+                raise TypeError(f"Plugin '{name}' hook '{hook_name}' must be callable")
 
             hook(context)
 
