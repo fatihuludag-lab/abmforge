@@ -42,6 +42,21 @@ metric.
 
 `failed_runs.csv` lists failed or non-completed runs when available.
 
+## Manifest updates
+
+When the target experiment directory contains `manifest.json`, `abmforge
+report` adds or refreshes artifact records for the six report files it
+generates.
+
+Existing artifact entries and checksums are preserved. The reporting command
+does not re-hash unrelated dataset, configuration, schema, or index files. This
+ensures that report generation cannot silently accept earlier modifications to
+the research archive.
+
+Report generation also remains compatible with legacy or plain experiment
+directories that do not contain a manifest. In that case, the reports are
+written without creating a new `manifest.json`.
+
 ## Current scope
 
 The reporting layer is intentionally lightweight. It does not replace

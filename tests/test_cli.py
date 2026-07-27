@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from abmforge import __version__
@@ -84,6 +86,12 @@ run:
     assert (archive_path / "data" / "model_records.jsonl").is_file()
     assert (archive_path / "reports" / "run_summary.json").is_file()
     assert (archive_path / "configs" / "scenario.yaml").is_file()
+
+    manifest = json.loads((archive_path / "manifest.json").read_text(encoding="utf-8"))
+    artifact_paths = {artifact["path"] for artifact in manifest["artifacts"]}
+
+    assert "reports/run_summary.json" in artifact_paths
+    assert manifest["artifact_count"] == len(manifest["artifacts"])
 
     main(["validate", str(archive_path)])
 

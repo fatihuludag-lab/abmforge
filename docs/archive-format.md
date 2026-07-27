@@ -243,8 +243,16 @@ until ABMForge has a persisted and stable stop-condition identity contract.
 ## Manifest artifact checksum validation
 
 Archives written with manifest artifact inventories include archive-relative
-file paths, sizes, SHA-256 checksums, and artifact roles for files that already
-exist when `manifest.json` is written. `abmforge validate` checks these records
-when they are present and reports missing or tampered files.
+file paths, sizes, SHA-256 checksums, and artifact roles. Archive writers
+finalize this inventory after initial dataset, configuration, index,
+compatibility, and report outputs have been written.
+
+`abmforge validate` checks registered artifact records and reports missing or
+tampered files.
+
+Commands that add later derived outputs, such as `abmforge report`, update only
+the artifact entries for the files they generate. Existing checksum records are
+preserved so reporting cannot silently make unrelated archive modifications
+trusted.
 
 Archives without an `artifacts` array remain valid as legacy alpha archives.

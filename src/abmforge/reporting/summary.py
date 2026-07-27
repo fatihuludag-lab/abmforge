@@ -9,6 +9,8 @@ from pathlib import Path
 from statistics import fmean
 from typing import Any
 
+from abmforge.experiment.archive import ExperimentArchive
+
 
 @dataclass(frozen=True, slots=True)
 class ExperimentReport:
@@ -127,6 +129,19 @@ def generate_experiment_report(path: str | Path) -> ExperimentReport:
         ),
         encoding="utf-8",
     )
+
+    archive = ExperimentArchive(output_dir)
+    if archive.manifest_path.is_file():
+        archive.update_manifest_artifacts(
+            [
+                summary_markdown.relative_to(output_dir),
+                metric_summary_csv.relative_to(output_dir),
+                run_status_csv.relative_to(output_dir),
+                failed_runs_csv.relative_to(output_dir),
+                parameter_effects_csv.relative_to(output_dir),
+                primary_metric_rankings_csv.relative_to(output_dir),
+            ]
+        )
 
     return ExperimentReport(
         output_dir=output_dir,

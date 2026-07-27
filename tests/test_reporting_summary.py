@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from abmforge.reporting import generate_experiment_report
+from abmforge.repro.manifest import describe_file_artifact
 
 
 def _write_demo_output(root: Path) -> None:
@@ -76,3 +77,78 @@ def test_generate_experiment_report_writes_summary_files(tmp_path: Path) -> None
 
     failed_runs = report.failed_runs_csv.read_text(encoding="utf-8")
     assert "run-2" in failed_runs
+
+
+def test_generate_experiment_report_finalizes_existing_manifest(
+    tmp_path: Path,
+) -> None:
+    _write_demo_output(tmp_path)
+
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "manifest_version": "reproducibility-manifest-v1",
+                "artifacts": [],
+                "artifact_count": 0,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    report = generate_experiment_report(tmp_path)
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    artifact_paths = {artifact["path"] for artifact in manifest["artifacts"]}
+
+    expected_report_paths = {
+        report.summary_markdown.relative_to(tmp_path).as_posix(),
+        report.metric_summary_csv.relative_to(tmp_path).as_posix(),
+        report.run_status_csv.relative_to(tmp_path).as_posix(),
+        report.failed_runs_csv.relative_to(tmp_path).as_posix(),
+        report.parameter_effects_csv.relative_to(tmp_path).as_posix(),
+        report.primary_metric_rankings_csv.relative_to(tmp_path).as_posix(),
+    }
+
+    assert expected_report_paths <= artifact_paths
+    assert manifest["artifact_count"] == len(manifest["artifacts"])
+
+
+def test_report_finalization_preserves_existing_artifact_checksums(
+    tmp_path: Path,
+) -> None:
+    _write_demo_output(tmp_path)
+
+    tracked_path = tmp_path / "data" / "runs.csv"
+    tracked_artifact = describe_file_artifact(
+        tracked_path,
+        root=tmp_path,
+        role="dataset_table",
+    )
+    original_sha256 = tracked_artifact["sha256"]
+
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "manifest_version": "reproducibility-manifest-v1",
+                "artifacts": [tracked_artifact],
+                "artifact_count": 1,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    tracked_path.write_text(
+        tracked_path.read_text(encoding="utf-8") + "\n",
+        encoding="utf-8",
+    )
+
+    report = generate_experiment_report(tmp_path)
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    artifacts = {artifact["path"]: artifact for artifact in manifest["artifacts"]}
+
+    assert artifacts["data/runs.csv"]["sha256"] == original_sha256
+    assert report.summary_markdown.relative_to(tmp_path).as_posix() in artifacts
+    assert manifest["artifact_count"] == len(manifest["artifacts"])

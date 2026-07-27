@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
@@ -282,16 +283,92 @@ class ExperimentArchive:
 
     def write_manifest(self, dataset: Dataset) -> Path:
         """Write a reproducibility manifest into the archive root."""
-        manifest_path = dataset.write_manifest(self.manifest_path)
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        dataset.write_manifest(self.manifest_path)
+        return self.finalize_manifest()
+
+    def finalize_manifest(self) -> Path:
+        """Refresh the manifest after all archive artifacts have been written."""
+        if not self.manifest_path.is_file():
+            raise FileNotFoundError(f"Archive manifest does not exist: {self.manifest_path}")
+
+        manifest = json.loads(self.manifest_path.read_text(encoding="utf-8"))
         manifest.setdefault("archive_format", ARCHIVE_FORMAT_VERSION)
         manifest["artifacts"] = self._build_artifact_inventory()
         manifest["artifact_count"] = len(manifest["artifacts"])
-        manifest_path.write_text(
+        self.manifest_path.write_text(
             json.dumps(manifest, indent=2, ensure_ascii=False, default=str),
             encoding="utf-8",
         )
-        return manifest_path
+        return self.manifest_path
+
+    def update_manifest_artifacts(
+        self,
+        artifact_paths: Iterable[str | Path],
+    ) -> Path:
+        """Add or refresh selected artifacts without re-hashing existing entries."""
+        if not self.manifest_path.is_file():
+            raise FileNotFoundError(f"Archive manifest does not exist: {self.manifest_path}")
+
+        manifest = json.loads(self.manifest_path.read_text(encoding="utf-8"))
+        existing_artifacts = manifest.get("artifacts", [])
+
+        if not isinstance(existing_artifacts, list):
+            raise ValueError("Manifest artifacts must be a list")
+
+        artifacts_by_path: dict[str, dict[str, Any]] = {}
+
+        for artifact in existing_artifacts:
+            if not isinstance(artifact, dict):
+                raise ValueError("Manifest artifact records must be objects")
+
+            artifact_name = artifact.get("path")
+            if not isinstance(artifact_name, str) or not artifact_name:
+                raise ValueError("Manifest artifact record requires a path")
+
+            artifacts_by_path[artifact_name] = artifact
+
+        archive_root = self.path.resolve()
+
+        for artifact_path in artifact_paths:
+            candidate = Path(artifact_path)
+            if not candidate.is_absolute():
+                candidate = self.path / candidate
+
+            resolved = candidate.resolve()
+
+            try:
+                relative_path = resolved.relative_to(archive_root)
+            except ValueError as exc:
+                raise ValueError(f"Artifact path is outside the archive: {candidate}") from exc
+
+            relative_name = relative_path.as_posix()
+
+            if relative_name == "manifest.json":
+                raise ValueError("The manifest cannot inventory itself")
+
+            if not resolved.is_file():
+                raise FileNotFoundError(f"Archive artifact does not exist: {resolved}")
+
+            artifacts_by_path[relative_name] = describe_file_artifact(
+                resolved,
+                root=archive_root,
+                role=_artifact_role(relative_path),
+            )
+
+        manifest.setdefault("archive_format", ARCHIVE_FORMAT_VERSION)
+        manifest["artifacts"] = [artifacts_by_path[name] for name in sorted(artifacts_by_path)]
+        manifest["artifact_count"] = len(manifest["artifacts"])
+
+        self.manifest_path.write_text(
+            json.dumps(
+                manifest,
+                indent=2,
+                ensure_ascii=False,
+                default=str,
+            ),
+            encoding="utf-8",
+        )
+        return self.manifest_path
 
     def _build_artifact_inventory(self) -> list[dict[str, Any]]:
         """Return checksum metadata for files already written to this archive."""
