@@ -67,6 +67,9 @@ Typical responsibilities:
 - configure recorders;
 - manage simulation time and status.
 
+See [Model Lifecycle](model-lifecycle.md) for execution statuses,
+terminal-state invariants, continuation rules, and restart restrictions.
+
 Minimal shape:
 
 ```python
