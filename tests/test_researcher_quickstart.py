@@ -53,3 +53,11 @@ def test_researcher_quickstart_is_listed_in_mkdocs_nav() -> None:
 
     assert "Researcher Quickstart" in nav
     assert "researcher-quickstart.md" in nav
+
+
+def test_researcher_quickstart_documents_transactional_single_run_overwrite() -> None:
+    text = " ".join(DOC.read_text(encoding="utf-8").split())
+
+    assert "Single-scenario archive replacement is transactional" in text
+    assert "If writing fails, the previous archive remains unchanged" in text
+    assert "A successful command still replaces the previous archive permanently" in text

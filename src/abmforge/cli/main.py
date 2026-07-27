@@ -8,6 +8,7 @@ from pathlib import Path
 
 import abmforge
 from abmforge.experiment.archive import ExperimentArchive
+from abmforge.experiment.archive_transaction import ArchiveTransaction
 from abmforge.experiment.config import ExperimentConfig, write_experiment_outputs
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.scenario import Scenario
@@ -260,15 +261,22 @@ def main(argv: Sequence[str] | None = None) -> None:
 
         result = scenario.run(raise_on_error=False)
 
-        archive = ExperimentArchive.create(args.archive, overwrite=args.overwrite)
-        archive.write_scenario_file(scenario_path)
-        archive.write_run_outputs(result.dataset, format=args.format)
-        summary_path = _write_run_summary(result, archive)
+        archive_path = Path(args.archive)
+
+        with ArchiveTransaction(
+            archive_path,
+            overwrite=args.overwrite,
+        ) as archive:
+            archive.write_scenario_file(scenario_path)
+            archive.write_run_outputs(result.dataset, format=args.format)
+            _write_run_summary(result, archive)
+
+        summary_path = archive_path / "reports" / "run_summary.json"
 
         print(f"Run completed: {result.run_id}")
         print(f"Status: {result.status}")
         print(f"Steps: {result.steps}")
-        print(f"Archive written: {archive.path}")
+        print(f"Archive written: {archive_path}")
         print(f"Summary written: {summary_path}")
 
         if result.status == "failed" and not args.allow_failed:

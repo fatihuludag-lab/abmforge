@@ -323,11 +323,17 @@ uses absolute import paths.
 
 ### Archive already exists
 
-Use `--overwrite` only when it is safe to delete the previous archive:
+Use `--overwrite` when the completed new run should replace the previous archive:
 
 ```bash
 abmforge run examples/scenarios/wealth_baseline.yaml --archive outputs/wealth_baseline_archive --overwrite
 ```
+
+Single-scenario archive replacement is transactional. ABMForge builds the new
+archive in a staging directory and replaces the existing archive only after all
+archive outputs have been written successfully. If writing fails, the previous
+archive remains unchanged. A successful command still replaces the previous
+archive permanently, so preserve any archive that must be retained separately.
 
 ### Validation fails
 
