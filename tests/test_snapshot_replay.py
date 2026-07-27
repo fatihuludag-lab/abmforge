@@ -508,3 +508,102 @@ def test_replay_validation_report_to_dict():
     assert data["valid"] is True
     assert data["original_hash"] == data["replayed_hash"]
     assert data["differences"] == []
+
+
+def test_validate_replay_normalizes_nested_metadata_consistently() -> None:
+    original = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "scheduler": {
+            "type": "OriginalScheduler",
+            "state": {"activation_count": 3},
+        },
+    }
+    replayed = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "scheduler": {
+            "type": "RestoredScheduler",
+            "state": {"activation_count": 3},
+        },
+    }
+
+    report = validate_replay(original, replayed)
+
+    assert report.valid is True
+    assert report.original_hash == report.replayed_hash
+    assert report.differences == []
+
+
+def test_validate_replay_reports_nested_metadata_when_requested() -> None:
+    original = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "scheduler": {
+            "type": "OriginalScheduler",
+        },
+    }
+    replayed = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "scheduler": {
+            "type": "RestoredScheduler",
+        },
+    }
+
+    report = validate_replay(
+        original,
+        replayed,
+        include_metadata=True,
+    )
+
+    assert report.valid is False
+    assert report.original_hash != report.replayed_hash
+    assert report.differences
+    assert any("$.scheduler.type" in difference for difference in report.differences)
+
+
+def test_invalid_replay_report_always_contains_a_difference(
+    monkeypatch,
+) -> None:
+    from abmforge.replay import validation as replay_validation
+
+    hashes = iter(["original-hash", "replayed-hash"])
+    monkeypatch.setattr(
+        replay_validation,
+        "snapshot_hash",
+        lambda *args, **kwargs: next(hashes),
+    )
+
+    report = replay_validation.validate_replay(
+        {"value": 1},
+        {"value": 1},
+    )
+
+    assert report.valid is False
+    assert report.original_hash != report.replayed_hash
+    assert report.differences == ["$: normalized snapshot hashes differ without a structural diff"]
+
+
+def test_validate_replay_preserves_user_state_named_type() -> None:
+    original = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "model_state": {
+            "type": "baseline",
+        },
+    }
+    replayed = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "model_state": {
+            "type": "policy",
+        },
+    }
+
+    report = validate_replay(original, replayed)
+
+    assert report.valid is False
+    assert report.original_hash != report.replayed_hash
+    assert report.differences
+    assert any("$.model_state.type" in difference for difference in report.differences)

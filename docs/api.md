@@ -470,7 +470,11 @@ Read a model snapshot.
 **Status:** Experimental  
 **Import:** `from abmforge import snapshot_hash`
 
-Compute a snapshot hash.
+Compute a deterministic hash from the canonical snapshot representation.
+
+With `include_metadata=False`, framework provenance and structural type
+metadata are excluded while user-controlled parameters, model state, and agent
+state remain part of the hash.
 
 ### `attach_snapshot_hash`
 
@@ -488,17 +492,25 @@ Link snapshot metadata to a run or archive.
 
 ### `validate_replay`
 
-**Status:** Experimental  
+**Status:** Experimental
 **Import:** `from abmforge import validate_replay`
 
-Validate replay behavior where supported.
+Compare original and replayed snapshots using the same canonical
+normalization for hashing and structural difference analysis.
+
+By default, framework-managed metadata is ignored. Pass
+`include_metadata=True` to compare it explicitly.
 
 ### `ReplayValidationReport`
 
-**Status:** Experimental  
+**Status:** Experimental
 **Import:** `from abmforge import ReplayValidationReport`
 
 Report object for replay validation.
+
+A report with `valid=False` contains at least one explanatory entry in
+`differences`. Difference entries identify normalized paths such as
+`$.model_state.population` or `$.agents[0].state.wealth`.
 
 ## Visualization API
 
