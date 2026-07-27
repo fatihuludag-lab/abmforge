@@ -15,7 +15,7 @@ import yaml
 
 from abmforge._version import __version__
 from abmforge.core.model import Model
-from abmforge.core.status import COMPLETED, CREATED, FAILED, STOPPED
+from abmforge.core.status import COMPLETED, CREATED, FAILED, RUNNING, STOPPED
 from abmforge.data.dataset import Dataset
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.run_index import RUN_IDENTITY_SCHEMA_VERSION
@@ -276,6 +276,10 @@ class Scenario:
             if self.steps < 0:
                 raise ValueError("steps must be non-negative")
 
+            if model.status != STOPPED:
+                model.running = True
+                model.status = RUNNING
+
             for _ in range(self.steps):
                 if model.status == STOPPED:
                     break
@@ -283,7 +287,7 @@ class Scenario:
                     model.stop("stop_condition")
                     break
 
-                model.run_for(1)
+                model._run_for(1, finalize=False)
                 if model.status == STOPPED:
                     break
 
@@ -302,7 +306,8 @@ class Scenario:
                 raise
             return result
 
-        if model.status == CREATED:
+        if model.status in {CREATED, RUNNING}:
+            model.running = False
             model.status = COMPLETED
         status = model.status
         model.record.dataset.update_last_run(
@@ -334,6 +339,7 @@ class Scenario:
         error_repr = repr(exc)
         ended_at = datetime.now(timezone.utc).isoformat()
 
+        model.running = False
         model.status = FAILED
         model.record.dataset.record_error(
             step=model.steps,

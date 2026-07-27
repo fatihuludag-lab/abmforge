@@ -39,6 +39,9 @@ def test_scenario_can_return_failed_result_without_raising() -> None:
     result = scenario.run(raise_on_error=False)
 
     assert result.status == "failed"
+    assert result.model is not None
+    assert result.model.status == "failed"
+    assert result.model.running is False
     assert result.error is not None
     assert result.exception_type == "RuntimeError"
     assert result.dataset.runs[-1]["status"] == "failed"

@@ -54,6 +54,7 @@ def test_model_run_for_sets_completed_status() -> None:
     model.run_for(1)
 
     assert model.status == COMPLETED
+    assert model.running is False
     assert model.steps == 1
 
 
@@ -80,6 +81,7 @@ def test_scenario_zero_steps_marks_model_completed() -> None:
     assert result.status == COMPLETED
     assert result.model is not None
     assert result.model.status == COMPLETED
+    assert result.model.running is False
     assert result.dataset.runs[-1]["status"] == COMPLETED
 
 
@@ -97,4 +99,74 @@ def test_failed_scenario_uses_failed_status() -> None:
     assert result.status == FAILED
     assert result.model is not None
     assert result.model.status == FAILED
+    assert result.model.running is False
     assert result.dataset.runs[-1]["status"] == FAILED
+
+
+def test_model_run_for_marks_failed_and_reraises_step_error() -> None:
+    model = FailingStatusModel()
+
+    with pytest.raises(RuntimeError, match="boom"):
+        model.run_for(1)
+
+    assert model.status == FAILED
+    assert model.running is False
+    assert model.steps == 0
+
+
+def test_scenario_stop_condition_failure_leaves_model_failed_and_inactive() -> None:
+    def failing_stop_condition(model: Model) -> bool:
+        raise RuntimeError("stop condition failed")
+
+    scenario = Scenario(
+        model=StatusModel,
+        steps=2,
+        stop_when=failing_stop_condition,
+        name="failing-stop-condition",
+    )
+
+    result = scenario.run(raise_on_error=False)
+
+    assert result.status == FAILED
+    assert result.model is not None
+    assert result.model.status == FAILED
+    assert result.model.running is False
+    assert result.exception_type == "RuntimeError"
+
+
+def test_completed_model_can_continue_with_another_run_for_call() -> None:
+    model = StatusModel()
+
+    model.run_for(1)
+    model.run_for(2)
+
+    assert model.steps == 3
+    assert model.status == COMPLETED
+    assert model.running is False
+
+
+def test_stopped_model_cannot_be_restarted() -> None:
+    model = StatusModel()
+    model.stop("manual")
+
+    with pytest.raises(RuntimeError, match="stopped model"):
+        model.run_for(1)
+
+    assert model.status == STOPPED
+    assert model.running is False
+    assert model.stop_reason == "manual"
+    assert model.steps == 0
+
+
+def test_failed_model_cannot_be_restarted() -> None:
+    model = FailingStatusModel()
+
+    with pytest.raises(RuntimeError, match="boom"):
+        model.run_for(1)
+
+    with pytest.raises(RuntimeError, match="failed model"):
+        model.run_for(1)
+
+    assert model.status == FAILED
+    assert model.running is False
+    assert model.steps == 0

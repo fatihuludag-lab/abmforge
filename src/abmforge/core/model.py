@@ -12,7 +12,14 @@ from numpy.random import Generator
 from abmforge.core.agent import Agent
 from abmforge.core.agent_lifecycle import REMOVED
 from abmforge.core.collection import AgentCollection
-from abmforge.core.status import COMPLETED, CREATED, RUNNING, STOPPED, ModelStatus
+from abmforge.core.status import (
+    COMPLETED,
+    CREATED,
+    FAILED,
+    RUNNING,
+    STOPPED,
+    ModelStatus,
+)
 from abmforge.data.recorder import Recorder
 from abmforge.time.queue import EventQueue
 
@@ -55,24 +62,37 @@ class Model:
 
     def run_for(self, steps: int) -> None:
         """Run the model for a fixed number of steps."""
+        self._run_for(steps, finalize=True)
+
+    def _run_for(self, steps: int, *, finalize: bool) -> None:
+        """Run model steps, optionally leaving the model active afterward."""
         if steps < 0:
             raise ValueError("steps must be non-negative")
+
+        if self.status in {STOPPED, FAILED}:
+            raise RuntimeError(f"Cannot run a {self.status} model")
 
         self.running = True
         self.status = RUNNING
 
-        for _ in range(steps):
-            if not self.running:
-                break
+        try:
+            for _ in range(steps):
+                if not self.running:
+                    break
 
-            self.events.process_due(time=self.time)
-            self.step()
+                self.events.process_due(time=self.time)
+                self.step()
 
-            self.steps += 1
-            self.time += 1.0
-            self.record.collect()
+                self.steps += 1
+                self.time += 1.0
+                self.record.collect()
+        except Exception:
+            self.running = False
+            self.status = FAILED
+            raise
 
-        if self.running:
+        if self.running and finalize:
+            self.running = False
             self.status = COMPLETED
 
     def stop(self, reason: str = "stopped") -> None:
