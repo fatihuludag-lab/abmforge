@@ -170,6 +170,8 @@ def write_experiment_outputs(
             encoding="utf-8",
         )
 
+        archive.finalize_manifest()
+
     return output_path
 
 

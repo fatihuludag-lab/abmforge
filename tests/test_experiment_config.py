@@ -170,6 +170,14 @@ outputs:
     assert (output / "reports" / "experiment_summary.json").exists()
     assert (output / "reports" / "README_RESULTS.md").exists()
 
+    manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+    artifact_paths = {artifact["path"] for artifact in manifest["artifacts"]}
+
+    assert "data/runs.csv" in artifact_paths
+    assert "reports/experiment_summary.json" in artifact_paths
+    assert "reports/README_RESULTS.md" in artifact_paths
+    assert manifest["artifact_count"] == len(manifest["artifacts"])
+
     archive = ExperimentArchive(output)
     assert archive.validate() == []
     assert len(archive.read_run_index().entries) == 4

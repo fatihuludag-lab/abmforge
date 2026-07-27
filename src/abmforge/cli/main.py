@@ -270,6 +270,7 @@ def main(argv: Sequence[str] | None = None) -> None:
             archive.write_scenario_file(scenario_path)
             archive.write_run_outputs(result.dataset, format=args.format)
             _write_run_summary(result, archive)
+            archive.finalize_manifest()
 
         summary_path = archive_path / "reports" / "run_summary.json"
 

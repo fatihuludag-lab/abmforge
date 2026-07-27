@@ -217,6 +217,11 @@ Examples:
 - `validation_report.json`;
 - `human_report.md`.
 
+Archive writers should finalize the manifest after required run or experiment
+summaries and compatibility outputs have been written. Commands that add later
+derived reports should register only the generated files without replacing
+checksum records for unrelated existing artifacts.
+
 ## 8. `logs/`
 
 The `logs/` directory is reserved for execution logs.

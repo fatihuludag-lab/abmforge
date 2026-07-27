@@ -109,6 +109,17 @@ means that changes to archived configuration files, dataset tables, schema
 files, or other registered artifacts can be detected after the archive is
 written.
 
+Archive writers finalize the artifact inventory after all initial run,
+experiment, CSV compatibility, and report outputs have been written. Generated
+files such as `run_summary.json`, `experiment_summary.json`, and
+`README_RESULTS.md` are therefore included in the checksum inventory.
+
+When `abmforge report` adds derived reports to an existing archive, ABMForge
+updates only the generated report entries. Existing artifact records and
+checksums are preserved rather than re-hashing unrelated files. This prevents
+report generation from silently accepting a previously modified dataset file
+as trusted archive content.
+
 Archives created before artifact inventories existed remain valid as legacy
 alpha archives; artifact checksum validation only runs when `artifacts` is
 present in `manifest.json`.
