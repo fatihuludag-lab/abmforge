@@ -51,7 +51,16 @@ def generate_experiment_report(path: str | Path) -> ExperimentReport:
     model_records = _read_csv(_first_existing(data_dir, ("model_records.csv", "model.csv")))
     errors = _read_csv(_first_existing(data_dir, ("errors.csv", "error_records.csv")))
 
-    latest_metrics = _latest_model_metric_values(model_records)
+    completed_run_ids = {
+        row.get("run_id", "")
+        for row in runs
+        if row.get("status", "") == "completed" and row.get("run_id", "")
+    }
+    latest_metrics = {
+        key: value
+        for key, value in _latest_model_metric_values(model_records).items()
+        if key[0] in completed_run_ids
+    }
     metric_summaries = _summarize_final_model_metrics(latest_metrics)
     run_status_counts = _summarize_run_statuses(runs)
     failed_runs = _find_failed_runs(runs, errors)

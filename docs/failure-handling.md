@@ -93,6 +93,12 @@ errors.csv
 
 Do not ignore failed runs in published experiments.
 
+ABMForge researcher reports preserve failed and other non-completed runs in
+status and failure tables, but exclude their partial metric observations from
+metric summaries, parameter-effect estimates, and primary-metric rankings.
+Only runs whose status is exactly `completed` contribute to these analytical
+tables.
+
 Recommended reporting:
 
 - number of scenarios,
