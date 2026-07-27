@@ -153,6 +153,32 @@ Use it for:
 - stochastic replicates;
 - comparative scenarios.
 
+### `ExperimentExecutionError`
+
+**Status:** Stable Alpha
+**Import:** `from abmforge import ExperimentExecutionError`
+
+Raised when fail-fast experiment execution stops after a failed run.
+
+The exception preserves:
+
+- `result`: the partial `ExperimentResult`, including completed runs
+  and the failed run;
+- `failed_result`: the `RunResult` that caused execution to stop;
+- the original exception through `__cause__`.
+
+Runs that were not reached are not added to the partial result.
+
+```python
+from abmforge import ExperimentExecutionError
+
+try:
+    result = experiment.run()
+except ExperimentExecutionError as exc:
+    partial_result = exc.result
+    failed_run = exc.failed_result
+```
+
 ### `ExperimentResult`
 
 **Status:** Provisional  

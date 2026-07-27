@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -20,3 +20,8 @@ class RunResult:
     stop_reason: str | None
     error: str | None = None
     exception_type: str | None = None
+    _exception: Exception | None = field(
+        default=None,
+        repr=False,
+        compare=False,
+    )

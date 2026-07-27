@@ -222,6 +222,30 @@ summaries and compatibility outputs have been written. Commands that add later
 derived reports should register only the generated files without replacing
 checksum records for unrelated existing artifacts.
 
+### Experiment execution summary
+
+Multi-run archives may include `reports/experiment_summary.json`.
+
+New experiment writers record:
+
+| Field | Meaning |
+|---|---|
+| `run_count_expected` | Number of runs planned by the experiment configuration |
+| `run_count_executed` | Number of runs actually attempted |
+| `unexecuted_count` | Planned runs not reached |
+| `execution_status` | Overall execution coverage and failure state |
+| `result_summary` | Counts and statuses from the persisted `ExperimentResult` |
+
+Valid `execution_status` values produced by the current writer are:
+
+- `completed`: all planned runs executed successfully;
+- `completed_with_failures`: all planned runs executed, with one or more failures;
+- `partial`: fail-fast execution stopped before the complete plan was attempted.
+
+A partial archive must include the failed run that stopped execution, all
+earlier persisted runs, and their error records. Runs that were never attempted
+must not be fabricated as run records.
+
 ## 8. `logs/`
 
 The `logs/` directory is reserved for execution logs.

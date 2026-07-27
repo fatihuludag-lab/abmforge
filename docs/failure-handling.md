@@ -53,6 +53,65 @@ for failed_run in result.failed():
     print(failed_run.dataset.errors)
 ```
 
+## Fail-fast experiments and partial results
+
+The default experiment policy is `continue_on_error=False`. Execution stops
+after the first failed run and raises `ExperimentExecutionError`.
+
+```python
+from abmforge import ExperimentExecutionError
+
+try:
+    result = experiment.run()
+except ExperimentExecutionError as exc:
+    partial_result = exc.result
+    failed_run = exc.failed_result
+    original_error = exc.__cause__
+```
+
+The partial `ExperimentResult` contains:
+
+- every completed run reached before the failure;
+- the failed `RunResult`;
+- its dataset and non-recoverable error record.
+
+Scenarios that were not reached are not added to the partial result.
+
+The failed run remains auditable:
+
+```python
+assert failed_run.status == "failed"
+assert failed_run.dataset.errors[-1]["recoverable"] is False
+```
+
+## Experiment CLI exit contract
+
+Without `--continue-on-error`, `abmforge experiment` stops after the first
+failed run, writes a valid partial archive, and exits with status code `1`.
+
+With `--continue-on-error`, all planned runs are attempted. The complete
+archive is written, including failed runs. The command still exits with status
+code `1` when one or more runs failed; continuing execution does not convert
+failure into CLI success.
+
+A fully successful experiment exits with status code `0`.
+
+`reports/experiment_summary.json` records:
+
+- `execution_status`;
+- `run_count_expected`;
+- `run_count_executed`;
+- `unexecuted_count`;
+- the normal `result_summary`.
+
+The possible execution statuses are:
+
+| Status | Meaning |
+|---|---|
+| `completed` | All planned runs executed and none failed |
+| `completed_with_failures` | All planned runs executed, but at least one failed |
+| `partial` | Execution stopped before all planned runs were attempted |
+
 ## Error table
 
 Each dataset has an `errors` table.

@@ -10,7 +10,11 @@ from abmforge.experiment.archive_summary import (
     summarize_run_records_by,
 )
 from abmforge.experiment.config import ExperimentConfig, write_experiment_outputs
-from abmforge.experiment.experiment import Experiment, ExperimentResult
+from abmforge.experiment.experiment import (
+    Experiment,
+    ExperimentExecutionError,
+    ExperimentResult,
+)
 from abmforge.experiment.parameter_grid import ParameterGrid
 from abmforge.experiment.recovery import (
     RunKey,
@@ -37,6 +41,7 @@ from abmforge.experiment.seed_sequence import (
 
 __all__ = [
     "Experiment",
+    "ExperimentExecutionError",
     "ExperimentConfig",
     "ExperimentArchive",
     "ExperimentResult",
