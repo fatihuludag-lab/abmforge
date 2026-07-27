@@ -264,6 +264,11 @@ New archive writers should avoid leaving a run permanently marked as `running` a
 
 Failures are first-class research data.
 
+Derived analytical summaries should use only runs whose status is exactly
+`completed`. Failed, stopped, running, and unknown runs should remain
+inspectable through run-status and failure outputs, but their partial metrics
+should not be mixed into completed-run summaries or rankings.
+
 A failed run should preserve:
 
 - run identifier;

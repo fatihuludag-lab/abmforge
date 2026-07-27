@@ -26,21 +26,24 @@ number of seeds, expected run count, run statuses, final model metric
 summaries, primary-metric rankings, key findings, and failed or
 non-completed runs.
 
-`metric_summary.csv` summarizes the final numeric model metric value for
-each run. It reports run count, mean, minimum, and maximum by metric.
+`metric_summary.csv` summarizes final numeric model metric values from
+runs whose status is exactly `completed`. It reports run count, mean, minimum,
+and maximum by metric.
 
-`parameter_effects.csv` summarizes the configured primary metric by
-parameter value. It reports run count, mean, minimum, maximum, and difference
-from the overall primary-metric mean.
+`parameter_effects.csv` summarizes the configured primary metric by parameter
+value using completed runs only. It reports run count, mean, minimum, maximum,
+and difference from the overall completed-run primary-metric mean.
 
 `primary_metric_rankings.csv` ranks full parameter combinations from lowest
-to highest mean value for the configured primary metric. Lower is not always
-better; interpret this ranking according to the scientific meaning of the
-metric.
+to highest completed-run mean for the configured primary metric. Lower is not
+always better; interpret this ranking according to the scientific meaning of
+the metric.
 
-`run_status.csv` counts runs by status.
+`run_status.csv` counts all runs by status.
 
-`failed_runs.csv` lists failed or non-completed runs when available.
+`failed_runs.csv` lists failed or non-completed runs when available. Failed,
+stopped, running, and unknown runs remain visible here but are excluded from
+metric summaries, parameter effects, and primary-metric rankings.
 
 ## Manifest updates
 
