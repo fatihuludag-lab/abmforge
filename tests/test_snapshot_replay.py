@@ -1,3 +1,5 @@
+import pytest
+
 from abmforge import (
     Agent,
     GridWorld,
@@ -607,3 +609,256 @@ def test_validate_replay_preserves_user_state_named_type() -> None:
     assert report.original_hash != report.replayed_hash
     assert report.differences
     assert any("$.model_state.type" in difference for difference in report.differences)
+
+
+def test_write_snapshot_rejects_non_json_serializable_state(
+    tmp_path,
+) -> None:
+    output_path = tmp_path / "invalid-snapshot.json"
+    snapshot = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "model_state": {
+            "unsupported": {1, 2, 3},
+        },
+    }
+
+    with pytest.raises(TypeError):
+        write_snapshot(snapshot, output_path)
+
+    assert not output_path.exists()
+
+
+def test_snapshot_hash_rejects_non_json_serializable_state() -> None:
+    snapshot = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "model_state": {
+            "unsupported": {1, 2, 3},
+        },
+    }
+
+    with pytest.raises(TypeError):
+        snapshot_hash(snapshot)
+
+
+def test_model_from_snapshot_rejects_protected_model_state_fields() -> None:
+    snapshot = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "parameters": {},
+        "step": 3,
+        "time": 3.0,
+        "model_state": {
+            "run_id": "forged-run",
+        },
+        "agents": [],
+    }
+
+    with pytest.raises(
+        ValueError,
+        match="protected model state field.*run_id",
+    ):
+        Model.from_snapshot(snapshot)
+
+
+@pytest.mark.parametrize(
+    "protected_field",
+    [
+        "model",
+        "unique_id",
+        "is_alive",
+        "lifecycle_status",
+        "world",
+        "pos",
+    ],
+)
+def test_model_from_snapshot_rejects_protected_agent_state_fields(
+    protected_field: str,
+) -> None:
+    snapshot = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "parameters": {},
+        "step": 0,
+        "time": 0.0,
+        "model_state": {},
+        "agents": [
+            {
+                "agent_id": 1,
+                "agent_type": "StatefulPerson",
+                "state": {
+                    protected_field: "forged-value",
+                },
+            }
+        ],
+    }
+
+    with pytest.raises(
+        ValueError,
+        match=rf"protected agent state field.*{protected_field}",
+    ):
+        Model.from_snapshot(
+            snapshot,
+            agent_classes={"StatefulPerson": StatefulPerson},
+        )
+
+
+def test_model_from_snapshot_rejects_conflicting_agent_ids() -> None:
+    snapshot = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "parameters": {},
+        "step": 0,
+        "time": 0.0,
+        "model_state": {},
+        "agents": [
+            {
+                "id": 1,
+                "agent_id": 2,
+                "agent_type": "StatefulPerson",
+                "state": {},
+            }
+        ],
+    }
+
+    with pytest.raises(
+        ValueError,
+        match="agent identity fields.*do not match",
+    ):
+        Model.from_snapshot(
+            snapshot,
+            agent_classes={"StatefulPerson": StatefulPerson},
+        )
+
+
+@pytest.mark.parametrize(
+    "invalid_step",
+    [
+        -1,
+        True,
+        1.5,
+        "1",
+    ],
+)
+def test_model_from_snapshot_rejects_invalid_step_values(
+    invalid_step: object,
+) -> None:
+    snapshot = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "parameters": {},
+        "step": invalid_step,
+        "time": 0.0,
+        "model_state": {},
+        "agents": [],
+    }
+
+    with pytest.raises(
+        ValueError,
+        match="step.*non-negative integer",
+    ):
+        Model.from_snapshot(snapshot)
+
+
+@pytest.mark.parametrize(
+    "invalid_time",
+    [
+        -1.0,
+        True,
+        float("nan"),
+        float("inf"),
+        float("-inf"),
+        "1.0",
+    ],
+)
+def test_model_from_snapshot_rejects_invalid_time_values(
+    invalid_time: object,
+) -> None:
+    snapshot = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "parameters": {},
+        "step": 0,
+        "time": invalid_time,
+        "model_state": {},
+        "agents": [],
+    }
+
+    with pytest.raises(
+        ValueError,
+        match="time.*finite non-negative number",
+    ):
+        Model.from_snapshot(snapshot)
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        "[]",
+        "42",
+        '"snapshot"',
+        "null",
+    ],
+)
+def test_read_snapshot_rejects_non_object_json(
+    tmp_path,
+    content: str,
+) -> None:
+    path = tmp_path / "invalid-snapshot.json"
+    path.write_text(content, encoding="utf-8")
+
+    with pytest.raises(
+        ValueError,
+        match="Snapshot JSON must contain an object",
+    ):
+        read_snapshot(path)
+
+
+def test_model_from_snapshot_rejects_private_model_state_fields() -> None:
+    snapshot = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "parameters": {},
+        "step": 0,
+        "time": 0.0,
+        "model_state": {
+            "_scheduler": "forged-value",
+        },
+        "agents": [],
+    }
+
+    with pytest.raises(
+        ValueError,
+        match="private model state field.*_scheduler",
+    ):
+        Model.from_snapshot(snapshot)
+
+
+def test_model_from_snapshot_rejects_private_agent_state_fields() -> None:
+    snapshot = {
+        "schema_version": "1.0",
+        "run_id": "run-1",
+        "parameters": {},
+        "step": 0,
+        "time": 0.0,
+        "model_state": {},
+        "agents": [
+            {
+                "agent_id": 1,
+                "agent_type": "StatefulPerson",
+                "state": {
+                    "_private_state": "forged-value",
+                },
+            }
+        ],
+    }
+
+    with pytest.raises(
+        ValueError,
+        match="private agent state field.*_private_state",
+    ):
+        Model.from_snapshot(
+            snapshot,
+            agent_classes={"StatefulPerson": StatefulPerson},
+        )

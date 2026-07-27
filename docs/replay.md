@@ -31,6 +31,86 @@ Future versions may support:
 - snapshot comparison
 - checkpointing
 
+## Snapshot serialization and restore invariants
+
+Snapshot files use a fail-closed JSON contract.
+
+`write_snapshot(...)` and `snapshot_hash(...)` accept only values that can be
+represented faithfully as standard JSON. Unsupported Python objects, sets,
+non-finite numbers, and similar values raise an error instead of being silently
+converted to strings.
+
+```python
+snapshot = model.snapshot()
+write_snapshot(snapshot, "outputs/snapshot.json")
+```
+
+A failed serialization does not create the requested output file.
+
+`read_snapshot(...)` requires the top-level JSON value to be an object. Arrays,
+strings, numbers, booleans, and `null` are rejected as snapshot documents.
+
+### Restore validation
+
+`Model.from_snapshot(...)` validates framework-managed state before restoring
+the model.
+
+The following guarantees apply:
+
+- `schema_version` must be supported;
+- `run_id` must be a string;
+- `step` must be a non-negative integer and cannot be a boolean;
+- `time` must be a finite, non-negative number and cannot be a boolean;
+- `parameters`, `model_state`, RNG state, agent records, and agent state must
+  use the expected container types;
+- simultaneous `id` and `agent_id` values must match;
+- duplicate agent identifiers are rejected by the agent collection;
+- unknown custom agent classes require an explicit `agent_classes` mapping.
+
+### Protected model state
+
+User `model_state` cannot overwrite framework-managed attributes such as:
+
+```text
+parameters
+seed
+rng
+run_id
+steps
+time
+running
+status
+agents
+events
+record
+world
+scheduler
+schedule
+```
+
+Private model fields whose names begin with `_` are also rejected during
+restore.
+
+### Protected agent state
+
+Agent user state cannot overwrite framework-managed attributes such as:
+
+```text
+model
+unique_id
+is_alive
+lifecycle_status
+world
+pos
+```
+
+Private agent fields whose names begin with `_` are also rejected.
+
+Spatial references are not stored as ordinary agent state. When available,
+agent position is represented separately by the snapshot `position` field.
+World, scheduler, and event-queue metadata remain audit information and are not
+restored as live framework objects.
+
 ## Replay validation
 
 Use `validate_replay(...)` to compare an original snapshot with a replayed or

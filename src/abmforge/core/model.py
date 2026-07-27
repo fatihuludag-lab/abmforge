@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from contextlib import suppress
 from datetime import datetime, timezone
+from math import isfinite
 from typing import Any
 from uuid import uuid4
 
@@ -22,6 +23,39 @@ from abmforge.core.status import (
 )
 from abmforge.data.recorder import Recorder
 from abmforge.time.queue import EventQueue
+
+_PROTECTED_MODEL_STATE_FIELDS = frozenset(
+    {
+        "parameters",
+        "seed",
+        "rng",
+        "run_id",
+        "created_at",
+        "steps",
+        "time",
+        "running",
+        "stop_reason",
+        "status",
+        "agents",
+        "events",
+        "record",
+        "world",
+        "scheduler",
+        "schedule",
+    }
+)
+
+
+_PROTECTED_AGENT_STATE_FIELDS = frozenset(
+    {
+        "model",
+        "unique_id",
+        "is_alive",
+        "lifecycle_status",
+        "world",
+        "pos",
+    }
+)
 
 
 class Model:
@@ -162,13 +196,18 @@ class Model:
         model.run_id = run_id
 
         step = snapshot.get("step", 0)
-        if not isinstance(step, int):
-            raise ValueError("Snapshot field 'step' must be an integer")
+        if isinstance(step, bool) or not isinstance(step, int) or step < 0:
+            raise ValueError("Snapshot field 'step' must be a non-negative integer")
         model.steps = step
 
         time = snapshot.get("time", 0.0)
-        if not isinstance(time, int | float):
-            raise ValueError("Snapshot field 'time' must be numeric")
+        if (
+            isinstance(time, bool)
+            or not isinstance(time, int | float)
+            or not isfinite(float(time))
+            or time < 0
+        ):
+            raise ValueError("Snapshot field 'time' must be a finite non-negative number")
         model.time = float(time)
 
         model_state = snapshot.get("model_state", {})
@@ -178,6 +217,12 @@ class Model:
         for key, value in model_state.items():
             if not isinstance(key, str):
                 raise ValueError("Snapshot model_state keys must be strings")
+            if key.startswith("_"):
+                raise ValueError(f"Snapshot model_state contains private model state field: {key}")
+            if key in _PROTECTED_MODEL_STATE_FIELDS:
+                raise ValueError(
+                    f"Snapshot model_state contains protected model state field: {key}"
+                )
             setattr(model, key, value)
 
         agent_class_registry: dict[str, type[Agent]] = {"Agent": Agent}
@@ -192,7 +237,17 @@ class Model:
             if not isinstance(agent_snapshot, dict):
                 raise ValueError("Each agent snapshot must be a mapping")
 
-            agent_id = agent_snapshot.get("agent_id", agent_snapshot.get("id"))
+            legacy_agent_id = agent_snapshot.get("id")
+            canonical_agent_id = agent_snapshot.get("agent_id")
+
+            if (
+                legacy_agent_id is not None
+                and canonical_agent_id is not None
+                and legacy_agent_id != canonical_agent_id
+            ):
+                raise ValueError("Snapshot agent identity fields 'id' and 'agent_id' do not match")
+
+            agent_id = canonical_agent_id if canonical_agent_id is not None else legacy_agent_id
             if agent_id is None:
                 raise ValueError("Agent snapshot must define 'agent_id' or 'id'")
 
@@ -214,6 +269,18 @@ class Model:
             state = agent_snapshot.get("state", {})
             if not isinstance(state, dict):
                 raise ValueError("Agent snapshot field 'state' must be a mapping")
+
+            for key in state:
+                if not isinstance(key, str):
+                    raise ValueError("Snapshot agent state keys must be strings")
+                if key.startswith("_"):
+                    raise ValueError(
+                        f"Snapshot agent state contains private agent state field: {key}"
+                    )
+                if key in _PROTECTED_AGENT_STATE_FIELDS:
+                    raise ValueError(
+                        f"Snapshot agent state contains protected agent state field: {key}"
+                    )
 
             agent = agent_cls(model=model, unique_id=agent_id, **state)
             model.agents.add(agent)
@@ -306,41 +373,17 @@ class Model:
 
     def _model_snapshot_state(self) -> dict[str, Any]:
         """Return user-defined model state for Snapshot Schema v1."""
-        excluded = {
-            "parameters",
-            "seed",
-            "rng",
-            "run_id",
-            "created_at",
-            "steps",
-            "time",
-            "running",
-            "stop_reason",
-            "status",
-            "agents",
-            "events",
-            "record",
-            "world",
-        }
-
         return {
             key: value
             for key, value in vars(self).items()
-            if key not in excluded and not key.startswith("_")
+            if key not in _PROTECTED_MODEL_STATE_FIELDS and not key.startswith("_")
         }
 
     @staticmethod
     def _agent_snapshot_state(agent: Any) -> dict[str, Any]:
         """Return user-defined agent state for Snapshot Schema v1."""
-        excluded = {
-            "model",
-            "unique_id",
-            "is_alive",
-            "lifecycle_status",
-        }
-
         return {
             key: value
             for key, value in vars(agent).items()
-            if key not in excluded and not key.startswith("_")
+            if key not in _PROTECTED_AGENT_STATE_FIELDS and not key.startswith("_")
         }
