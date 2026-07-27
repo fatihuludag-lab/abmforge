@@ -6,7 +6,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any, cast
 
-_METADATA_FIELDS = {
+_TOP_LEVEL_METADATA_FIELDS = {
     "model",
     "model_name",
     "snapshot_id",
@@ -16,6 +16,62 @@ _METADATA_FIELDS = {
     "manifest_hash",
     "snapshot_hash",
 }
+
+_STRUCTURAL_TYPE_FIELDS = {
+    "type",
+    "agent_type",
+}
+
+
+def _is_user_state_path(path: tuple[str | int, ...]) -> bool:
+    """Return whether a path belongs to user-controlled snapshot state."""
+    if path and path[0] in {"parameters", "model_state"}:
+        return True
+
+    return (
+        len(path) >= 3 and path[0] == "agents" and isinstance(path[1], int) and path[2] == "state"
+    )
+
+
+def _normalize_snapshot_value(
+    value: Any,
+    *,
+    include_metadata: bool,
+    path: tuple[str | int, ...] = (),
+) -> Any:
+    """Return the canonical value used for replay hashing and comparison."""
+    if include_metadata:
+        return deepcopy(value)
+
+    if isinstance(value, dict):
+        normalized: dict[Any, Any] = {}
+
+        for key, item in value.items():
+            if not path and key in _TOP_LEVEL_METADATA_FIELDS:
+                continue
+
+            if key in _STRUCTURAL_TYPE_FIELDS and not _is_user_state_path(path):
+                continue
+
+            normalized[key] = _normalize_snapshot_value(
+                item,
+                include_metadata=False,
+                path=(*path, key),
+            )
+
+        return normalized
+
+    if isinstance(value, list):
+        return [
+            _normalize_snapshot_value(
+                item,
+                include_metadata=False,
+                path=(*path, index),
+            )
+            for index, item in enumerate(value)
+        ]
+
+    return deepcopy(value)
 
 
 def write_snapshot(snapshot: dict[str, Any], path: str | Path) -> Path:
@@ -48,18 +104,10 @@ def snapshot_hash(
     When include_metadata is False, class/type/provenance metadata is ignored so
     state-equivalent snapshots can be compared across restore operations.
     """
-    comparable = deepcopy(snapshot)
-
-    if not include_metadata:
-        for field in _METADATA_FIELDS:
-            comparable.pop(field, None)
-
-        agents = comparable.get("agents", [])
-        if isinstance(agents, list):
-            for agent in agents:
-                if isinstance(agent, dict):
-                    agent.pop("type", None)
-                    agent.pop("agent_type", None)
+    comparable = _normalize_snapshot_value(
+        snapshot,
+        include_metadata=include_metadata,
+    )
 
     normalized = json.dumps(
         comparable,

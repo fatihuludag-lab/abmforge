@@ -3,7 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from abmforge.replay.snapshot import snapshot_hash
+from abmforge.replay.snapshot import (
+    _normalize_snapshot_value,
+    snapshot_hash,
+)
 
 
 @dataclass(slots=True)
@@ -49,15 +52,20 @@ def validate_replay(
             differences=[],
         )
 
+    differences = _diff_values(
+        original_snapshot,
+        replayed_snapshot,
+        include_metadata=include_metadata,
+    )
+
+    if not differences:
+        differences = ["$: normalized snapshot hashes differ without a structural diff"]
+
     return ReplayValidationReport(
         valid=False,
         original_hash=original_hash,
         replayed_hash=replayed_hash,
-        differences=_diff_values(
-            original_snapshot,
-            replayed_snapshot,
-            include_metadata=include_metadata,
-        ),
+        differences=differences,
     )
 
 
@@ -68,10 +76,20 @@ def _diff_values(
     path: str = "$",
     include_metadata: bool,
 ) -> list[str]:
-    left = _strip_metadata(left) if not include_metadata else left
-    right = _strip_metadata(right) if not include_metadata else right
+    normalized_left = _normalize_snapshot_value(
+        left,
+        include_metadata=include_metadata,
+    )
+    normalized_right = _normalize_snapshot_value(
+        right,
+        include_metadata=include_metadata,
+    )
 
-    return _diff_normalized_values(left, right, path=path)
+    return _diff_normalized_values(
+        normalized_left,
+        normalized_right,
+        path=path,
+    )
 
 
 def _diff_normalized_values(left: Any, right: Any, *, path: str) -> list[str]:
@@ -118,28 +136,3 @@ def _diff_normalized_values(left: Any, right: Any, *, path: str) -> list[str]:
         return [f"{path}: value differs ({left!r} != {right!r})"]
 
     return []
-
-
-def _strip_metadata(value: Any) -> Any:
-    metadata_fields = {
-        "model",
-        "model_name",
-        "snapshot_id",
-        "created_at",
-        "parent_snapshot",
-        "experiment_id",
-        "manifest_hash",
-        "snapshot_hash",
-        "type",
-        "agent_type",
-    }
-
-    if isinstance(value, dict):
-        return {
-            key: _strip_metadata(item) for key, item in value.items() if key not in metadata_fields
-        }
-
-    if isinstance(value, list):
-        return [_strip_metadata(item) for item in value]
-
-    return value

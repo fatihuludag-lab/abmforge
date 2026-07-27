@@ -31,6 +31,69 @@ Future versions may support:
 - snapshot comparison
 - checkpointing
 
+## Replay validation
+
+Use `validate_replay(...)` to compare an original snapshot with a replayed or
+restored snapshot:
+
+```python
+from abmforge import validate_replay
+
+report = validate_replay(
+    original_snapshot,
+    replayed_snapshot,
+)
+
+assert report.valid
+```
+
+`ReplayValidationReport` contains:
+
+- `valid`;
+- `original_hash`;
+- `replayed_hash`;
+- `differences`.
+
+Snapshot hashing and structural difference analysis use the same canonical
+normalization. Therefore, a replay report cannot normally claim that hashes
+differ while returning an empty difference list.
+
+Every report with `valid=False` contains at least one machine-readable
+difference message. Difference paths use a root-based notation such as:
+
+```text
+$.model_state.population
+$.agents[0].state.wealth
+$.scheduler.type
+```
+
+### Metadata handling
+
+By default, `validate_replay(...)` uses `include_metadata=False`.
+
+Framework-managed provenance and structural type metadata are ignored,
+including:
+
+- top-level model and snapshot provenance fields;
+- snapshot identifiers and creation timestamps;
+- agent class metadata;
+- scheduler and similar structural `type` metadata.
+
+User-controlled values remain part of replay validation. A user parameter,
+model-state field, or agent-state field named `type` is not discarded.
+
+To compare framework metadata as well as scientific state:
+
+```python
+report = validate_replay(
+    original_snapshot,
+    replayed_snapshot,
+    include_metadata=True,
+)
+```
+
+With metadata enabled, differences such as `$.scheduler.type` are reported.
+
 ## Event queue metadata
 
 Model snapshots include an `event_queue` metadata block. This block records
@@ -65,8 +128,8 @@ Example shape:
 }
 ```
 
-This metadata is intended for audit, inspection, and debugging. This metadata is not a full event replay contract.
-event replay contract. Callback functions are not serialized and
+This metadata is intended for audit, inspection, and debugging. This metadata is not a full event replay contract. Callback functions are
+not serialized and
 `Model.from_snapshot(...)` does not restore queued callbacks.
 
 Use `model.events.snapshot_metadata(include_cancelled=True)` when cancelled
