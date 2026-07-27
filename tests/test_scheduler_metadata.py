@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from abmforge import Model
 from abmforge.scheduling import (
     RandomActivation,
@@ -76,3 +78,28 @@ def test_model_from_snapshot_does_not_restore_scheduler_instance() -> None:
 
     assert not hasattr(restored, "_scheduler")
     assert restored.snapshot()["scheduler"]["attached"] is False
+
+
+@pytest.mark.parametrize(
+    "attribute_name",
+    [
+        "scheduler",
+        "schedule",
+    ],
+)
+def test_snapshot_excludes_public_scheduler_attributes_from_model_state(
+    attribute_name: str,
+) -> None:
+    model = Model(seed=123)
+    scheduler = StagedActivation(
+        model,
+        stages=["sense", "act"],
+        shuffle=False,
+    )
+    setattr(model, attribute_name, scheduler)
+
+    snapshot = model.snapshot()
+
+    assert snapshot["scheduler"]["attached"] is True
+    assert snapshot["scheduler"]["scheduler_type"] == "StagedActivation"
+    assert attribute_name not in snapshot["model_state"]

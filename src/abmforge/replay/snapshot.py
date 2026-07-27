@@ -4,7 +4,7 @@ import hashlib
 import json
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 _TOP_LEVEL_METADATA_FIELDS = {
     "model",
@@ -79,8 +79,13 @@ def write_snapshot(snapshot: dict[str, Any], path: str | Path) -> Path:
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    serialized = json.dumps(
+        snapshot,
+        indent=2,
+        allow_nan=False,
+    )
     output_path.write_text(
-        json.dumps(snapshot, indent=2, default=str),
+        serialized,
         encoding="utf-8",
     )
 
@@ -91,7 +96,11 @@ def read_snapshot(path: str | Path) -> dict[str, Any]:
     """Read a model snapshot from a JSON file."""
     input_path = Path(path)
     data = json.loads(input_path.read_text(encoding="utf-8"))
-    return cast(dict[str, Any], data)
+
+    if not isinstance(data, dict):
+        raise ValueError("Snapshot JSON must contain an object")
+
+    return data
 
 
 def snapshot_hash(
@@ -113,7 +122,7 @@ def snapshot_hash(
         comparable,
         sort_keys=True,
         separators=(",", ":"),
-        default=str,
+        allow_nan=False,
     )
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
