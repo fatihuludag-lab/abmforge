@@ -146,3 +146,43 @@ def test_constructor_failure_can_be_returned_as_failed_result() -> None:
     assert result.dataset.runs[-1]["status"] == "failed"
     assert result.dataset.errors[-1]["component"] == "Scenario.construct"
     assert "intentional constructor failure" in result.dataset.errors[-1]["message"]
+
+
+def test_experiment_fail_fast_error_exposes_partial_result() -> None:
+    from abmforge import ExperimentExecutionError
+
+    experiment = Experiment(
+        scenarios=[
+            Scenario(model=EmptyModel, seed=1, steps=0, name="completed-before-failure"),
+            Scenario(model=FailingSetupModel, seed=2, steps=1, name="failed-run"),
+            Scenario(model=EmptyModel, seed=3, steps=0, name="not-executed"),
+        ],
+        continue_on_error=False,
+    )
+
+    with pytest.raises(
+        ExperimentExecutionError,
+        match="intentional setup failure",
+    ) as exc_info:
+        experiment.run()
+
+    error = exc_info.value
+    partial_result = error.result
+
+    assert isinstance(error.__cause__, RuntimeError)
+    assert error.failed_result.status == "failed"
+
+    assert partial_result.run_count == 2
+    assert partial_result.statuses() == {
+        "completed": 1,
+        "failed": 1,
+    }
+    assert partial_result.results[-1] is error.failed_result
+
+    failed_error_record = error.failed_result.dataset.errors[-1]
+    assert failed_error_record["recoverable"] is False
+
+    scenario_names = {record["scenario"] for record in partial_result.run_records()}
+    assert "completed-before-failure" in scenario_names
+    assert "failed-run" in scenario_names
+    assert "not-executed" not in scenario_names

@@ -35,6 +35,8 @@ def _result() -> Mock:
     result.lifecycle_records.return_value = []
     result.error_records.return_value = []
     result.summary.return_value = {}
+    result.run_count = 0
+    result.failed_count = 0
 
     return result
 

@@ -373,6 +373,7 @@ class Scenario:
             stop_reason=model.stop_reason,
             error=error_repr,
             exception_type=exception_type,
+            _exception=exc,
         )
 
     def _failed_before_model_created(
@@ -435,4 +436,5 @@ class Scenario:
             stop_reason=None,
             error=error_repr,
             exception_type=exception_type,
+            _exception=exc,
         )

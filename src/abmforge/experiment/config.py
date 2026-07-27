@@ -143,12 +143,28 @@ def write_experiment_outputs(
         # Keep CSV outputs for researcher reports and spreadsheet-friendly review.
         result.write_csv(archive.data_dir)
 
+        run_count_expected = _expected_run_count(config)
+        run_count_executed = result.run_count
+        unexecuted_count = max(
+            run_count_expected - run_count_executed,
+            0,
+        )
+        if unexecuted_count:
+            execution_status = "partial"
+        elif result.failed_count:
+            execution_status = "completed_with_failures"
+        else:
+            execution_status = "completed"
+
         summary = {
             "name": config.name,
             "model": config.model_path,
             "steps": config.steps,
             "seed_count": len(config.seeds),
-            "run_count_expected": _expected_run_count(config),
+            "run_count_expected": run_count_expected,
+            "run_count_executed": run_count_executed,
+            "unexecuted_count": unexecuted_count,
+            "execution_status": execution_status,
             "base_parameters": config.base_parameters,
             "parameters": config.parameters,
             "primary_metric": config.primary_metric,

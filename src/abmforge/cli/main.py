@@ -10,6 +10,7 @@ import abmforge
 from abmforge.experiment.archive import ExperimentArchive
 from abmforge.experiment.archive_transaction import ArchiveTransaction
 from abmforge.experiment.config import ExperimentConfig, write_experiment_outputs
+from abmforge.experiment.experiment import ExperimentExecutionError
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.scenario import Scenario
 from abmforge.experiment.summary import format_archive_summary, summarize_archive
@@ -300,8 +301,15 @@ def main(argv: Sequence[str] | None = None) -> None:
             print(f"- {exc}")
             raise SystemExit(2) from exc
 
+        execution_error: ExperimentExecutionError | None = None
+
         try:
             experiment_result = config.to_experiment(continue_on_error=args.continue_on_error).run()
+        except ExperimentExecutionError as exc:
+            experiment_result = exc.result
+            execution_error = exc
+
+        try:
             output_path = write_experiment_outputs(
                 experiment_result,
                 config,
@@ -314,10 +322,25 @@ def main(argv: Sequence[str] | None = None) -> None:
             print(f"- {exc}")
             raise SystemExit(1) from exc
 
+        summary_path = output_path / "reports" / "experiment_summary.json"
+
+        if execution_error is not None:
+            print(f"Experiment failed: {execution_error}")
+            print(f"Partial output written: {output_path}")
+            print(f"Summary written: {summary_path}")
+            raise SystemExit(1) from execution_error
+
+        if experiment_result.failed_count:
+            print(f"Experiment completed with failures: {config.name or 'unnamed'}")
+            print(f"Failed runs: {experiment_result.failed_count} of {experiment_result.run_count}")
+            print(f"Output written: {output_path}")
+            print(f"Summary written: {summary_path}")
+            raise SystemExit(1)
+
         print(f"Experiment completed: {config.name or 'unnamed'}")
         print(f"Runs expected: {len(config.seeds)} seed(s) x parameter grid")
         print(f"Output written: {output_path}")
-        print(f"Summary written: {output_path / 'reports' / 'experiment_summary.json'}")
+        print(f"Summary written: {summary_path}")
         return
 
     if args.command == "report":

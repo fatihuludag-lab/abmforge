@@ -15,6 +15,33 @@ from abmforge.experiment.run_index import RunIndex
 from abmforge.experiment.scenario import Scenario
 
 
+class ExperimentExecutionError(RuntimeError):
+    """Raised when fail-fast experiment execution stops after a failed run."""
+
+    def __init__(
+        self,
+        *,
+        result: ExperimentResult,
+        failed_result: RunResult,
+    ) -> None:
+        message = _failed_run_message(failed_result)
+        super().__init__(message)
+        self.result = result
+        self.failed_result = failed_result
+
+
+def _failed_run_message(result: RunResult) -> str:
+    if result.dataset.errors:
+        message = result.dataset.errors[-1].get("message")
+        if isinstance(message, str) and message:
+            return message
+
+    if result.error:
+        return result.error
+
+    return f"Experiment run failed: {result.run_id}"
+
+
 @dataclass(slots=True)
 class ExperimentResult:
     """Result of running multiple scenarios."""
@@ -209,7 +236,18 @@ class Experiment:
             scenarios = missing_scenarios(scenarios, run_index)
 
         for scenario in scenarios:
-            result = scenario.run(raise_on_error=not self.continue_on_error)
+            result = scenario.run(raise_on_error=False)
             experiment_result.append(result)
+
+            if result.status == "failed" and not self.continue_on_error:
+                if result.dataset.errors:
+                    result.dataset.errors[-1]["recoverable"] = False
+
+                error = ExperimentExecutionError(
+                    result=experiment_result,
+                    failed_result=result,
+                )
+                cause = result._exception or RuntimeError(_failed_run_message(result))
+                raise error from cause
 
         return experiment_result

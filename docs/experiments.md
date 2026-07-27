@@ -84,6 +84,47 @@ Example:
 }
 ```
 
+## Failure and partial-result contract
+
+By default, an experiment uses fail-fast execution. The first failed scenario
+stops the remaining plan and raises `ExperimentExecutionError`.
+
+```python
+from abmforge import ExperimentExecutionError
+
+try:
+    result = experiment.run()
+except ExperimentExecutionError as exc:
+    result = exc.result
+    failed_run = exc.failed_result
+```
+
+`exc.result` is a partial `ExperimentResult`. It includes earlier completed
+runs and the failed run, but excludes scenarios that were not executed.
+
+To attempt every planned scenario:
+
+```python
+experiment = Experiment(
+    scenarios=scenarios,
+    continue_on_error=True,
+)
+
+result = experiment.run()
+```
+
+Programmatic execution returns the complete `ExperimentResult`, including any
+failed runs. Callers should inspect:
+
+```python
+result.failed_count
+result.statuses()
+result.failed()
+```
+
+The CLI additionally uses a non-zero exit status whenever any run failed,
+whether execution stopped early or continued through the complete plan.
+
 ## Export
 
 ```python
