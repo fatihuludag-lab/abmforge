@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import shutil
+import tempfile
 from dataclasses import dataclass
 from importlib import resources
 from pathlib import Path
@@ -80,7 +81,8 @@ def create_project(
     template:
         Built-in template name.
     force:
-        If true, remove an existing non-empty project directory first.
+        If true, replace an existing non-empty project only after the new
+        project has been prepared successfully.
 
     Returns
     -------
@@ -96,35 +98,83 @@ def create_project(
             f"Unknown project template {template!r}. Available templates: {available}"
         )
 
-    target = Path(path).expanduser().resolve()
+    target = Path(path).expanduser().absolute()
+
+    if target.is_symlink():
+        raise ProjectExistsError(f"Project path must not be a symbolic link: {target}")
 
     if target.exists() and not target.is_dir():
         raise ProjectExistsError(f"Project path exists and is not a directory: {target}")
 
-    if target.exists() and any(target.iterdir()):
-        if not force:
-            raise ProjectExistsError(
-                "Project directory already exists and is not empty: "
-                f"{target}. Use --force to overwrite it."
-            )
-
-        shutil.rmtree(target)
-
-    target.mkdir(parents=True, exist_ok=True)
+    if target.exists() and any(target.iterdir()) and not force:
+        raise ProjectExistsError(
+            "Project directory already exists and is not empty: "
+            f"{target}. Use --force to overwrite it."
+        )
 
     template_root = resources.files("abmforge.templates").joinpath("builtin").joinpath(template)
 
     if not template_root.is_dir():
         raise TemplateError(f"Template files are missing for {template!r}")
 
+    target.parent.mkdir(parents=True, exist_ok=True)
+
+    staging = Path(
+        tempfile.mkdtemp(
+            prefix=f".{target.name}.abmforge-",
+            dir=target.parent,
+        )
+    )
+
     context = {
         "project_name": target.name,
         "project_slug": _slugify_project_name(target.name),
     }
 
-    _copy_tree(template_root, target, context)
+    try:
+        if target.exists():
+            _copy_existing_project_tree(target, staging)
 
+        _copy_tree(template_root, staging, context)
+        _finalize_project_tree(staging)
+        _replace_project_tree(staging, target)
+    except BaseException:
+        _remove_path(staging, ignore_errors=True)
+        raise
+
+    return target
+
+
+def _copy_existing_project_tree(source: Path, target: Path) -> None:
+    for child in source.iterdir():
+        if child.is_symlink():
+            raise ProjectExistsError(
+                "Existing project contains a symbolic link and cannot be "
+                f"safely overwritten: {child}"
+            )
+
+        destination = target / child.name
+
+        if child.is_dir():
+            destination.mkdir(parents=True, exist_ok=True)
+            _copy_existing_project_tree(child, destination)
+            continue
+
+        if child.is_file():
+            shutil.copy2(child, destination)
+            continue
+
+        raise ProjectExistsError(
+            f"Existing project contains an unsupported filesystem entry: {child}"
+        )
+
+
+def _finalize_project_tree(target: Path) -> None:
     outputs_dir = target / "outputs"
+
+    if outputs_dir.is_symlink() or (outputs_dir.exists() and not outputs_dir.is_dir()):
+        _remove_path(outputs_dir)
+
     outputs_dir.mkdir(exist_ok=True)
     (outputs_dir / ".gitkeep").write_text("", encoding="utf-8")
 
@@ -135,7 +185,34 @@ def create_project(
             encoding="utf-8",
         )
 
-    return target
+
+def _replace_project_tree(staging: Path, target: Path) -> None:
+    backup = staging.with_name(f"{staging.name}.backup")
+    had_existing_target = target.exists()
+
+    try:
+        if had_existing_target:
+            target.replace(backup)
+
+        staging.replace(target)
+    except BaseException:
+        if had_existing_target and backup.exists():
+            _remove_path(target, ignore_errors=True)
+            backup.replace(target)
+        raise
+    else:
+        _remove_path(backup, ignore_errors=True)
+
+
+def _remove_path(path: Path, *, ignore_errors: bool = False) -> None:
+    try:
+        if path.is_symlink() or path.is_file():
+            path.unlink()
+        elif path.exists():
+            shutil.rmtree(path)
+    except OSError:
+        if not ignore_errors:
+            raise
 
 
 def _copy_tree(source: Any, target: Path, context: dict[str, str]) -> None:
@@ -146,6 +223,9 @@ def _copy_tree(source: Any, target: Path, context: dict[str, str]) -> None:
         destination = target / child.name
 
         if child.is_dir():
+            if destination.is_symlink() or (destination.exists() and not destination.is_dir()):
+                _remove_path(destination)
+
             destination.mkdir(parents=True, exist_ok=True)
             _copy_tree(child, destination, context)
             continue
@@ -154,6 +234,9 @@ def _copy_tree(source: Any, target: Path, context: dict[str, str]) -> None:
 
 
 def _copy_file(source: Any, destination: Path, context: dict[str, str]) -> None:
+    if destination.is_symlink() or destination.exists():
+        _remove_path(destination)
+
     destination.parent.mkdir(parents=True, exist_ok=True)
 
     if _is_text_file(destination.name):

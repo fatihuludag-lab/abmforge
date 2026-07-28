@@ -55,12 +55,20 @@ abmforge templates --json
 abmforge new demo-study --template grid
 ```
 
-Existing non-empty directories are not overwritten by default. Use
-`--force` only when you intentionally want to recreate the project:
+Existing non-empty directories are not modified by default. Use
+`--force` to update files managed by the selected template:
 
 ```bash
 abmforge new demo-study --template grid --force
 ```
+
+The update is prepared in a temporary sibling directory before the existing
+project is replaced. Template-managed files are refreshed, while unrelated
+files are preserved. If preparation or installation fails, ABMForge restores
+the existing project.
+
+For safety, projects containing symbolic links are not updated with
+`--force`.
 
 ## Run the baseline
 
