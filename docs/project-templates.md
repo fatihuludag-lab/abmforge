@@ -27,6 +27,30 @@ abmforge new policy-study --template policy
 abmforge new resource-study --template resource
 ```
 
+## Updating an existing project safely
+
+ABMForge refuses to modify a non-empty target directory unless `--force` is
+provided:
+
+```bash
+abmforge new my-study --template grid --force
+```
+
+With `--force`:
+
+- files and directories managed by the selected template are refreshed;
+- unrelated user files are preserved;
+- the updated project is prepared in a temporary sibling directory;
+- the existing project is replaced only after preparation succeeds;
+- the previous project is restored if the final replacement fails.
+
+ABMForge rejects symbolic links inside an existing project during a forced
+update. This prevents template generation from following paths outside the
+project tree.
+
+`--force` should still be used deliberately because template-managed files,
+such as configuration files and model source files, are overwritten.
+
 ## Built-in templates
 
 ### `grid`

@@ -118,7 +118,7 @@ def build_parser() -> argparse.ArgumentParser:
     new_parser.add_argument(
         "--force",
         action="store_true",
-        help="Overwrite the project directory if it already exists",
+        help="Update template-managed files; preserve unrelated files",
     )
 
     run_parser = subparsers.add_parser(
@@ -232,7 +232,7 @@ def main(argv: Sequence[str] | None = None) -> None:
                 template=args.template,
                 force=args.force,
             )
-        except (ProjectExistsError, TemplateError) as exc:
+        except (ProjectExistsError, TemplateError, OSError) as exc:
             print("Project creation failed:", file=sys.stderr)
             print(f"- {exc}", file=sys.stderr)
             raise SystemExit(1) from exc
