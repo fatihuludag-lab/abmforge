@@ -1,7 +1,14 @@
 from __future__ import annotations
 
 from abmforge.data.dataset import Dataset
-from abmforge.data.query import ExperimentDataset
+from abmforge.data.query import (
+    ExperimentDataset,
+    ExperimentDatasetDependencyError,
+    ExperimentDatasetError,
+    ExperimentDatasetQueryError,
+    ExperimentDatasetTableError,
+    ExperimentDatasetTableNotFoundError,
+)
 from abmforge.data.recorder import Recorder
 from abmforge.data.schema import (
     DATASET_SCHEMA_VERSION,
@@ -14,6 +21,11 @@ __all__ = [
     "Dataset",
     "DatasetSchemaV1",
     "ExperimentDataset",
+    "ExperimentDatasetDependencyError",
+    "ExperimentDatasetError",
+    "ExperimentDatasetQueryError",
+    "ExperimentDatasetTableError",
+    "ExperimentDatasetTableNotFoundError",
     "Recorder",
     "SchemaValidationError",
 ]

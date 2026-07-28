@@ -259,6 +259,58 @@ Standard logical tables include:
 - `lifecycle_records`;
 - `errors`.
 
+### `ExperimentDataset`
+
+**Status:** Provisional
+**Import:** `from abmforge.data import ExperimentDataset`
+
+DuckDB-backed SQL query interface for ABMForge Parquet archives.
+
+The input path may reference either the archive root or its `data/` directory.
+`query(...)` returns a pandas DataFrame.
+
+Install the required optional dependencies with:
+
+```bash
+pip install "abmforge[data]"
+```
+
+### `ExperimentDatasetError`
+
+**Status:** Provisional
+**Import:** `from abmforge.data import ExperimentDatasetError`
+
+Base exception for experiment dataset query failures.
+
+### `ExperimentDatasetDependencyError`
+
+**Status:** Provisional
+**Import:** `from abmforge.data import ExperimentDatasetDependencyError`
+
+Raised when DuckDB is unavailable.
+
+### `ExperimentDatasetTableNotFoundError`
+
+**Status:** Provisional
+**Import:** `from abmforge.data import ExperimentDatasetTableNotFoundError`
+
+Raised when a required Parquet table is absent. This exception is also a
+`FileNotFoundError`.
+
+### `ExperimentDatasetTableError`
+
+**Status:** Provisional
+**Import:** `from abmforge.data import ExperimentDatasetTableError`
+
+Raised when a present Parquet table cannot be registered or read.
+
+### `ExperimentDatasetQueryError`
+
+**Status:** Provisional
+**Import:** `from abmforge.data import ExperimentDatasetQueryError`
+
+Raised when SQL parsing, binding, or execution fails.
+
 ### `Recorder`
 
 **Status:** Provisional  

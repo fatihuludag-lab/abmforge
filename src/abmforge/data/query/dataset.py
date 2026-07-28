@@ -14,6 +14,29 @@ _PARQUET_TABLES = {
 }
 
 
+class ExperimentDatasetError(RuntimeError):
+    """Base error for experiment dataset query failures."""
+
+
+class ExperimentDatasetDependencyError(ExperimentDatasetError):
+    """Raised when an optional query dependency is unavailable."""
+
+
+class ExperimentDatasetTableNotFoundError(
+    FileNotFoundError,
+    ExperimentDatasetError,
+):
+    """Raised when a required queryable archive table is missing."""
+
+
+class ExperimentDatasetTableError(ExperimentDatasetError):
+    """Raised when a queryable archive table cannot be registered or read."""
+
+
+class ExperimentDatasetQueryError(ExperimentDatasetError):
+    """Raised when SQL execution against experiment tables fails."""
+
+
 @dataclass(slots=True)
 class ExperimentDataset:
     """Queryable interface for ABMForge experiment data archives."""
@@ -55,7 +78,9 @@ class ExperimentDataset:
         ]
 
         if missing:
-            raise FileNotFoundError("Missing queryable Parquet table(s): " + ", ".join(missing))
+            raise ExperimentDatasetTableNotFoundError(
+                "Missing queryable Parquet table(s): " + ", ".join(missing)
+            )
 
     def query(self, sql: str) -> Any:
         """Run a SQL query against available Parquet tables.
@@ -65,7 +90,7 @@ class ExperimentDataset:
         try:
             import duckdb
         except ModuleNotFoundError as exc:
-            raise ModuleNotFoundError(
+            raise ExperimentDatasetDependencyError(
                 "ExperimentDataset.query requires duckdb. Install with: pip install abmforge[data]"
             ) from exc
 
@@ -84,11 +109,14 @@ class ExperimentDataset:
                     connection.execute(
                         f"CREATE VIEW {table} AS SELECT * FROM read_parquet('{escaped_path}')"
                     )
-                except Exception:
-                    # DuckDB cannot read empty Parquet files with no columns.
-                    # For the MVP query layer, such tables are skipped.
-                    continue
+                except Exception as exc:
+                    raise ExperimentDatasetTableError(
+                        f"Parquet table {table!r} could not be read: {parquet_path}"
+                    ) from exc
 
-            return connection.execute(sql).fetchdf()
+            try:
+                return connection.execute(sql).fetchdf()
+            except Exception as exc:
+                raise ExperimentDatasetQueryError(f"SQL query failed: {exc}") from exc
         finally:
             connection.close()
