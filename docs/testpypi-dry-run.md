@@ -24,7 +24,7 @@ long-lived API tokens.
 
 The release workflow should publish to TestPyPI only when:
 
-- the workflow is triggered manually;
+- the workflow is triggered manually from a valid version tag;
 - `publish_testpypi=true`;
 - the GitHub environment named `testpypi` is approved;
 - a TestPyPI trusted publisher exists for the repository and workflow.
@@ -51,7 +51,7 @@ Recommended sequence:
 1. confirm `main` is green;
 2. run the Release workflow without publishing;
 3. inspect uploaded distribution artifacts;
-4. run the Release workflow manually with `publish_testpypi=true`;
+4. run the Release workflow manually from the same valid version tag with `publish_testpypi=true`;
 5. approve the `testpypi` GitHub environment deployment;
 6. wait for TestPyPI upload to complete;
 7. run the manual TestPyPI install smoke workflow;

@@ -3,7 +3,7 @@
 ABMForge releases should be prepared conservatively.
 
 This checklist is intended for release candidates, TestPyPI publishing, and
-future production PyPI releases.
+controlled production PyPI releases.
 
 ## Release Goals
 
@@ -50,8 +50,29 @@ python -m pytest -q
 python -m mypy src
 python -m build
 python -m twine check dist/*
-python scripts/check_release_metadata.py
+python scripts/check_release_metadata.py --strict
+python scripts/check_release_tag.py --tag v0.3.0a1
 ```
+
+Replace the example tag with the intended release version. The tag must match
+the versions declared in `pyproject.toml` and the runtime version module.
+
+## Release Tag Validation
+
+Release tags must use a supported version form and match the package metadata.
+
+Run:
+
+```bash
+python scripts/check_release_tag.py --tag v0.3.0a1
+```
+
+The release workflow rejects:
+
+- malformed tags such as `vnext`;
+- tags that do not begin with `v`;
+- tags whose version differs from the package version;
+- production publishing dispatched from a non-tag reference.
 
 ## Built-Wheel Smoke Test
 
@@ -84,6 +105,20 @@ cd /tmp
 /tmp/abmforge-wheel-smoke/bin/python /path/to/abmforge/scripts/smoke_installed_package.py
 ```
 
+## Distribution Checksums
+
+After building and validating the distributions, generate:
+
+```bash
+sha256sum dist/* > SHA256SUMS
+```
+
+The release workflow uploads `SHA256SUMS` separately from the wheel and source
+distribution. TestPyPI and production PyPI jobs download the validated
+artifacts and verify their checksums before publishing.
+
+Packages are not rebuilt inside publication jobs.
+
 ## No-Publish Release Readiness
 
 When TestPyPI or production PyPI access is unavailable, maintainers should run
@@ -105,10 +140,24 @@ The safe release path is:
 
 1. run the Release workflow without publishing;
 2. inspect uploaded distribution artifacts;
-3. manually run the Release workflow with `publish_testpypi=true`;
+3. manually run the Release workflow from the same valid version tag with `publish_testpypi=true`;
 4. approve the `testpypi` environment deployment;
 5. install from TestPyPI in a clean environment;
 6. run an installed-package smoke test.
+
+## Controlled Production PyPI Publishing
+
+Production PyPI publishing is manual and requires:
+
+- dispatching the Release workflow from a valid version tag;
+- setting `publish_pypi=true`;
+- keeping `publish_testpypi=false`;
+- successful quality, metadata, package, smoke, and checksum checks;
+- approval through the protected `pypi` environment;
+- PyPI trusted publishing through OpenID Connect.
+
+Only one publication target may be selected in a workflow run. Selecting both
+`publish_testpypi` and `publish_pypi` causes the validation job to fail.
 
 ## Tagging Policy
 

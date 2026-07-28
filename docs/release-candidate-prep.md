@@ -94,7 +94,7 @@ A TestPyPI dry run should use the release workflow:
 
 1. run the workflow without publishing;
 2. inspect distribution artifacts;
-3. run the workflow manually with `publish_testpypi=true`;
+3. run the workflow manually from the same valid version tag with `publish_testpypi=true`;
 4. approve the `testpypi` environment;
 5. install from TestPyPI in a clean environment;
 6. run smoke checks.
