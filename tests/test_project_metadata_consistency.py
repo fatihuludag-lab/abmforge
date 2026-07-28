@@ -60,3 +60,16 @@ def test_release_documentation_contains_current_development_state() -> None:
     assert f"Current development version: `{EXPECTED_VERSION}`." in changelog
     assert f"Current development version: `{EXPECTED_VERSION}`." in release_notes
     assert "not a stable release" in release_notes.lower()
+
+
+def test_data_query_dependencies_include_duckdb() -> None:
+    pyproject_text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+
+    for dependency_group in ("data", "all"):
+        match = re.search(
+            rf"(?ms)^{dependency_group}\s*=\s*\[(.*?)^\]",
+            pyproject_text,
+        )
+
+        assert match is not None
+        assert '"duckdb>=1.0"' in match.group(1)

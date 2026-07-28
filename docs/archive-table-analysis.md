@@ -116,6 +116,87 @@ except ArchiveTableError as exc:
     print(exc)
 ```
 
+## SQL queries over Parquet archives
+
+`ExperimentDataset` provides a DuckDB-backed SQL interface for ABMForge
+Parquet archives.
+
+Install the data dependencies:
+
+```bash
+pip install "abmforge[data]"
+```
+
+Open either an archive root or its `data/` directory:
+
+```python
+from abmforge.data import ExperimentDataset
+
+dataset = ExperimentDataset.open("outputs/baseline_archive")
+
+print(dataset.available_tables())
+
+result = dataset.query(
+    '''
+    SELECT
+        metric,
+        AVG(value) AS mean_value
+    FROM model_records
+    GROUP BY metric
+    ORDER BY metric
+    '''
+)
+```
+
+`query(...)` returns a pandas DataFrame.
+
+Require known tables before running an analysis:
+
+```python
+dataset.require_tables(
+    [
+        "runs",
+        "model_records",
+    ]
+)
+```
+
+### Query error contract
+
+The query layer fails closed and distinguishes four error categories:
+
+| Error | Meaning |
+|---|---|
+| `ExperimentDatasetDependencyError` | DuckDB is unavailable |
+| `ExperimentDatasetTableNotFoundError` | A required Parquet table is missing |
+| `ExperimentDatasetTableError` | A present Parquet table is corrupt or unreadable |
+| `ExperimentDatasetQueryError` | SQL parsing, binding, or execution failed |
+
+Example:
+
+```python
+from abmforge.data import (
+    ExperimentDataset,
+    ExperimentDatasetQueryError,
+    ExperimentDatasetTableError,
+)
+
+dataset = ExperimentDataset.open("outputs/baseline_archive")
+
+try:
+    result = dataset.query("SELECT * FROM model_records")
+except ExperimentDatasetTableError as exc:
+    print(f"Archive table integrity error: {exc}")
+except ExperimentDatasetQueryError as exc:
+    print(f"SQL query error: {exc}")
+```
+
+Unreadable Parquet files are not silently skipped. A corrupt table therefore
+cannot be mistaken for an absent or empty table.
+
+The missing-table error remains a subclass of `FileNotFoundError` for
+compatibility with existing callers.
+
 ## Research Workflow
 
 A typical analysis workflow is:
