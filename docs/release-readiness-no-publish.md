@@ -46,7 +46,7 @@ available:
 The release workflow may build distributions without publishing. Publishing jobs
 must remain behind explicit manual inputs and environment approvals:
 
-- TestPyPI publishing requires `publish_testpypi=true`;
+- TestPyPI publishing requires a valid version tag and `publish_testpypi=true`;
 - production PyPI publishing requires `publish_pypi=true`;
 - production PyPI publishing requires a `refs/tags/v*` ref;
 - package uploads should use PyPI Trusted Publishing rather than long-lived

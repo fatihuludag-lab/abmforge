@@ -14,6 +14,10 @@ def test_release_checklist_documentation_exists_and_is_actionable() -> None:
     assert "python scripts/check_release_metadata.py" in docs
     assert "python -m build" in docs
     assert "python -m twine check dist/*" in docs
+    assert "python scripts/check_release_tag.py --tag" in docs
+    assert "SHA256SUMS" in docs
+    assert "publish_pypi" in docs
+    assert "future production PyPI releases" not in docs
     assert "TestPyPI Dry Run" in docs
     assert "Changelog Policy" in docs
     assert "Citation Metadata" in docs
