@@ -21,6 +21,7 @@ nav:
   - First Model: first-model.md
   - Spaces: spaces.md
   - Scheduling: scheduling.md
+  - Simulation Semantics V1: simulation-semantics-v1.md
   - Delayed Events: delayed-events.md
   - Agent Lifecycle: agent-lifecycle.md
   - Model Lifecycle: model-lifecycle.md

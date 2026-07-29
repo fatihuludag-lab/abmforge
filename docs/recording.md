@@ -1,5 +1,11 @@
 # Recording Data
 
+> **Normative semantics:** Recording examples on this page use the current
+> post-step observation behavior. See
+> [Simulation Semantics V1](simulation-semantics-v1.md) for the exact order of
+> event processing, model stepping, counter advancement, observation, and stop
+> evaluation.
+
 ABMForge records model-level metrics and agent-level variables through the model recorder.
 
 The recorder writes structured records into the model dataset.
