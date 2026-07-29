@@ -1,5 +1,10 @@
 # Model Lifecycle
 
+> **Normative semantics:** Model status transitions are documented here. The
+> authoritative execution-phase order, stop-condition timing, partial-step
+> failure behavior, and analysis-status distinction are defined in
+> [Simulation Semantics V1](simulation-semantics-v1.md).
+
 ABMForge models have an explicit execution lifecycle.
 
 The lifecycle contract keeps model state, execution flags, scenario results,

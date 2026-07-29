@@ -1,5 +1,10 @@
 # Delayed Events
 
+> **Normative semantics:** This page documents the event-queue API. The
+> authoritative description of fixed-step event phases, fractional-time
+> limitations, same-time scheduling, and target event-time guarantees is
+> [Simulation Semantics V1](simulation-semantics-v1.md).
+
 ABMForge includes a deterministic event queue for delayed model actions. Each
 model owns an `EventQueue` instance at `model.events`.
 

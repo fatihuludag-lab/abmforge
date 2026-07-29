@@ -1,5 +1,10 @@
 # Agent Lifecycle
 
+> **Normative semantics:** This page describes agent creation and removal APIs.
+> Activation-pass eligibility, same-pass additions and removals, collection
+> bulk operations, and the target lifecycle contract are defined in
+> [Simulation Semantics V1](simulation-semantics-v1.md).
+
 ABMForge agents have a small but explicit lifecycle contract.
 
 The goal is to make agent creation, removal, event cancellation, spatial removal, and lifecycle recording predictable and reproducible.

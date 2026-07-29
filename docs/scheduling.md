@@ -1,5 +1,11 @@
 # Scheduling
 
+> **Normative semantics:** This page explains how to use the available
+> schedulers. The authoritative description of activation order, agent
+> eligibility, lifecycle visibility, random-stream limitations, and current
+> versus target guarantees is
+> [Simulation Semantics V1](simulation-semantics-v1.md).
+
 Scheduling controls the order in which agents act.
 
 Activation order is a modelling assumption. In agent-based modelling, changing the scheduler can change the simulation result. ABMForge therefore treats schedulers as explicit model components.
