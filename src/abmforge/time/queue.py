@@ -3,6 +3,7 @@ from __future__ import annotations
 import heapq
 import math
 from collections.abc import Callable
+from numbers import Real
 from typing import TYPE_CHECKING, Any
 
 from abmforge.time.event import Event
@@ -58,7 +59,7 @@ class EventQueue:
         tags: list[str] | tuple[str, ...] | None = None,
         cancel_on_owner_removed: bool = True,
     ) -> Event:
-        """Schedule a callback at an absolute model time."""
+        """Schedule a callback at an absolute fixed-step integer tick."""
 
         return self.schedule(
             callback=callback,
@@ -79,7 +80,7 @@ class EventQueue:
         tags: list[str] | tuple[str, ...] | None = None,
         cancel_on_owner_removed: bool = True,
     ) -> Event:
-        """Schedule a callback after a non-negative model-time delay."""
+        """Schedule a callback after a non-negative integer-tick delay."""
 
         return self.schedule(
             callback=callback,
@@ -110,6 +111,33 @@ class EventQueue:
         if not all(isinstance(tag, str) for tag in tags):
             raise TypeError("tags must contain only strings")
 
+    @staticmethod
+    def _validate_tick(
+        value: object,
+        *,
+        name: str,
+        non_negative: bool = False,
+    ) -> float:
+        """Validate and normalize one fixed-step event tick."""
+        if isinstance(value, bool) or not isinstance(value, Real):
+            raise TypeError(f"{name} must be a real number")
+
+        try:
+            tick = float(value)
+        except OverflowError as exc:
+            raise ValueError(f"{name} must be finite") from exc
+
+        if not math.isfinite(tick):
+            raise ValueError(f"{name} must be finite")
+
+        if non_negative and tick < 0:
+            raise ValueError(f"{name} must be non-negative")
+
+        if not tick.is_integer():
+            raise ValueError(f"{name} must be an integer tick")
+
+        return tick
+
     def _resolve_event_time(
         self,
         *,
@@ -120,25 +148,22 @@ class EventQueue:
             raise ValueError("provide exactly one of at or after")
 
         if at is not None:
-            event_time = float(at)
-
-            if not math.isfinite(event_time):
-                raise ValueError("event time must be finite")
+            event_time = self._validate_tick(
+                at,
+                name="event time",
+            )
         else:
             assert after is not None
 
-            delay = float(after)
-
-            if not math.isfinite(delay):
-                raise ValueError("after must be finite")
-
-            if delay < 0:
-                raise ValueError("after must be non-negative")
-
-            event_time = self.model.time + delay
-
-            if not math.isfinite(event_time):
-                raise ValueError("event time must be finite")
+            delay = self._validate_tick(
+                after,
+                name="after",
+                non_negative=True,
+            )
+            event_time = self._validate_tick(
+                self.model.time + delay,
+                name="event time",
+            )
 
         if event_time < self.model.time:
             raise ValueError("cannot schedule an event in the past")
