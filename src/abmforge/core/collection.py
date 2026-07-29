@@ -107,20 +107,27 @@ class AgentCollection:
         """Return the number of agents."""
         return len(self._agents)
 
+    def _is_activation_eligible(self, agent: Agent) -> bool:
+        """Return whether an agent is a living current collection member."""
+        stored = self._agents.get(agent.unique_id)
+        return stored is agent and getattr(agent, "is_alive", True)
+
     def do(self, method_name: str, *args: Any, **kwargs: Any) -> None:
-        """Call a method on every agent in insertion order."""
+        """Call a method on every eligible agent in insertion order."""
         for agent in list(self._agents.values()):
-            getattr(agent, method_name)(*args, **kwargs)
+            if self._is_activation_eligible(agent):
+                getattr(agent, method_name)(*args, **kwargs)
 
     def shuffle_do(self, method_name: str, *args: Any, **kwargs: Any) -> None:
-        """Call a method on every agent in deterministic shuffled order."""
+        """Call a method on every eligible agent in shuffled order."""
         agents = list(self._agents.values())
         if agents:
             order = self.model.rng.permutation(len(agents))
             agents = [agents[int(i)] for i in order]
 
         for agent in agents:
-            getattr(agent, method_name)(*args, **kwargs)
+            if self._is_activation_eligible(agent):
+                getattr(agent, method_name)(*args, **kwargs)
 
     def select(self, predicate: Callable[[Agent], bool]) -> list[Agent]:
         """Return all agents matching a predicate."""

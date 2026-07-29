@@ -88,7 +88,9 @@ class StagedActivation(Scheduler):
         return metadata
 
     def step(self) -> None:
-        agents = [agent for agent in self.model.agents if getattr(agent, "is_alive", True)]
+        agents = [
+            agent for agent in self.model.agents if self.model.agents._is_activation_eligible(agent)
+        ]
         for stage in self.stages:
             _call_model_stage_hook(self.model, "before_stage", stage)
 
@@ -98,7 +100,7 @@ class StagedActivation(Scheduler):
                 stage_agents = [stage_agents[int(i)] for i in order]
 
             for agent in stage_agents:
-                if getattr(agent, "is_alive", True):
+                if self.model.agents._is_activation_eligible(agent):
                     method = _get_stage_method(agent, stage)
                     method()
 

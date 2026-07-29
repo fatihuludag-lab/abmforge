@@ -203,3 +203,31 @@ If agent removal is part of the model's scientific mechanism, document:
 - which lifecycle records are expected.
 
 This makes model behaviour easier to audit and reproduce.
+
+## Activation-Pass Removal Semantics
+
+Built-in collection operations and schedulers revalidate an agent immediately
+before every activation callback.
+
+An agent removed before its turn is skipped even when the activation pass
+retains an earlier candidate snapshot containing that object.
+
+Callback eligibility requires:
+
+- current collection membership;
+- identity equality with the object currently stored under the identifier;
+- a living lifecycle state.
+
+Agents added during an existing activation pass are deferred until a future
+pass.
+
+If an agent is removed and replaced by another object using the same
+identifier:
+
+- the old object fails the identity check;
+- the replacement is absent from the original candidate snapshot;
+- neither object is activated from that snapshot position.
+
+This activation rule also applies when direct collection removal is used.
+However, direct collection removal does not replace the broader cleanup
+behavior of `Model.remove_agent(...)`.
