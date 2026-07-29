@@ -37,11 +37,30 @@ def test_simulation_semantics_documents_model_loop_order() -> None:
     assert event_index < step_index < counter_index < recording_index
 
 
+def test_simulation_semantics_documents_removal_aware_activation() -> None:
+    text = _read(SEMANTICS_DOC)
+    normalized = " ".join(text.split())
+
+    expected_statements = [
+        "shared callback-time activation eligibility rule",
+        "the collection still stores the same object under that identifier",
+        "an agent added during the pass is deferred until a future pass",
+        "an agent removed before its turn is skipped",
+        "neither the removed snapshot object nor the newly added replacement",
+        "self-removal is safe",
+    ]
+
+    for statement in expected_statements:
+        assert statement in normalized
+
+    assert "an agent removed during the pass may still receive its callback" not in normalized
+    assert "### 5.3 Target collection contract" not in text
+
+
 def test_simulation_semantics_documents_known_limitations() -> None:
     text = _read(SEMANTICS_DOC)
 
     expected_statements = [
-        "an agent removed during the pass may still receive its callback",
         "does not automatically isolate current and next state",
         "does not automatically collect an initial time-zero observation",
         "does not provide transactional rollback",
@@ -53,12 +72,10 @@ def test_simulation_semantics_documents_known_limitations() -> None:
         assert statement in text
 
 
-def test_simulation_semantics_documents_target_contracts() -> None:
+def test_simulation_semantics_documents_remaining_target_contracts() -> None:
     text = _read(SEMANTICS_DOC)
 
     expected_statements = [
-        "Agents added during the pass are deferred until a future pass.",
-        "An agent removed before its turn does not receive a later callback",
         "fractional absolute event times will be rejected",
         "require an explicit two-phase capability",
         "versioned named streams",
@@ -89,3 +106,36 @@ def test_mkdocs_navigation_includes_semantics_document() -> None:
 
     assert expected_entry in text
     assert text.count(expected_entry) == 1
+
+
+def test_simulation_semantics_lists_remaining_public_alpha_blockers() -> None:
+    text = _read(SEMANTICS_DOC)
+    normalized = " ".join(text.split())
+
+    remaining_blockers = [
+        "Fractional event times are accepted without exact fractional-time execution.",
+        "Valid stopped runs may be excluded from default analysis reports.",
+        "Simultaneous activation does not require a complete two-phase agent contract.",
+        "Scheduler randomness and agent behavior share one RNG stream.",
+        "Agent-collection-space lifecycle invariants are not uniformly enforced.",
+        "Canonical models lack sufficient scientific invariant and metamorphic tests.",
+    ]
+
+    for blocker in remaining_blockers:
+        assert blocker in normalized
+
+    assert "Collection bulk operations may invoke agents removed earlier" not in normalized
+    assert "Removal-aware callback eligibility for collection bulk operations" in normalized
+
+
+def test_related_pages_document_activation_eligibility() -> None:
+    scheduling = _read(DOCS / "scheduling.md")
+    lifecycle = _read(DOCS / "agent-lifecycle.md")
+
+    assert "## Activation Eligibility" in scheduling
+    assert "callback-time activation eligibility validation" in scheduling
+    assert "agents removed before their turn are skipped" in scheduling
+
+    assert "## Activation-Pass Removal Semantics" in lifecycle
+    assert "An agent removed before its turn is skipped" in lifecycle
+    assert "identity equality with the object currently stored" in lifecycle

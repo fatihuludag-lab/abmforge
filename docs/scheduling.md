@@ -167,3 +167,30 @@ scheduler metadata uses schema version `scheduler-metadata-v1` and includes:
 - `shuffle`.
 
 This metadata is intended for inspection and snapshot audit trails. It is not a scheduler restore contract.
+
+## Activation Eligibility
+
+All built-in schedulers use callback-time activation eligibility validation.
+
+A candidate agent receives a callback only when:
+
+- the agent is still present in the model collection;
+- the collection still stores the same object under that identifier;
+- the candidate remains alive.
+
+Built-in schedulers create a candidate snapshot when the scheduler call begins.
+As a result:
+
+- agents added during the call are deferred until the next scheduler call;
+- agents removed before their turn are skipped;
+- agents marked not alive before their turn are skipped;
+- replacing an agent with a new object using the same identifier does not
+  activate either object from the stale snapshot position.
+
+`SimultaneousActivation` applies the eligibility check independently before
+the decision and commit callbacks.
+
+`StagedActivation` applies the eligibility check before every stage callback.
+
+Custom schedulers should follow the same contract unless they explicitly
+declare and document a different experimental execution profile.

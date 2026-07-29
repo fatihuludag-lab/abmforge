@@ -251,74 +251,91 @@ A future event-driven or hybrid execution profile must use a separate, explicitl
 
 ## 5. Agent collection bulk operations
 
-### 5.1 `AgentCollection.do`
+### 5.1 Shared callback-time eligibility
 
-Current behavior:
+All built-in collection bulk operations and schedulers use a shared
+callback-time activation eligibility rule.
+
+A candidate agent is eligible immediately before a callback only when:
+
+1. the collection still stores an object under the agent identifier;
+2. the collection still stores the same object under that identifier;
+3. the candidate agent remains alive.
+
+Candidate agents are selected from a snapshot created at the beginning of the
+activation pass or scheduler call.
+
+Consequences:
+
+- an agent added during the pass is deferred until a future pass;
+- an agent removed before its turn is skipped;
+- an agent marked not alive before its turn is skipped;
+- if an agent is removed and replaced by another object with the same
+  identifier, neither the removed snapshot object nor the newly added
+  replacement is activated from that snapshot position;
+- self-removal is safe and prevents callbacks in later phases or stages.
+
+This rule prevents stale objects retained by an activation snapshot from being
+called after removal.
+
+### 5.2 `AgentCollection.do`
 
 ```python
 model.agents.do("step")
 ```
 
-creates an insertion-ordered list of agents at the start of the call and invokes the selected method on every object in that list.
+`do()` creates an insertion-ordered candidate snapshot at the beginning of the
+call.
 
-The current implementation does not re-check:
+Immediately before each callback, it revalidates object identity, current
+collection membership, and lifecycle eligibility.
 
-* whether the agent is still in the collection;
-* whether the stored object for that identifier is still the same object;
-* whether the agent is alive.
+Insertion order remains part of the activation semantics.
 
-Consequences:
-
-* an agent added during the pass is not included in that pass;
-* an agent removed during the pass may still receive its callback later in the same pass;
-* collection removal and lifecycle removal may produce different effects if lifecycle state is not updated consistently.
-
-### 5.2 `AgentCollection.shuffle_do`
-
-Current behavior:
+### 5.3 `AgentCollection.shuffle_do`
 
 ```python
 model.agents.shuffle_do("step")
 ```
 
-creates one agent list at the start of the call, shuffles its indices using `model.rng`, and calls the method on every object in the shuffled list.
+`shuffle_do()` creates one candidate snapshot at the beginning of the call and
+shuffles its indices using `model.rng`.
 
-The same membership and lifecycle limitations as `do()` apply.
+Immediately before each callback, it applies the same identity, membership,
+and lifecycle eligibility checks as `do()`.
 
-### 5.3 Target collection contract
+An agent removed after the permutation is generated is skipped when its turn
+is reached.
 
-The target contract is:
+### 5.4 Scope of the guarantee
 
-1. Candidate agents are selected at the start of the activation pass.
-2. Agents added during the pass are deferred until a future pass.
-3. Before each callback, the collection re-checks that:
+Callback-time eligibility is not a complete lifecycle-cleanup operation.
 
-   * the agent is alive;
-   * the agent is still a member;
-   * the collection still stores the same object under that identifier.
-4. An agent removed before its turn does not receive a later callback in that pass.
-5. Self-removal is safe.
-6. Collection bulk operations and equivalent scheduler policies follow the same lifecycle rules.
-
-This target behavior requires a runtime change and must not be assumed until the corresponding tests pass.
+Direct collection removal changes collection membership. Models requiring
+world removal, owned-event cancellation, lifecycle-state changes, and
+lifecycle records should use `Model.remove_agent(...)`.
 
 ---
-
 ## 6. Sequential activation
 
 ### 6.1 Current behavior
 
 `SequentialActivation`:
 
-1. creates a list from the current model agent collection;
-2. visits agents in collection insertion order;
-3. checks `is_alive` before calling `agent.step()`.
+1. creates an insertion-ordered candidate snapshot;
+2. visits candidates in snapshot order;
+3. revalidates object identity, collection membership, and `is_alive`
+   immediately before each callback;
+4. calls `agent.step()` only for eligible candidates.
 
-An agent added after the list is created is not activated in the current pass.
+An agent added after the candidate snapshot is created is deferred until a
+future scheduler call.
 
-An agent whose `is_alive` value becomes false before its turn is skipped.
+An agent removed or marked not alive before its turn is skipped.
 
-Current membership is not independently revalidated before the callback.
+If a removed agent is replaced by another object using the same identifier,
+the old object fails callback-time identity validation and the replacement is
+not present in the original snapshot.
 
 ### 6.2 Scientific implication
 
@@ -326,10 +343,10 @@ Insertion order is part of the model semantics.
 
 Researchers using sequential activation must document:
 
-* how initial insertion order is determined;
-* whether creation order has theoretical meaning;
-* whether dynamic creation changes future activation priority;
-* whether results are sensitive to order.
+- how initial insertion order is determined;
+- whether creation order has theoretical meaning;
+- whether dynamic creation changes future activation priority;
+- whether results are sensitive to activation order.
 
 ---
 
@@ -339,29 +356,39 @@ Researchers using sequential activation must document:
 
 `RandomActivation`:
 
-1. selects agents that are alive when the activation list is created;
+1. creates a candidate snapshot from currently eligible agents;
 2. generates a permutation using `model.rng`;
-3. checks `is_alive` again immediately before calling `agent.step()`.
+3. revalidates object identity, collection membership, and `is_alive`
+   immediately before each callback;
+4. calls `agent.step()` only for candidates that remain eligible.
 
-Agents added after the activation list is created are deferred.
+Agents added after candidate selection are deferred.
 
-Agents marked not alive before their turn are skipped.
+Agents removed or marked not alive after the permutation is generated are
+skipped when their turn is reached.
+
+A replacement object using the same identifier is not activated from the
+removed object's snapshot position.
 
 ### 7.2 Random-stream limitation
 
-The current scheduler uses the same model-level random-number generator that user model behavior may also use.
+The scheduler currently uses the same model-level random-number generator
+that model and agent behavior may also consume.
 
 Therefore:
 
-* activation order depends on the prior random draws made by the model and its agents;
-* adding an unrelated random draw may change later activation order;
-* a fixed seed does not provide component-independent random streams.
+- activation order depends on earlier random draws;
+- adding an unrelated random draw may change later activation order;
+- a fixed seed does not provide component-independent random streams.
 
-### 7.3 Target contract
+### 7.3 Target random-stream contract
 
-A future random-stream contract will assign activation randomness to a named scheduler stream separate from agent behavior and other components.
+A future random-stream contract will assign scheduler activation to a named
+stream that is separate from behavior, event, initialization, and space
+randomness.
 
-Until that contract is implemented, users must treat random activation as deterministic only under an unchanged random-draw history.
+Until then, random activation is reproducible only under an unchanged
+random-draw history.
 
 ---
 
@@ -371,34 +398,46 @@ Until that contract is implemented, users must treat random activation as determ
 
 `SimultaneousActivation`:
 
-1. creates a list of agents that are alive at the beginning of the scheduler call;
-2. calls `step()` on each agent still marked alive;
-3. calls `advance()` on each agent still marked alive and having an `advance` attribute.
+1. creates a candidate snapshot from currently eligible agents;
+2. revalidates every candidate before its `step()` callback;
+3. completes all eligible `step()` callbacks;
+4. revalidates every candidate before its optional `advance()` callback;
+5. calls `advance()` only when the candidate remains eligible and defines
+   that method.
 
-The current scheduler does not require every agent to implement `advance()`.
+An agent removed before its decision turn does not receive `step()`.
 
-The current scheduler does not prevent `step()` from changing current state directly.
+An agent removed during the decision phase does not receive `advance()`.
 
-### 8.2 What is currently guaranteed
+An agent added during the scheduler call is deferred until a future call.
 
-The current implementation guarantees call-pass ordering:
+The scheduler does not currently require every participating agent to
+implement `advance()`.
+
+The scheduler also does not prevent `step()` from directly changing current
+state.
+
+### 8.2 Current guarantee
 
 ```text
-all eligible step() calls
-→ all eligible advance() calls
+all eligible step() callbacks
+-> all eligible advance() callbacks
 ```
 
-It does not guarantee:
+Callback-time identity, membership, and lifecycle eligibility are checked in
+both phases.
 
-* immutable current-state views;
-* automatic next-state buffers;
-* order-independent decisions;
-* atomic model-wide state commit;
-* an error when `advance()` is missing.
+The current implementation does not guarantee:
+
+- immutable current-state views;
+- automatic next-state buffers;
+- order-independent decision calculations;
+- atomic model-wide state commit;
+- an error when `advance()` is missing.
 
 ### 8.3 Required user pattern
 
-Models using the current implementation should use explicit pending state:
+Synchronous models should use explicit pending state:
 
 ```python
 class ExampleAgent(Agent):
@@ -409,18 +448,18 @@ class ExampleAgent(Agent):
         self.value = self.next_value
 ```
 
-Directly changing `self.value` in `step()` may expose the new value to agents activated later in the same pass.
+Directly changing `self.value` in `step()` may expose the updated value to
+agents activated later in the same decision phase.
 
-### 8.4 Target public-alpha contract
+### 8.4 Remaining public-alpha work
 
-The target contract will:
+The target strict simultaneous contract will:
 
-* require an explicit two-phase capability for all participating agents;
-* fail early when an eligible agent lacks the required commit method;
-* preserve the rule that all decision calls finish before any commit call;
-* define add/remove eligibility for both phases;
-* document whether heterogeneous no-op commit adapters are supported;
-* provide a canonical synchronous reference-model test.
+- require an explicit two-phase capability;
+- fail early when an eligible agent lacks the required commit method;
+- preserve all-decision-before-any-commit ordering;
+- define whether heterogeneous no-op commit adapters are supported;
+- include a canonical synchronous reference-model test.
 
 ---
 
@@ -430,81 +469,105 @@ The target contract will:
 
 `StagedActivation`:
 
-1. selects agents that are alive at the beginning of the scheduler call;
-2. retains that initial candidate list for all stages;
-3. executes stages in the declared order;
-4. optionally produces a separate random permutation for each stage using `model.rng`;
-5. checks `is_alive` before each stage callback;
-6. calls optional model-level `before_stage(stage)` and `after_stage(stage)` hooks.
+1. creates a candidate snapshot from currently eligible agents;
+2. retains that candidate snapshot for all declared stages;
+3. executes stages in declared order;
+4. optionally generates a separate permutation for each stage using
+   `model.rng`;
+5. revalidates object identity, collection membership, and `is_alive`
+   immediately before every stage callback;
+6. calls optional `before_stage(stage)` and `after_stage(stage)` model hooks.
 
-### 9.2 Current lifecycle visibility
+### 9.2 Lifecycle visibility
 
 Under the current implementation:
 
-* agents added after the initial candidate list is created do not participate in any stage of the current scheduler call;
-* agents marked not alive during an earlier stage are skipped in later stages;
-* current collection membership is not independently revalidated;
-* each shuffled stage may have a different order;
-* stage methods must exist and be callable.
+- agents added after candidate selection do not participate in the current
+  scheduler call;
+- agents removed during an earlier stage are skipped in later stages;
+- agents removed before their turn in the current stage are skipped;
+- agents marked not alive are skipped;
+- a same-identifier replacement is deferred because it is not part of the
+  original candidate snapshot;
+- each shuffled stage may use a different activation order;
+- declared stage methods must exist and be callable.
 
-### 9.3 Required documentation
+### 9.3 Research reporting requirements
 
-A staged model must report:
+A staged model should document:
 
-* stage names and order;
-* whether stage-level shuffling is enabled;
-* which state changes are visible to later stages;
-* whether removals may occur during stages;
-* what model hooks do;
-* which random stream controls stage order.
+- stage names and order;
+- whether stage-level shuffling is enabled;
+- which state changes are visible to later stages;
+- whether creation or removal may occur during stages;
+- what the model-level stage hooks do;
+- which random stream controls stage order.
 
 ---
 
 ## 10. Agent creation and removal
 
-### 10.1 Current creation behavior
+### 10.1 Same-pass creation
 
-An agent added after an activation snapshot is created is generally excluded from that existing snapshot.
+Built-in activation paths create a candidate snapshot at the beginning of
+their activation pass or scheduler call.
 
-The exact future eligibility point depends on whether the model uses:
+An agent added after that snapshot is created is registered immediately but
+is not activated until a future pass.
 
-* collection bulk operations;
-* sequential activation;
-* random activation;
-* simultaneous activation;
-* staged activation;
-* custom iteration.
+This guarantee applies to:
 
-### 10.2 Current removal behavior
+- `AgentCollection.do()`;
+- `AgentCollection.shuffle_do()`;
+- `SequentialActivation`;
+- `RandomActivation`;
+- `SimultaneousActivation`;
+- `StagedActivation`.
 
-`Model.remove_agent(...)` coordinates removal from the model collection, world, lifecycle state, and owned-event cancellation according to the current lifecycle implementation.
+### 10.2 Same-pass removal
 
-Direct collection removal has a narrower responsibility and must not automatically be assumed to perform the complete model-level lifecycle operation.
+An agent removed before its next callback becomes immediately ineligible.
 
-### 10.3 Target lifecycle contract
+Eligibility requires:
 
-The target lifecycle contract is:
+- current membership in the collection;
+- identity equality with the object currently stored under the identifier;
+- a living lifecycle state.
 
-```text
-create during activation
-→ registered immediately
-→ not activated until the next activation pass
+This prevents stale candidate references from being called after removal.
 
-remove during activation
-→ marked ineligible immediately
-→ no later callback in the same pass
-→ removed from all registered spaces
-→ owned-event policy applied
-→ lifecycle record emitted once
-```
+### 10.3 Same-identifier replacement
 
-The target contract will also define:
+If an agent is removed and a new object is inserted under the same identifier
+during an activation pass:
 
-* identifier reuse policy;
-* idempotent or error behavior for repeated removal;
-* model–collection–space referential-integrity checks;
-* event-owner behavior;
-* persistent identity fields for recorded data.
+- the removed object fails the callback-time identity check;
+- the replacement object is absent from the original candidate snapshot;
+- neither object is activated from the stale snapshot position;
+- the replacement becomes eligible in a future pass.
+
+### 10.4 Collection removal versus model removal
+
+Direct `AgentCollection.remove(...)` changes collection membership.
+
+`Model.remove_agent(...)` is the model-level lifecycle operation and should be
+used when the model also requires:
+
+- world or space cleanup;
+- lifecycle-state changes;
+- owned-event cancellation;
+- lifecycle recording.
+
+### 10.5 Remaining lifecycle work
+
+Removal-aware activation is now part of the runtime guarantee, but further
+public-alpha lifecycle work includes:
+
+- uniform model-collection-space referential-integrity checks;
+- consistent cleanup contracts across every built-in space type;
+- an explicit repeated-removal policy;
+- persistent identity rules for recorded data;
+- conformance tests for custom schedulers and spaces.
 
 ---
 
@@ -704,47 +767,52 @@ The manifest and snapshot contracts must record the stream-derivation version an
 
 ## 15. Current guarantee matrix
 
-| Topic                     | Current guarantee                                        | Not currently guaranteed                                    |
-| ------------------------- | -------------------------------------------------------- | ----------------------------------------------------------- |
-| Fixed-step time           | `steps += 1`, `time += 1.0` after a completed model step | Variable or continuous time                                 |
-| Events                    | Due events processed before `model.step()`               | Exact fractional-time execution                             |
-| Event ordering            | Time, priority, sequence, event id                       | Context-independent same-time semantics                     |
-| Collection `do()`         | Initial insertion-order snapshot                         | Removal-aware eligibility                                   |
-| Collection `shuffle_do()` | Seeded permutation of initial snapshot                   | Removal-aware eligibility or independent RNG stream         |
-| Sequential activation     | Initial order with `is_alive` checks                     | Membership revalidation                                     |
-| Random activation         | Initial alive list, seeded permutation                   | Independence from behavior RNG draws                        |
-| Simultaneous activation   | All `step()` calls before `advance()` calls              | State isolation or mandatory `advance()`                    |
-| Staged activation         | Declared stage order and optional per-stage shuffle      | Dynamic additions within current scheduler call             |
-| Recording                 | Post-step records with incremented counters              | Automatic time-zero observation                             |
-| Scenario stop             | Pre-step and post-step callback checks                   | Automatic scientific analysis eligibility                   |
-| Failure                   | Failed status and raised exception                       | Step rollback                                               |
-| Snapshot                  | Selected model, agent, and RNG state                     | Full world, scheduler, event callback, and recorder restore |
-| Reproducibility           | Conditional same-seed rerun                              | Cross-platform or cross-version equality                    |
-
----
+| Topic | Current guarantee | Not currently guaranteed |
+|---|---|---|
+| Fixed-step time | `steps += 1` and `time += 1.0` after a completed model step | Variable-step or continuous-time execution |
+| Events | Due events are processed before `model.step()` | Exact fractional-time event execution |
+| Event ordering | Time, priority, sequence, and event identifier | Context-independent same-time scheduling semantics |
+| Collection `do()` | Insertion-order candidate snapshot with callback-time identity, membership, and liveness validation | Activation of agents added during the current pass |
+| Collection `shuffle_do()` | Seeded candidate-snapshot permutation with callback-time eligibility validation | Independent scheduler RNG stream |
+| Sequential activation | Insertion-order candidate snapshot with callback-time eligibility validation | Dynamic additions during the current pass |
+| Random activation | Initial eligible snapshot, seeded permutation, and callback-time eligibility validation | Independence from behavior RNG draws |
+| Simultaneous activation | All eligible `step()` callbacks before eligible `advance()` callbacks, with validation in both phases | Automatic state isolation or mandatory `advance()` |
+| Staged activation | Declared stage order, optional per-stage shuffle, and validation before every stage callback | Dynamic additions during the current scheduler call |
+| Same-pass removal | Removed, replaced, or non-living candidates are skipped before their next callback | Complete lifecycle cleanup from direct collection removal |
+| Same-pass creation | Newly added agents are deferred until a future pass | Immediate participation in the current candidate snapshot |
+| Recording | Post-step observations use incremented counters | Automatic time-zero observation |
+| Scenario stop | Stop condition is checked before and after one-step execution | Automatic scientific analysis eligibility |
+| Failure | Failed status is recorded and the exception is raised | Transactional rollback of a partial step |
+| Snapshot | Selected model, agent, and RNG state is captured | Full world, scheduler, event callback, and recorder restoration |
+| Reproducibility | Conditional same-seed rerun under unchanged execution history | Cross-platform or cross-version equality |
 
 ## 16. Public-alpha semantic blockers
 
-The following issues must be resolved before the fixed-step execution profile can be treated as public-alpha semantics:
+The following issues must still be resolved before the fixed-step execution
+profile can be treated as public-alpha semantics:
 
-1. Collection bulk operations may invoke agents removed earlier in the same pass.
-2. Fractional event times are accepted without exact fractional-time execution.
-3. Valid stopped runs may be excluded from default analysis reports.
-4. Simultaneous activation does not require a complete two-phase agent contract.
-5. Scheduler randomness and agent behavior share one RNG stream.
-6. Agent–collection–space lifecycle invariants are not uniformly enforced.
-7. Canonical models lack sufficient scientific invariant and metamorphic tests.
+1. Fractional event times are accepted without exact fractional-time
+   execution.
+2. Valid stopped runs may be excluded from default analysis reports.
+3. Simultaneous activation does not require a complete two-phase agent
+   contract.
+4. Scheduler randomness and agent behavior share one RNG stream.
+5. Agent-collection-space lifecycle invariants are not uniformly enforced.
+6. Canonical models lack sufficient scientific invariant and metamorphic
+   tests.
 
-These are correctness and scientific-interpretation issues, not cosmetic API preferences.
+Removal-aware callback eligibility for collection bulk operations and all
+built-in schedulers is now part of the current runtime guarantee.
 
----
+These remaining items concern correctness and scientific interpretation rather
+than cosmetic API preferences.
 
 ## 17. Model-author responsibilities
 
 Until the target contracts are implemented, model authors should:
 
 1. document the scheduler and activation order;
-2. avoid direct dynamic removal inside `AgentCollection.do()` and `shuffle_do()`;
+2. use `Model.remove_agent(...)` when full lifecycle cleanup is required; direct collection removal changes collection membership only;
 3. use integer event times in the fixed-step profile;
 4. implement explicit current/next state buffers for simultaneous models;
 5. record all random sources and avoid untracked third-party randomness;
@@ -805,10 +873,22 @@ Such changes require:
 
 The current ABMForge runtime is best described as:
 
-> A fixed-step Python ABM execution profile with pre-step event draining, user-defined model activation, post-step observation, multiple activation strategies, and provisional lifecycle and randomness semantics.
+> A fixed-step Python ABM execution profile with pre-step event processing,
+> candidate-snapshot activation, callback-time identity and membership
+> validation, deferred same-pass additions, immediate removal visibility,
+> post-step observation, and multiple built-in activation strategies.
 
-The target public-alpha contract is:
+Removal-aware activation now guarantees that an agent removed before its next
+callback is skipped, even when an earlier candidate snapshot still contains
+the object.
 
-> A fixed-step execution profile with versioned phases, removal-aware agent eligibility, integer event ticks, explicit observation timing, strict two-phase simultaneous activation, and documented random-stream ownership.
+The remaining target public-alpha contract adds:
 
-Until the target blockers are resolved, researchers must state the exact ABMForge commit and the model-specific semantic assumptions used in their study.
+> Integer event ticks, scientifically safe stopped-run reporting, strict
+> two-phase simultaneous activation, named random streams, uniform
+> model-collection-space lifecycle integrity, and scientifically verified
+> reference models.
+
+Researchers must continue to report the exact ABMForge version or commit and
+the model-specific scheduling, randomness, observation, and lifecycle
+assumptions used in their studies.

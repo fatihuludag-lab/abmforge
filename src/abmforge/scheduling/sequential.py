@@ -8,5 +8,5 @@ class SequentialActivation(Scheduler):
 
     def step(self) -> None:
         for agent in list(self.model.agents):
-            if getattr(agent, "is_alive", True):
+            if self.model.agents._is_activation_eligible(agent):
                 agent.step()
