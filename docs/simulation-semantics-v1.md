@@ -715,7 +715,9 @@ It does not inherently mean:
 * incomplete;
 * excluded from analysis.
 
-Execution status and scientific analysis eligibility must be handled as separate concepts.
+Execution status and scientific analysis eligibility are separate concepts.
+
+The default researcher-report policy treats `completed` and `stopped` runs as analysis-eligible when at least one numeric final model metric is available. Failed and non-terminal runs remain visible but are excluded from default metric analysis with an explicit reason in `analysis_eligibility.csv`.
 
 ---
 
@@ -812,7 +814,7 @@ The manifest and snapshot contracts must record the stream-derivation version an
 | Same-pass removal | Removed, replaced, or non-living candidates are skipped before their next callback | Complete lifecycle cleanup from direct collection removal |
 | Same-pass creation | Newly added agents are deferred until a future pass | Immediate participation in the current candidate snapshot |
 | Recording | Post-step observations use incremented counters | Automatic time-zero observation |
-| Scenario stop | Stop condition is checked before and after one-step execution | Automatic scientific analysis eligibility |
+| Scenario stop | Stop condition is checked before and after one-step execution; stopped runs are eligible when numeric final metrics exist | Study-specific scientific validity beyond the default reporting policy |
 | Failure | Failed status is recorded and the exception is raised | Transactional rollback of a partial step |
 | Snapshot | Selected model, agent, and RNG state is captured | Full world, scheduler, event callback, and recorder restoration |
 | Reproducibility | Conditional same-seed rerun under unchanged execution history | Cross-platform or cross-version equality |
@@ -822,20 +824,19 @@ The manifest and snapshot contracts must record the stream-derivation version an
 The following issues must still be resolved before the fixed-step execution
 profile can be treated as public-alpha semantics:
 
-1. Valid stopped runs may be excluded from default analysis reports.
-2. Simultaneous activation does not require a complete two-phase agent
+1. Simultaneous activation does not require a complete two-phase agent
    contract.
-3. Scheduler randomness and agent behavior share one RNG stream.
-4. Agent-collection-space lifecycle invariants are not uniformly enforced.
-5. Canonical models lack sufficient scientific invariant and metamorphic
+2. Scheduler randomness and agent behavior share one RNG stream.
+3. Agent-collection-space lifecycle invariants are not uniformly enforced.
+4. Canonical models lack sufficient scientific invariant and metamorphic
    tests.
 
-Removal-aware callback eligibility and strict integer-tick event scheduling
-are now part of the current runtime guarantee.
+Removal-aware callback eligibility, strict integer-tick event scheduling,
+and the separation of execution status from analysis eligibility are now
+part of the current runtime guarantee.
 
 These remaining items concern correctness and scientific interpretation
 rather than cosmetic API preferences.
-
 ## 17. Model-author responsibilities
 
 Until the target contracts are implemented, model authors should:
@@ -914,8 +915,8 @@ requested.
 
 The remaining target public-alpha contract adds:
 
-> Scientifically safe stopped-run reporting, strict two-phase simultaneous
-> activation, named random streams, uniform model-collection-space lifecycle
+> Strict two-phase simultaneous activation, named random streams, uniform
+> model-collection-space lifecycle
 > integrity, and scientifically verified reference models.
 
 Researchers must report the exact ABMForge version or commit and the

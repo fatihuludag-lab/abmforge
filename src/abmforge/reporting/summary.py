@@ -20,6 +20,7 @@ class ExperimentReport:
     summary_markdown: Path
     metric_summary_csv: Path
     run_status_csv: Path
+    analysis_eligibility_csv: Path
     failed_runs_csv: Path
     parameter_effects_csv: Path
     primary_metric_rankings_csv: Path
@@ -51,15 +52,16 @@ def generate_experiment_report(path: str | Path) -> ExperimentReport:
     model_records = _read_csv(_first_existing(data_dir, ("model_records.csv", "model.csv")))
     errors = _read_csv(_first_existing(data_dir, ("errors.csv", "error_records.csv")))
 
-    completed_run_ids = {
-        row.get("run_id", "")
-        for row in runs
-        if row.get("status", "") == "completed" and row.get("run_id", "")
+    all_latest_metrics = _latest_model_metric_values(model_records)
+    analysis_eligibility = _build_analysis_eligibility(
+        runs,
+        all_latest_metrics,
+    )
+    eligible_run_ids = {
+        row["run_id"] for row in analysis_eligibility if row["analysis_eligible"] == "true"
     }
     latest_metrics = {
-        key: value
-        for key, value in _latest_model_metric_values(model_records).items()
-        if key[0] in completed_run_ids
+        key: value for key, value in all_latest_metrics.items() if key[0] in eligible_run_ids
     }
     metric_summaries = _summarize_final_model_metrics(latest_metrics)
     run_status_counts = _summarize_run_statuses(runs)
@@ -85,6 +87,7 @@ def generate_experiment_report(path: str | Path) -> ExperimentReport:
 
     metric_summary_csv = reports_dir / "metric_summary.csv"
     run_status_csv = reports_dir / "run_status.csv"
+    analysis_eligibility_csv = reports_dir / "analysis_eligibility.csv"
     failed_runs_csv = reports_dir / "failed_runs.csv"
     parameter_effects_csv = reports_dir / "parameter_effects.csv"
     primary_metric_rankings_csv = reports_dir / "primary_metric_rankings.csv"
@@ -95,7 +98,22 @@ def generate_experiment_report(path: str | Path) -> ExperimentReport:
         metric_summaries,
         default_fields=["metric", "run_count", "mean", "min", "max"],
     )
-    _write_counter_csv(run_status_csv, run_status_counts, key_name="status")
+    _write_counter_csv(
+        run_status_csv,
+        run_status_counts,
+        key_name="status",
+    )
+    _write_csv_rows(
+        analysis_eligibility_csv,
+        analysis_eligibility,
+        default_fields=[
+            "run_id",
+            "status",
+            "analysis_eligible",
+            "exclusion_reason",
+            "numeric_metric_count",
+        ],
+    )
     _write_csv_rows(
         failed_runs_csv,
         failed_runs,
@@ -131,6 +149,7 @@ def generate_experiment_report(path: str | Path) -> ExperimentReport:
             summary,
             metric_summaries,
             run_status_counts,
+            analysis_eligibility,
             failed_runs,
             parameter_effects,
             primary_rankings,
@@ -146,6 +165,7 @@ def generate_experiment_report(path: str | Path) -> ExperimentReport:
                 summary_markdown.relative_to(output_dir),
                 metric_summary_csv.relative_to(output_dir),
                 run_status_csv.relative_to(output_dir),
+                analysis_eligibility_csv.relative_to(output_dir),
                 failed_runs_csv.relative_to(output_dir),
                 parameter_effects_csv.relative_to(output_dir),
                 primary_metric_rankings_csv.relative_to(output_dir),
@@ -157,6 +177,7 @@ def generate_experiment_report(path: str | Path) -> ExperimentReport:
         summary_markdown=summary_markdown,
         metric_summary_csv=metric_summary_csv,
         run_status_csv=run_status_csv,
+        analysis_eligibility_csv=analysis_eligibility_csv,
         failed_runs_csv=failed_runs_csv,
         parameter_effects_csv=parameter_effects_csv,
         primary_metric_rankings_csv=primary_metric_rankings_csv,
@@ -251,6 +272,57 @@ def _summarize_final_model_metrics(
     return summaries
 
 
+_ANALYSIS_TERMINAL_STATUSES = {
+    "completed",
+    "stopped",
+}
+
+
+def _build_analysis_eligibility(
+    runs: list[dict[str, str]],
+    latest_metrics: dict[tuple[str, str], float],
+) -> list[dict[str, str]]:
+    """Classify run-level eligibility for default metric analysis."""
+    numeric_metric_counts: Counter[str] = Counter(run_id for run_id, _metric in latest_metrics)
+    rows: list[dict[str, str]] = []
+
+    for run in runs:
+        run_id = run.get("run_id", "")
+        status = run.get("status", "") or "unknown"
+        numeric_metric_count = numeric_metric_counts.get(
+            run_id,
+            0,
+        )
+
+        if not run_id:
+            analysis_eligible = False
+            exclusion_reason = "missing_run_id"
+        elif status == "failed":
+            analysis_eligible = False
+            exclusion_reason = "execution_failed"
+        elif status not in _ANALYSIS_TERMINAL_STATUSES:
+            analysis_eligible = False
+            exclusion_reason = "execution_status_not_eligible"
+        elif numeric_metric_count == 0:
+            analysis_eligible = False
+            exclusion_reason = "no_numeric_final_metrics"
+        else:
+            analysis_eligible = True
+            exclusion_reason = ""
+
+        rows.append(
+            {
+                "run_id": run_id,
+                "status": status,
+                "analysis_eligible": ("true" if analysis_eligible else "false"),
+                "exclusion_reason": exclusion_reason,
+                "numeric_metric_count": str(numeric_metric_count),
+            }
+        )
+
+    return rows
+
+
 def _summarize_run_statuses(rows: list[dict[str, str]]) -> Counter[str]:
     statuses: Counter[str] = Counter()
 
@@ -265,24 +337,32 @@ def _find_failed_runs(
     runs: list[dict[str, str]],
     errors: list[dict[str, str]],
 ) -> list[dict[str, str]]:
-    failed: list[dict[str, str]] = []
-
-    for row in runs:
-        status = row.get("status", "")
-
-        if status and status != "completed":
-            failed.append(row)
+    """Return only runs representing execution failures."""
+    failed = [row for row in runs if row.get("status", "") == "failed"]
 
     if failed or not errors:
         return failed
 
+    run_statuses = {
+        row.get("run_id", ""): row.get("status", "") for row in runs if row.get("run_id", "")
+    }
+
     for row in errors:
+        run_id = row.get("run_id", "")
+        status = run_statuses.get(run_id, "")
+
+        if status and status != "failed":
+            continue
+
         failed.append(
             {
-                "run_id": row.get("run_id", ""),
+                "run_id": run_id,
                 "status": "failed",
-                "error": row.get("message", "") or row.get("error", ""),
-                "exception_type": row.get("exception_type", ""),
+                "error": (row.get("message", "") or row.get("error", "")),
+                "exception_type": row.get(
+                    "exception_type",
+                    "",
+                ),
             }
         )
 
@@ -440,9 +520,9 @@ def _build_key_findings(
         findings.append(f"{completed_runs} completed run(s) were found.")
 
     if failed_runs:
-        findings.append(f"{len(failed_runs)} failed or non-completed run(s) need review.")
+        findings.append(f"{len(failed_runs)} failed run(s) need review.")
     else:
-        findings.append("No failed or non-completed runs were found.")
+        findings.append("No failed runs were found.")
 
     primary_metric = summary.get("primary_metric")
 
@@ -509,6 +589,7 @@ def _format_summary_markdown(
     summary: dict[str, Any],
     metrics: list[dict[str, str]],
     statuses: Counter[str],
+    analysis_eligibility: list[dict[str, str]],
     failed_runs: list[dict[str, str]],
     parameter_effects: list[dict[str, str]],
     primary_rankings: list[dict[str, str]],
@@ -551,6 +632,40 @@ def _format_summary_markdown(
     else:
         lines.append("- No run status records found.")
 
+    eligible_count = sum(row.get("analysis_eligible") == "true" for row in analysis_eligibility)
+    excluded_count = len(analysis_eligibility) - eligible_count
+
+    lines.extend(
+        [
+            "",
+            "## Analysis eligibility",
+            "",
+            f"- total runs: {len(analysis_eligibility)}",
+            f"- completed runs: {statuses.get('completed', 0)}",
+            f"- stopped runs: {statuses.get('stopped', 0)}",
+            f"- failed runs: {statuses.get('failed', 0)}",
+            f"- analysis-eligible runs: {eligible_count}",
+            f"- analysis-excluded runs: {excluded_count}",
+        ]
+    )
+
+    exclusion_counts: Counter[str] = Counter(
+        row.get("exclusion_reason", "")
+        for row in analysis_eligibility
+        if row.get("exclusion_reason", "")
+    )
+
+    if exclusion_counts:
+        lines.extend(
+            [
+                "",
+                "Exclusion reasons:",
+            ]
+        )
+
+        for reason in sorted(exclusion_counts):
+            lines.append(f"- {reason}: {exclusion_counts[reason]}")
+
     lines.extend(["", "## Final model metric summary", ""])
 
     if metrics:
@@ -585,13 +700,13 @@ def _format_summary_markdown(
             "`outputs.primary_metric` exists and model records include it."
         )
 
-    lines.extend(["", "## Failed or non-completed runs", ""])
+    lines.extend(["", "## Failed runs", ""])
 
     if failed_runs:
-        lines.append(f"{len(failed_runs)} failed or non-completed run(s) found.")
+        lines.append(f"{len(failed_runs)} failed run(s) found.")
         lines.append("See `failed_runs.csv` for details.")
     else:
-        lines.append("No failed or non-completed runs were found.")
+        lines.append("No failed runs were found.")
 
     lines.extend(
         [
@@ -603,7 +718,8 @@ def _format_summary_markdown(
             "- `parameter_effects.csv`: primary metric by parameter value",
             "- `primary_metric_rankings.csv`: parameter combinations ranked low-to-high",
             "- `run_status.csv`: run status counts",
-            "- `failed_runs.csv`: failed or non-completed run details",
+            "- `analysis_eligibility.csv`: run-level analysis eligibility",
+            "- `failed_runs.csv`: execution failure details",
             "",
         ]
     )

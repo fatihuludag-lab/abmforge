@@ -95,9 +95,16 @@ def test_fractional_time_is_removed_from_public_alpha_blockers() -> None:
     text = _normalized(DOCS / "simulation-semantics-v1.md")
 
     assert "Fractional event times are accepted without exact fractional-time execution" not in text
-    assert (
-        "strict integer-tick event scheduling are now part of the current runtime guarantee" in text
-    )
+
+    resolved_guarantees = [
+        "Removal-aware callback eligibility",
+        "strict integer-tick event scheduling",
+        "separation of execution status from analysis eligibility",
+        "are now part of the current runtime guarantee",
+    ]
+
+    for guarantee in resolved_guarantees:
+        assert guarantee in text
 
 
 def test_api_reference_documents_fixed_step_integer_ticks() -> None:

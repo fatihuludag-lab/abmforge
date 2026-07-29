@@ -152,20 +152,36 @@ errors.csv
 
 Do not ignore failed runs in published experiments.
 
-ABMForge researcher reports preserve failed and other non-completed runs in
-status and failure tables, but exclude their partial metric observations from
-metric summaries, parameter-effect estimates, and primary-metric rankings.
-Only runs whose status is exactly `completed` contribute to these analytical
-tables.
+ABMForge researcher reports separate execution status from analysis
+eligibility.
+
+All execution statuses remain visible in `run_status.csv`. Execution failures
+are listed in `failed_runs.csv`, while run-level analytical inclusion is
+recorded separately in `analysis_eligibility.csv`.
+
+By default:
+
+- `completed` and `stopped` runs are analysis-eligible when they contain at
+  least one numeric final model metric;
+- `failed` runs are excluded with `execution_failed`;
+- non-terminal or unknown statuses are excluded with
+  `execution_status_not_eligible`;
+- completed or stopped runs without numeric final metrics are excluded with
+  `no_numeric_final_metrics`.
+
+A stopped run is not an execution failure. It may represent a scientifically
+meaningful terminal condition such as extinction, convergence, equilibrium,
+complete adoption, or the end of an epidemic.
 
 Recommended reporting:
 
-- number of scenarios,
-- number of completed runs,
-- number of failed runs,
-- failure types,
-- whether failures were excluded from analysis,
-- whether failed runs were retried,
+- total number of runs;
+- counts for completed, stopped, failed, and other statuses;
+- number of analysis-eligible and analysis-excluded runs;
+- analysis exclusion reasons;
+- execution failure types;
+- whether failed runs were retried;
+- any study-specific eligibility rules stricter than the defaults;
 - software version and manifest hash.
 
 Future versions of ABMForge will extend this with:

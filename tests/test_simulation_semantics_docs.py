@@ -114,7 +114,6 @@ def test_simulation_semantics_lists_remaining_public_alpha_blockers() -> None:
     normalized = " ".join(text.split())
 
     remaining_blockers = [
-        "Valid stopped runs may be excluded from default analysis reports.",
         "Simultaneous activation does not require a complete two-phase agent contract.",
         "Scheduler randomness and agent behavior share one RNG stream.",
         "Agent-collection-space lifecycle invariants are not uniformly enforced.",
@@ -124,11 +123,24 @@ def test_simulation_semantics_lists_remaining_public_alpha_blockers() -> None:
     for blocker in remaining_blockers:
         assert blocker in normalized
 
-    assert "Collection bulk operations may invoke agents removed earlier" not in normalized
-    assert (
-        "Removal-aware callback eligibility and strict integer-tick "
-        "event scheduling are now part of the current runtime guarantee." in normalized
-    )
+    resolved_guarantees = [
+        "Removal-aware callback eligibility",
+        "strict integer-tick event scheduling",
+        "separation of execution status from analysis eligibility",
+        "are now part of the current runtime guarantee",
+    ]
+
+    for guarantee in resolved_guarantees:
+        assert guarantee in normalized
+
+    resolved_blockers = [
+        "Collection bulk operations may invoke agents removed earlier",
+        "Fractional event times are accepted without exact fractional-time execution",
+        "Valid stopped runs may be excluded from default analysis reports",
+    ]
+
+    for blocker in resolved_blockers:
+        assert blocker not in normalized
 
 
 def test_related_pages_document_activation_eligibility() -> None:
@@ -142,3 +154,21 @@ def test_related_pages_document_activation_eligibility() -> None:
     assert "## Activation-Pass Removal Semantics" in lifecycle
     assert "An agent removed before its turn is skipped" in lifecycle
     assert "identity equality with the object currently stored" in lifecycle
+
+
+def test_simulation_semantics_documents_stopped_run_eligibility() -> None:
+    text = _read(SEMANTICS_DOC)
+    normalized = " ".join(text.split())
+
+    expected = [
+        "Execution status and scientific analysis eligibility are separate concepts",
+        "`completed` and `stopped` runs as analysis-eligible",
+        "at least one numeric final model metric is available",
+        "`analysis_eligibility.csv`",
+        "separation of execution status from analysis eligibility are now part",
+    ]
+
+    for statement in expected:
+        assert statement in normalized
+
+    assert "Valid stopped runs may be excluded from default analysis reports" not in normalized
