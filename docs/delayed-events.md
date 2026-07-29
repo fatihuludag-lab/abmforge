@@ -1,8 +1,8 @@
 # Delayed Events
 
 > **Normative semantics:** This page documents the event-queue API. The
-> authoritative description of fixed-step event phases, fractional-time
-> limitations, same-time scheduling, and target event-time guarantees is
+> authoritative description of fixed-step integer ticks, event phases,
+> same-tick scheduling, and current event-time guarantees is
 > [Simulation Semantics V1](simulation-semantics-v1.md).
 
 ABMForge includes a deterministic event queue for delayed model actions. Each
@@ -10,6 +10,51 @@ model owns an `EventQueue` instance at `model.events`.
 
 The event queue is useful when a model needs work to happen at a later model
 time without encoding the delay directly inside every agent's `step()` method.
+
+## Fixed-Step Integer-Tick Contract
+
+The built-in model runner advances simulation time in steps of `1.0`.
+Delayed events therefore use non-negative integer-valued simulation ticks.
+
+Accepted examples:
+
+```python
+model.events.schedule_at(3, callback=callback)
+model.events.schedule_at(3.0, callback=callback)
+model.events.schedule_after(2, callback=callback)
+model.events.schedule_after(2.0, callback=callback)
+```
+
+Integer-valued floats such as `1.0` are accepted and normalized to
+`float`.
+
+Rejected examples:
+
+```python
+model.events.schedule_at(0.5, callback=callback)
+model.events.schedule_after(1.25, callback=callback)
+model.events.schedule_at(True, callback=callback)
+model.events.schedule_after("2", callback=callback)
+```
+
+The fixed-step contract rejects:
+
+- fractional absolute event times;
+- fractional delays;
+- Boolean values;
+- strings and objects accepted only through implicit numeric coercion;
+- non-finite values;
+- negative delays;
+- absolute times earlier than the current model time.
+
+A rejected scheduling request does not:
+
+- consume an event identifier;
+- create a pending event;
+- write an event record.
+
+The built-in fixed-step event queue is not a continuous-time or general
+discrete-event simulation engine.
 
 ## Scheduling events
 

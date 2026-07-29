@@ -189,9 +189,10 @@ No plugin or scheduler may silently reorder these phases.
 
 ## 4. Event-time semantics
 
-### 4.1 Current behavior
+### 4.1 Current fixed-step contract
 
-The event queue currently accepts finite numeric event times.
+The built-in fixed-step execution profile accepts only finite,
+integer-valued event ticks.
 
 Events may be scheduled using:
 
@@ -200,52 +201,82 @@ model.events.schedule_at(time, callback=...)
 model.events.schedule_after(delay, callback=...)
 ```
 
+Accepted values include integers and integer-valued floats:
+
+```python
+model.events.schedule_at(2, callback=callback)
+model.events.schedule_at(2.0, callback=callback)
+model.events.schedule_after(1, callback=callback)
+model.events.schedule_after(1.0, callback=callback)
+```
+
+Accepted values are normalized to `float` for queue storage and ordering.
+
+The current contract rejects:
+
+- fractional absolute event times;
+- fractional delays;
+- Boolean values;
+- strings and objects accepted only through implicit numeric coercion;
+- non-finite values;
+- negative delays;
+- absolute event times earlier than the current model time.
+
+A rejected scheduling request does not:
+
+- consume an event identifier;
+- create a pending event;
+- write an event record.
+
+### 4.2 Execution timing
+
+For an event scheduled at tick `t`, the fixed-step runner processes the
+event before `model.step()` when `model.time == t`.
+
 Pending events are ordered by:
 
 ```text
-event time
-→ priority
-→ insertion sequence
-→ event identifier
+event tick
+-> priority
+-> insertion sequence
+-> event identifier
 ```
 
-Lower tuple values execute first.
+`process_due(time=t)` executes pending events whose scheduled tick is less
+than or equal to `t`.
 
-`process_due(time=t)` executes pending events whose scheduled time is less than or equal to `t`.
+Because fractional event times are rejected during scheduling, the built-in
+runner cannot silently delay a fractional event until the next integer
+model time.
 
-### 4.2 Current fractional-time limitation
+The fixed-step profile is not a continuous-time or general discrete-event
+simulation engine.
 
-The queue accepts fractional event times, but the fixed-step model runner advances time only by `1.0`.
+### 4.3 Same-tick event behavior
 
-For example, an event scheduled at `0.5` is not guaranteed to execute at simulation time `0.5`. The fixed-step runner does not advance the model clock to the next pending event time.
+During `process_due(time=t)`, an event callback may schedule another event
+for tick `t`.
 
-Therefore, the current fixed-step execution profile must not be treated as a continuous-time or general discrete-event simulation engine.
+Because the queue continues draining while due events remain, the newly
+scheduled event may execute during the same event-processing call.
 
-### 4.3 Same-time event behavior
+An event scheduled for the current tick from inside `model.step()` is
+created after the pre-step event drain. It therefore executes during a
+later event-processing phase.
 
-During `process_due(time=t)`, an event callback may schedule another event due at `t`.
+This callback-context distinction is current behavior.
 
-Because the queue is drained while due events remain, that newly scheduled event may execute during the same event-processing call.
+### 4.4 Remaining event-system work
 
-By contrast, an event scheduled for the current time from inside `model.step()` is created after the pre-step event drain. It will not execute until a later event-processing phase.
+Future event-system revisions should:
 
-This callback-context difference is current behavior, not yet a stable target guarantee.
-
-### 4.4 Target public-alpha contract
-
-The public-alpha fixed-step profile will use non-negative integer event ticks.
-
-Under the target contract:
-
-* fractional absolute event times will be rejected;
-* fractional delays will be rejected;
-* negative, non-finite, and past event times will be rejected;
-* every event will expose its requested execution tick;
-* event records will distinguish scheduling time from execution time;
-* same-tick scheduling behavior will be defined for every phase;
-* recursive same-tick scheduling will have a resource-safety policy.
-
-A future event-driven or hybrid execution profile must use a separate, explicitly experimental clock contract.
+- distinguish event creation, requested execution, and actual execution
+  timestamps in event records;
+- define a resource-safety policy for recursive same-tick scheduling;
+- formalize any post-step event phase;
+- version the event-time and event-phase policies in run metadata;
+- use a separate experimental profile for hybrid or continuous-time
+  simulation.
 
 ---
 
@@ -770,7 +801,7 @@ The manifest and snapshot contracts must record the stream-derivation version an
 | Topic | Current guarantee | Not currently guaranteed |
 |---|---|---|
 | Fixed-step time | `steps += 1` and `time += 1.0` after a completed model step | Variable-step or continuous-time execution |
-| Events | Due events are processed before `model.step()` | Exact fractional-time event execution |
+| Event times | Finite integer-valued ticks with strict input validation | Hybrid or continuous-time execution |
 | Event ordering | Time, priority, sequence, and event identifier | Context-independent same-time scheduling semantics |
 | Collection `do()` | Insertion-order candidate snapshot with callback-time identity, membership, and liveness validation | Activation of agents added during the current pass |
 | Collection `shuffle_do()` | Seeded candidate-snapshot permutation with callback-time eligibility validation | Independent scheduler RNG stream |
@@ -791,21 +822,19 @@ The manifest and snapshot contracts must record the stream-derivation version an
 The following issues must still be resolved before the fixed-step execution
 profile can be treated as public-alpha semantics:
 
-1. Fractional event times are accepted without exact fractional-time
-   execution.
-2. Valid stopped runs may be excluded from default analysis reports.
-3. Simultaneous activation does not require a complete two-phase agent
+1. Valid stopped runs may be excluded from default analysis reports.
+2. Simultaneous activation does not require a complete two-phase agent
    contract.
-4. Scheduler randomness and agent behavior share one RNG stream.
-5. Agent-collection-space lifecycle invariants are not uniformly enforced.
-6. Canonical models lack sufficient scientific invariant and metamorphic
+3. Scheduler randomness and agent behavior share one RNG stream.
+4. Agent-collection-space lifecycle invariants are not uniformly enforced.
+5. Canonical models lack sufficient scientific invariant and metamorphic
    tests.
 
-Removal-aware callback eligibility for collection bulk operations and all
-built-in schedulers is now part of the current runtime guarantee.
+Removal-aware callback eligibility and strict integer-tick event scheduling
+are now part of the current runtime guarantee.
 
-These remaining items concern correctness and scientific interpretation rather
-than cosmetic API preferences.
+These remaining items concern correctness and scientific interpretation
+rather than cosmetic API preferences.
 
 ## 17. Model-author responsibilities
 
@@ -813,7 +842,7 @@ Until the target contracts are implemented, model authors should:
 
 1. document the scheduler and activation order;
 2. use `Model.remove_agent(...)` when full lifecycle cleanup is required; direct collection removal changes collection membership only;
-3. use integer event times in the fixed-step profile;
+3. use finite integer event ticks in the fixed-step profile;
 4. implement explicit current/next state buffers for simultaneous models;
 5. record all random sources and avoid untracked third-party randomness;
 6. define whether stopped runs are scientifically valid;
@@ -873,22 +902,22 @@ Such changes require:
 
 The current ABMForge runtime is best described as:
 
-> A fixed-step Python ABM execution profile with pre-step event processing,
-> candidate-snapshot activation, callback-time identity and membership
-> validation, deferred same-pass additions, immediate removal visibility,
-> post-step observation, and multiple built-in activation strategies.
+> A fixed-step Python ABM execution profile with finite integer event ticks,
+> pre-step event processing, candidate-snapshot activation, callback-time
+> identity and membership validation, deferred same-pass additions,
+> immediate removal visibility, post-step observation, and multiple built-in
+> activation strategies.
 
-Removal-aware activation now guarantees that an agent removed before its next
-callback is skipped, even when an earlier candidate snapshot still contains
-the object.
+Fractional event times and implicit numeric coercion are rejected during
+scheduling, preventing events from being silently executed later than
+requested.
 
 The remaining target public-alpha contract adds:
 
-> Integer event ticks, scientifically safe stopped-run reporting, strict
-> two-phase simultaneous activation, named random streams, uniform
-> model-collection-space lifecycle integrity, and scientifically verified
-> reference models.
+> Scientifically safe stopped-run reporting, strict two-phase simultaneous
+> activation, named random streams, uniform model-collection-space lifecycle
+> integrity, and scientifically verified reference models.
 
-Researchers must continue to report the exact ABMForge version or commit and
-the model-specific scheduling, randomness, observation, and lifecycle
-assumptions used in their studies.
+Researchers must report the exact ABMForge version or commit and the
+model-specific scheduling, event-time, randomness, observation, and
+lifecycle assumptions used in their studies.

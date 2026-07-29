@@ -400,8 +400,15 @@ Scheduled event object.
 
 Priority queue for scheduled events.
 
-Time and event semantics are still evolving. Users should treat advanced event
-behavior as provisional until the time model is finalized.
+The built-in fixed-step execution profile accepts only finite,
+integer-valued event ticks. `schedule_at(...)` rejects fractional or past
+ticks, while `schedule_after(...)` rejects fractional or negative delays.
+Boolean values, strings, and objects accepted only through implicit numeric
+coercion are rejected.
+
+Integer-valued floats such as `1.0` are accepted. Advanced same-tick phase
+behavior, hybrid or continuous-time execution, and executable event replay
+remain provisional.
 
 ## Space API
 

@@ -59,24 +59,25 @@ def test_simulation_semantics_documents_removal_aware_activation() -> None:
 
 def test_simulation_semantics_documents_known_limitations() -> None:
     text = _read(SEMANTICS_DOC)
+    normalized = " ".join(text.split())
 
     expected_statements = [
         "does not automatically isolate current and next state",
         "does not automatically collect an initial time-zero observation",
         "does not provide transactional rollback",
         "does not provide component-independent random streams",
-        "must not be treated as a continuous-time",
+        "is not a continuous-time or general discrete-event simulation engine",
     ]
 
     for statement in expected_statements:
-        assert statement in text
+        assert statement in normalized
 
 
 def test_simulation_semantics_documents_remaining_target_contracts() -> None:
     text = _read(SEMANTICS_DOC)
 
     expected_statements = [
-        "fractional absolute event times will be rejected",
+        "distinguish event creation, requested execution, and actual execution",
         "require an explicit two-phase capability",
         "versioned named streams",
         "Execution status and scientific analysis eligibility",
@@ -113,7 +114,6 @@ def test_simulation_semantics_lists_remaining_public_alpha_blockers() -> None:
     normalized = " ".join(text.split())
 
     remaining_blockers = [
-        "Fractional event times are accepted without exact fractional-time execution.",
         "Valid stopped runs may be excluded from default analysis reports.",
         "Simultaneous activation does not require a complete two-phase agent contract.",
         "Scheduler randomness and agent behavior share one RNG stream.",
@@ -125,7 +125,10 @@ def test_simulation_semantics_lists_remaining_public_alpha_blockers() -> None:
         assert blocker in normalized
 
     assert "Collection bulk operations may invoke agents removed earlier" not in normalized
-    assert "Removal-aware callback eligibility for collection bulk operations" in normalized
+    assert (
+        "Removal-aware callback eligibility and strict integer-tick "
+        "event scheduling are now part of the current runtime guarantee." in normalized
+    )
 
 
 def test_related_pages_document_activation_eligibility() -> None:
