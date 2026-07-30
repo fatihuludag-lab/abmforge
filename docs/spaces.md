@@ -1,5 +1,9 @@
 # Spaces
 
+> **Normative semantics:** Built-in placement, movement, identity, and
+> removal guarantees are defined in
+> [Simulation Semantics V1](simulation-semantics-v1.md).
+
 ABMForge supports several environment types for agent interaction.
 
 ## GridWorld
@@ -93,6 +97,33 @@ space.place(agent, (32.8597, 39.9334))
 distance_km = space.distance(agent_a, agent_b)
 geojson = space.to_geojson()
 ```
+
+## Referential-integrity contract
+
+`GridWorld`, `ContinuousSpace`, `GISSpace`, and `NetworkSpace` use a shared
+referential-integrity contract.
+
+A placed identifier refers to the same agent object stored in the space.
+An object with the same identifier but a different object cannot inspect,
+move, remove, or replace the placed agent.
+
+An agent that already belongs to another space cannot be placed into a second
+built-in space before spatial removal from the first space.
+
+Successful removal from a built-in space clears all position, occupancy,
+node, and identity indexes. Built-in spaces clear both `agent.pos` and `agent.world` after successful removal.
+
+`space.remove(agent)` is spatial unplacement only. It does not change
+collection membership, lifecycle status, owned events, or lifecycle records.
+
+For complete lifecycle removal, use `AgentCollection.remove(...)` or
+`Model.remove_agent(...)`.
+
+A failed placement or removal request leaves existing indexes unchanged when
+referential-integrity validation rejects the request.
+
+`NetworkSpace.place(...)` may move the same already-placed agent object to
+another node. A different object using the same identifier is rejected.
 
 ## Choosing a Space
 

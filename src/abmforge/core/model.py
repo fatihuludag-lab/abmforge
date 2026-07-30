@@ -191,26 +191,97 @@ class Model:
         self.stop_reason = reason
         self.status = STOPPED
 
-    def remove_agent(self, agent_or_id: Any) -> None:
-        """Remove an agent from the model, world, and owned event queue entries."""
-        unique_id = getattr(agent_or_id, "unique_id", agent_or_id)
-        agent = self.agents.get(unique_id)
-        if hasattr(agent_or_id, "model") and agent_or_id.model is not self:
+    def remove_agent(
+        self,
+        agent_or_id: Any,
+    ) -> Agent:
+        """Remove an agent under the managed lifecycle contract."""
+        unique_id = getattr(
+            agent_or_id,
+            "unique_id",
+            agent_or_id,
+        )
+
+        if (
+            hasattr(
+                agent_or_id,
+                "model",
+            )
+            and agent_or_id.model is not self
+        ):
             raise ValueError("agent does not belong to this model")
 
-        if agent is None:
-            raise KeyError(f"Agent not found: {unique_id}")
+        agent = self.agents.get(unique_id)
 
-        agent.is_alive = False
-        agent.lifecycle_status = REMOVED
-        self.events.cancel_by_owner(unique_id)
+        if (
+            hasattr(
+                agent_or_id,
+                "unique_id",
+            )
+            and agent is not agent_or_id
+        ):
+            raise ValueError("agent is not the current agent object for this model")
 
-        if self.world is not None and hasattr(self.world, "remove"):
+        agent_world = getattr(
+            agent,
+            "world",
+            None,
+        )
+
+        if agent_world is not None:
+            remove_from_world = getattr(
+                agent_world,
+                "remove",
+                None,
+            )
+
+            if not callable(remove_from_world):
+                raise TypeError("agent world does not implement remove()")
+
+            # Spatial cleanup happens before lifecycle mutation. A space
+            # failure therefore leaves collection membership, lifecycle
+            # state, owned events, and records unchanged.
+            remove_from_world(agent)
+
+        elif self.world is not None and hasattr(
+            self.world,
+            "remove",
+        ):
+            # An attached model world may not contain every model agent.
             with suppress(KeyError):
                 self.world.remove(agent)
 
-        self.agents.remove(unique_id)
-        self.record.lifecycle("agent_removed", agent_id=unique_id)
+        if hasattr(
+            agent,
+            "pos",
+        ):
+            delattr(
+                agent,
+                "pos",
+            )
+
+        if hasattr(
+            agent,
+            "world",
+        ):
+            delattr(
+                agent,
+                "world",
+            )
+
+        self.events.cancel_by_owner(unique_id)
+
+        removed = self.agents._remove_direct(agent)
+
+        agent.is_alive = False
+        agent.lifecycle_status = REMOVED
+
+        self.record.lifecycle(
+            "agent_removed",
+            agent_id=unique_id,
+        )
+
+        return removed
 
     @classmethod
     def from_snapshot(

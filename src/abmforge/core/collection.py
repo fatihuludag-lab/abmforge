@@ -4,6 +4,7 @@ from collections.abc import Callable, Iterable, Iterator
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from abmforge.core.agent import Agent
+from abmforge.core.agent_lifecycle import ACTIVE
 
 if TYPE_CHECKING:
     from abmforge.core.model import Model
@@ -42,6 +43,9 @@ class AgentCollection:
         if agent.model is not self.model:
             raise ValueError("agent belongs to another model")
 
+        if not agent.is_alive or agent.lifecycle_status != ACTIVE:
+            raise ValueError("agent collection accepts only an active living agent")
+
         if agent.unique_id in self._agents:
             raise ValueError(f"agent id already exists: {agent.unique_id!r}")
 
@@ -67,12 +71,11 @@ class AgentCollection:
             created.append(agent)
         return created
 
-    def remove(
+    def _resolve_current_agent(
         self,
         agent_or_id: Agent | int | str,
     ) -> Agent:
-        """Remove and return an agent."""
-
+        """Return the current collection object for an agent or id."""
         if isinstance(agent_or_id, Agent):
             stored = self._agents.get(agent_or_id.unique_id)
 
@@ -82,15 +85,28 @@ class AgentCollection:
             if stored is not agent_or_id:
                 raise ValueError("agent does not belong to this collection")
 
-            unique_id = agent_or_id.unique_id
-
-        else:
-            unique_id = agent_or_id
+            return stored
 
         try:
-            return self._agents.pop(unique_id)
+            return self._agents[agent_or_id]
         except KeyError as exc:
-            raise KeyError(f"unknown agent id: {unique_id!r}") from exc
+            raise KeyError(f"unknown agent id: {agent_or_id!r}") from exc
+
+    def remove(
+        self,
+        agent_or_id: Agent | int | str,
+    ) -> Agent:
+        """Remove an agent through the model lifecycle contract."""
+        agent = self._resolve_current_agent(agent_or_id)
+        return self.model.remove_agent(agent)
+
+    def _remove_direct(
+        self,
+        agent_or_id: Agent | int | str,
+    ) -> Agent:
+        """Remove only the collection entry for model-internal cleanup."""
+        agent = self._resolve_current_agent(agent_or_id)
+        return self._agents.pop(agent.unique_id)
 
     def get(self, unique_id: int | str) -> Agent:
         """Return an agent by id."""
