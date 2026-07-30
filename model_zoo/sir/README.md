@@ -30,40 +30,52 @@ python run.py
 ## Model Parameters
 
 | Parameter | Description |
-|------------|-------------|
-| population_size | Number of agents |
-| initial_infected | Initially infected agents |
-| infection_probability | Transmission probability |
-| recovery_probability | Recovery probability |
-| max_steps | Maximum simulation steps |
+|---|---|
+| `width` | Width of the toroidal grid |
+| `height` | Height of the toroidal grid |
+| `n_agents` | Number of persons |
+| `initial_infected` | Number of initially infected persons |
+| `infection_prob` | Per-contact transmission probability |
+| `recovery_prob` | Per-activation recovery probability |
+| `steps` | Number of scenario or CLI execution steps |
 
-## Expected Behavior
+## Update Semantics
 
-Typical simulation dynamics:
+The model uses asynchronous random activation.
 
-1. A small number of agents start infected.
-2. Infection spreads through contacts.
-3. The infected population reaches a peak.
-4. Recovery dominates.
-5. The epidemic eventually ends.
+An infected person can infect a susceptible neighbour by changing that
+neighbour's state immediately. When the newly infected person is activated
+later in the same scheduler pass, it may transmit infection during that same
+pass.
 
-## Example Output
+The model is therefore an agent-based spatial SIR teaching model rather than
+a discrete-time compartmental SIR difference equation.
 
-```text
-Step 0   : S=990 I=10 R=0
-Step 20  : S=820 I=150 R=30
-Step 40  : S=420 I=320 R=260
-Step 60  : S=180 I=110 R=710
-Step 100 : S=120 I=0 R=880
-```
+## Scientific Verification
 
-## Generated Datasets
+Executable checks are provided in
+`tests/test_model_zoo_scientific_validation.py`.
 
-The example can export:
+Verified properties include:
 
-- agent_state.csv
-- model_state.csv
-- event_log.csv
+- the population identity `S + I + R = N`;
+- Susceptible counts do not increase;
+- Recovered counts do not decrease;
+- attack rate equals `(I + R) / N` and does not decrease;
+- No initial infection is an absorbing state;
+- `infection_prob = 0` prevents new cases;
+- `recovery_prob = 0` prevents recovery;
+- disease states remain within `S`, `I`, and `R`;
+- same-seed trajectory reproducibility;
+- recorded model metrics obey the same invariants.
+
+## Interpretation Limits
+
+The stochastic asynchronous model does not guarantee a single epidemic peak,
+does not guarantee epidemic extinction within a fixed number of steps, and
+does not imply empirical calibration.
+
+Example epidemic curves are illustrative rather than fixed reference outputs.
 
 ## Scientific Background
 

@@ -36,6 +36,70 @@ Demonstrates:
 - Population dynamics
 - Epidemiological simulation
 
+## Scientific verification contract
+
+The canonical Schelling and SIR models have executable scientific verification
+in `tests/test_model_zoo_scientific_validation.py`.
+
+The suite covers:
+
+- conservation and state-transition invariants;
+- deterministic boundary conditions;
+- model-specific metamorphic relations;
+- same-seed trajectory reproducibility;
+- consistency between recorded metrics and model state.
+
+This evidence verifies internal model logic against the documented model
+contract. It does not constitute empirical validation or calibration against
+observed social or epidemiological data.
+
+### SIR verified properties
+
+The SIR model uses asynchronous random activation. A newly infected person may
+therefore be activated later in the same scheduler pass and transmit infection
+again during that pass.
+
+Verified properties include:
+
+- `S + I + R = N`;
+- susceptible counts do not increase;
+- recovered counts do not decrease;
+- attack rate equals `(I + R) / N` and does not decrease;
+- no initial infection is an absorbing state;
+- zero infection probability prevents new cases;
+- zero recovery probability prevents recovery;
+- infection probability is irrelevant when every person is already infected;
+- same-seed trajectory reproducibility;
+- recorded epidemic metrics satisfy the same invariants.
+
+These tests do not require infected counts to be monotone, do not require a
+single epidemic peak, and do not require every finite run to end with zero
+infected agents.
+
+### Schelling verified properties
+
+Verified properties include:
+
+- population, group membership, and vacancy conservation;
+- unique single-cell occupancy;
+- valid ranges for mean similarity and unhappy-household counts;
+- zero-density, single-group, and zero-homophily boundary behavior;
+- group-label swap symmetry;
+- a non-decreasing unhappy-household count as homophily increases on a fixed
+  spatial configuration;
+- same-seed trajectory reproducibility;
+- synchronization of the recorded `happy` state with the final post-step
+  spatial configuration;
+- consistency of recorded population, vacancy, similarity, and unhappiness
+  metrics.
+
+The tests do not claim that higher homophily produces greater segregation in
+every stochastic run. Such a claim would require an explicitly designed
+multi-seed statistical experiment and a declared segregation measure.
+
+This verification does not claim that higher homophily produces greater
+segregation in every stochastic run.
+
 ## Planned Models
 
 ### Opinion Dynamics

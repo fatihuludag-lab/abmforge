@@ -19,7 +19,9 @@ def test_simulation_semantics_document_declares_its_status() -> None:
         "**Current behavior**",
         "**Target contract**",
         "**Unsupported behavior**",
-        "## 16. Public-alpha semantic blockers",
+        "**Stability:** Public-alpha semantic baseline",
+        "## 16. Public-alpha semantic status",
+        "No unresolved public-alpha semantic blockers remain",
     ]
 
     for item in expected_content:
@@ -106,41 +108,37 @@ def test_mkdocs_navigation_includes_semantics_document() -> None:
     assert text.count(expected_entry) == 1
 
 
-def test_simulation_semantics_lists_remaining_public_alpha_blockers() -> None:
+def test_simulation_semantics_reports_public_alpha_completion() -> None:
     text = _read(SEMANTICS_DOC)
     normalized = " ".join(text.split())
 
-    remaining_blockers = [
+    expected = [
+        "## 16. Public-alpha semantic status",
+        "No unresolved public-alpha semantic blockers remain",
+        (
+            "Canonical Model Zoo models now include explicit scientific "
+            "invariant, boundary-case, metamorphic, and same-seed "
+            "trajectory tests"
+        ),
+        "does not constitute empirical validation or calibration",
+        "public-alpha semantic baseline",
+        "scientific reference-model verification",
+    ]
+
+    for statement in expected:
+        assert statement in normalized
+
+    obsolete = [
         "Canonical models lack sufficient scientific invariant and metamorphic tests.",
+        (
+            "before the fixed-step execution profile can be treated as "
+            "complete public-alpha semantics"
+        ),
+        "The remaining item concerns scientific interpretation",
     ]
 
-    for blocker in remaining_blockers:
-        assert blocker in normalized
-
-    resolved_guarantees = [
-        "Removal-aware callback eligibility",
-        "strict integer-tick event scheduling",
-        "separation of execution status from analysis eligibility",
-        "strict two-phase simultaneous activation",
-        "named scheduler random streams",
-        "uniform collection-space lifecycle integrity",
-        "are now part of the current runtime guarantee",
-    ]
-
-    for guarantee in resolved_guarantees:
-        assert guarantee in normalized
-
-    resolved_blockers = [
-        "Collection bulk operations may invoke agents removed earlier",
-        "Fractional event times are accepted without exact fractional-time execution",
-        "Valid stopped runs may be excluded from default analysis reports",
-        "Simultaneous activation does not require a complete two-phase agent contract",
-        "Scheduler randomness and agent behavior share one RNG stream",
-        "Agent-collection-space lifecycle invariants are not uniformly enforced",
-    ]
-
-    for blocker in resolved_blockers:
-        assert blocker not in normalized
+    for statement in obsolete:
+        assert statement not in normalized
 
 
 def test_related_pages_document_activation_eligibility() -> None:
@@ -166,7 +164,7 @@ def test_simulation_semantics_documents_stopped_run_eligibility() -> None:
         "at least one numeric final model metric is available",
         "`analysis_eligibility.csv`",
         "separation of execution status from analysis eligibility",
-        "are now part of the current runtime guarantee",
+        "The resolved public-alpha semantic baseline includes",
     ]
 
     for statement in expected:
@@ -187,7 +185,7 @@ def test_simulation_semantics_documents_strict_two_phase_activation() -> None:
         "all remaining eligible `step()` callbacks",
         "all remaining eligible `advance()` callbacks",
         "explicit callable no-op `advance()` method",
-        "Strict two-phase simultaneous activation is now part",
+        ("Strict two-phase simultaneous activation is part of the current runtime guarantee"),
     ]
 
     for statement in expected:
@@ -249,7 +247,6 @@ def test_simulation_semantics_documents_managed_lifecycle_integrity() -> None:
         "Built-in spaces clear both `agent.pos` and `agent.world`",
         "`space.remove(...)` is spatial unplacement only",
         "uniform collection-space lifecycle integrity",
-        "Canonical models lack sufficient scientific invariant and metamorphic tests.",
     ]
 
     for statement in expected:
@@ -257,6 +254,7 @@ def test_simulation_semantics_documents_managed_lifecycle_integrity() -> None:
 
     obsolete = [
         "Direct `AgentCollection.remove(...)` changes collection membership.",
+        "Direct collection removal changes collection membership.",
         "Complete lifecycle cleanup from direct collection removal",
         "Agent-collection-space lifecycle invariants are not uniformly enforced.",
         "direct collection removal changes collection membership only",

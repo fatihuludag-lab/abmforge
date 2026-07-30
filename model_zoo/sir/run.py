@@ -3,14 +3,20 @@ from __future__ import annotations
 import argparse
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from abmforge import ODDDocument, ReproducibilityManifest, Scenario
 
-try:
+if TYPE_CHECKING:
     from model_zoo.sir.model import SIRModel
-except ModuleNotFoundError:
-    from model import SIRModel
+else:
+    try:
+        from model_zoo.sir.model import SIRModel
+    except ModuleNotFoundError as exc:
+        if exc.name != "model_zoo":
+            raise
+
+        from model import SIRModel
 
 
 def build_odd_document() -> ODDDocument:

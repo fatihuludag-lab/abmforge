@@ -97,10 +97,10 @@ def test_fractional_time_is_removed_from_public_alpha_blockers() -> None:
     assert "Fractional event times are accepted without exact fractional-time execution" not in text
 
     resolved_guarantees = [
-        "Removal-aware callback eligibility",
+        "No unresolved public-alpha semantic blockers remain",
+        "The resolved public-alpha semantic baseline includes",
         "strict integer-tick event scheduling",
         "separation of execution status from analysis eligibility",
-        "are now part of the current runtime guarantee",
     ]
 
     for guarantee in resolved_guarantees:

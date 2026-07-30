@@ -22,8 +22,10 @@ class Person(Agent):
             if getattr(neighbour, "state", None) != "S":
                 continue
 
+            susceptible = cast("Person", neighbour)
+
             if self.rng.random() < model.infection_prob:
-                neighbour.state = "I"
+                susceptible.state = "I"
 
         if self.rng.random() < model.recovery_prob:
             self.state = "R"
@@ -88,10 +90,22 @@ class SIRModel(Model):
             )
             self.world.place(person, position)
 
-        self.record.metric("susceptible", lambda model: model.count_state("S"))
-        self.record.metric("infected", lambda model: model.count_state("I"))
-        self.record.metric("recovered", lambda model: model.count_state("R"))
-        self.record.metric("attack_rate", lambda model: model.attack_rate())
+        self.record.metric(
+            "susceptible",
+            lambda model: cast("SIRModel", model).count_state("S"),
+        )
+        self.record.metric(
+            "infected",
+            lambda model: cast("SIRModel", model).count_state("I"),
+        )
+        self.record.metric(
+            "recovered",
+            lambda model: cast("SIRModel", model).count_state("R"),
+        )
+        self.record.metric(
+            "attack_rate",
+            lambda model: cast("SIRModel", model).attack_rate(),
+        )
         self.record.agent("state")
 
     def step(self) -> None:

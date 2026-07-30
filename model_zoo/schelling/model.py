@@ -36,6 +36,7 @@ class Household(Agent):
 
         if not self.happy:
             model.move_to_random_empty_cell(self)
+            self.happy = model.is_happy(self)
 
 
 class SchellingModel(Model):
@@ -84,16 +85,41 @@ class SchellingModel(Model):
             household = self.agents.create(Household, n=1, group=group, happy=True)[0]
             self.world.place(household, cells[int(position_index)])
 
-        self.record.metric("population", lambda model: model.agents.count())
-        self.record.metric("empty_cells", lambda model: len(model.empty_cells()))
-        self.record.metric("mean_similarity", lambda model: model.mean_similarity())
-        self.record.metric("unhappy_households", lambda model: model.unhappy_count())
+        self.record.metric(
+            "population",
+            lambda model: cast("SchellingModel", model).agents.count(),
+        )
+        self.record.metric(
+            "empty_cells",
+            lambda model: len(cast("SchellingModel", model).empty_cells()),
+        )
+        self.record.metric(
+            "mean_similarity",
+            lambda model: cast(
+                "SchellingModel",
+                model,
+            ).mean_similarity(),
+        )
+        self.record.metric(
+            "unhappy_households",
+            lambda model: cast(
+                "SchellingModel",
+                model,
+            ).unhappy_count(),
+        )
         self.record.agent("group")
         self.record.agent("happy")
 
     def step(self) -> None:
         """Advance the model by one random-activation step."""
         self.scheduler.step()
+        self.refresh_happiness()
+
+    def refresh_happiness(self) -> None:
+        """Synchronize happiness with the final post-step spatial state."""
+        for agent in self.agents:
+            if isinstance(agent, Household):
+                agent.happy = self.is_happy(agent)
 
     def empty_cells(self) -> list[tuple[int, int]]:
         """Return all empty grid cells."""

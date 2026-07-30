@@ -3,14 +3,20 @@ from __future__ import annotations
 import argparse
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from abmforge import ODDDocument, ReproducibilityManifest, Scenario
 
-try:
+if TYPE_CHECKING:
     from model_zoo.schelling.model import SchellingModel
-except ModuleNotFoundError:
-    from model import SchellingModel
+else:
+    try:
+        from model_zoo.schelling.model import SchellingModel
+    except ModuleNotFoundError as exc:
+        if exc.name != "model_zoo":
+            raise
+
+        from model import SchellingModel
 
 
 def build_odd_document() -> ODDDocument:
