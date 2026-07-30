@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -87,6 +88,7 @@ def test_manifest_from_dataset_contains_required_metadata() -> None:
     assert data["git"] is None
     assert data["packages"] is None
     assert data["metadata"]["purpose"] == "unit-test"
+    assert data["metadata"]["rng_stream_policy"] == "named-rng-streams-v1"
 
 
 def test_manifest_write_to_directory(tmp_path) -> None:  # type: ignore[no-untyped-def]
@@ -140,6 +142,7 @@ def test_manifest_from_run_result() -> None:
     assert data["abmforge_version"] == abmforge.__version__
     assert data["metadata"]["run_result_status"] == result.status
     assert data["metadata"]["run_result_steps"] == result.steps
+    assert data["metadata"]["rng_stream_policy"] == "named-rng-streams-v1"
 
 
 def test_manifest_content_hash_is_stable_for_same_content() -> None:
@@ -210,3 +213,34 @@ def test_manifest_rejects_invalid_artifact_records() -> None:
 
     with pytest.raises(ValueError, match="sha256"):
         manifest.validate()
+
+
+def test_manifest_rng_stream_policy_cannot_be_overridden() -> None:
+    manifest = ReproducibilityManifest.from_dataset(
+        _sample_dataset(),
+        include_git=False,
+        include_packages=False,
+        include_command=False,
+        metadata={
+            "rng_stream_policy": "user-supplied-invalid-policy",
+        },
+    )
+
+    assert manifest.metadata["rng_stream_policy"] == "named-rng-streams-v1"
+
+
+def test_manifest_docs_describe_named_rng_policy() -> None:
+    text = Path("docs/reproducibility-manifest-v1.md").read_text(
+        encoding="utf-8",
+    )
+    normalized = " ".join(text.split())
+
+    expected = [
+        "`metadata.rng_stream_policy`",
+        "`named-rng-streams-v1`",
+        "does not store generator continuation state",
+        "Snapshots store RNG continuation state",
+    ]
+
+    for statement in expected:
+        assert statement in normalized

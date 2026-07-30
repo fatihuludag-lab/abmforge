@@ -59,7 +59,8 @@ environment, and same seed produce the same model trajectory.
 
 ABMForge supports this through:
 
-- model-level random number generation,
+- a default model and agent behavior generator,
+- named component streams for built-in scheduler randomness,
 - explicit scenario seeds,
 - deterministic scheduler behavior where applicable,
 - deterministic `NetworkSpace` iteration order,
@@ -70,7 +71,7 @@ control all sources of nondeterminism, such as:
 
 - Python's global `random` module,
 - unordered external data structures,
-- external libraries with their own random number generators,
+- external libraries and third-party random generators,
 - file system ordering,
 - parallel execution,
 - operating-system dependent behavior,
@@ -83,6 +84,15 @@ model = MyModel(seed=42)
 ```
 
 and avoid uncontrolled randomness inside model code.
+
+Built-in randomized activation uses `model.rng_stream("scheduler")`, while
+existing model and agent behavior continues to use the default `model.rng`
+stream. This prevents unrelated behavior draws from silently changing later
+built-in scheduler permutations.
+
+Models can request additional named component streams with
+`model.rng_stream("component-name")`. Stream names and the active policy should
+be treated as part of the experiment specification.
 
 ## Tier 2: Normalized Dataset Reproducibility
 
@@ -210,6 +220,10 @@ with equivalent behavior.
 
 ABMForge currently has snapshot-related helpers, but full replay/checkpoint
 reproducibility is experimental.
+
+Snapshots preserve the default RNG state, named-stream root material, and
+opened named stream states. This supports deterministic RNG continuation for
+the currently supported restore scope.
 
 Current limitations include:
 

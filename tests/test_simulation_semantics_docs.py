@@ -65,7 +65,6 @@ def test_simulation_semantics_documents_known_limitations() -> None:
         "does not automatically isolate current and next state",
         "does not automatically collect an initial time-zero observation",
         "does not provide transactional rollback",
-        "does not provide component-independent random streams",
         "is not a continuous-time or general discrete-event simulation engine",
     ]
 
@@ -78,7 +77,6 @@ def test_simulation_semantics_documents_remaining_target_contracts() -> None:
 
     expected_statements = [
         "distinguish event creation, requested execution, and actual execution",
-        "versioned named streams",
         "Execution status and scientific analysis eligibility",
     ]
 
@@ -113,7 +111,6 @@ def test_simulation_semantics_lists_remaining_public_alpha_blockers() -> None:
     normalized = " ".join(text.split())
 
     remaining_blockers = [
-        "Scheduler randomness and agent behavior share one RNG stream.",
         "Agent-collection-space lifecycle invariants are not uniformly enforced.",
         "Canonical models lack sufficient scientific invariant and metamorphic tests.",
     ]
@@ -126,6 +123,7 @@ def test_simulation_semantics_lists_remaining_public_alpha_blockers() -> None:
         "strict integer-tick event scheduling",
         "separation of execution status from analysis eligibility",
         "strict two-phase simultaneous activation",
+        "named scheduler random streams",
         "are now part of the current runtime guarantee",
     ]
 
@@ -137,6 +135,7 @@ def test_simulation_semantics_lists_remaining_public_alpha_blockers() -> None:
         "Fractional event times are accepted without exact fractional-time execution",
         "Valid stopped runs may be excluded from default analysis reports",
         "Simultaneous activation does not require a complete two-phase agent contract",
+        "Scheduler randomness and agent behavior share one RNG stream",
     ]
 
     for blocker in resolved_blockers:
@@ -198,6 +197,35 @@ def test_simulation_semantics_documents_strict_two_phase_activation() -> None:
         "does not currently require every participating agent to implement `advance()`",
         "an error when `advance()` is missing",
         "Simultaneous activation does not require a complete two-phase agent contract",
+    ]
+
+    for statement in obsolete:
+        assert statement not in normalized
+
+
+def test_simulation_semantics_documents_named_rng_streams() -> None:
+    text = _read(SEMANTICS_DOC)
+    normalized = " ".join(text.split())
+
+    expected = [
+        "`Model.rng` remains the default behavior stream",
+        "`Model.rng_stream(name)` returns a cached named stream",
+        "named `scheduler` stream",
+        "Stream creation order does not affect another stream",
+        "opened named stream states",
+        "Legacy snapshots containing only `rng_state` remain restorable",
+        "named scheduler random streams are now part",
+    ]
+
+    for statement in expected:
+        assert statement in normalized
+
+    obsolete = [
+        "generates a permutation using `model.rng`",
+        "uses the same model-level random-number generator",
+        "a fixed seed does not provide component-independent random streams",
+        "A future random-stream contract will assign scheduler activation",
+        "Scheduler randomness and agent behavior share one RNG stream",
     ]
 
     for statement in obsolete:

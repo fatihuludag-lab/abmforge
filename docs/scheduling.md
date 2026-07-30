@@ -12,7 +12,7 @@ Activation order is a modelling assumption. In agent-based modelling, changing t
 
 ## Built-in schedulers
 
-| Scheduler | Activation order | Uses model RNG | Skips dead agents | Typical use |
+| Scheduler | Activation order | Uses scheduler RNG | Skips dead agents | Typical use |
 |---|---|---:|---:|---|
 | `SequentialActivation` | Insertion order | no | yes | deterministic models |
 | `RandomActivation` | Random permutation | yes | yes | stochastic activation assumptions |
@@ -35,7 +35,7 @@ Use this when deterministic ordering is part of the model design or when you wan
 
 ## RandomActivation
 
-Activates living agents in a deterministic random order using the model-level random number generator.
+Activates living agents in a deterministic random order using the named `scheduler` random stream obtained from `model.rng_stream("scheduler")`.
 
 ```python
 from abmforge.scheduling import RandomActivation
@@ -45,7 +45,7 @@ self.scheduler = RandomActivation(self)
 
 Use this when random activation is part of the model assumption.
 
-Given the same model state and seed, `RandomActivation` should produce reproducible activation order.
+Given the same candidate history, model seed, and scheduler-stream draw history, `RandomActivation` produces reproducible activation order. The default `model.rng` stream remains available to model and agent behavior, so unrelated behavior draws do not change later activation order.
 
 ## SimultaneousActivation
 
@@ -175,6 +175,24 @@ scheduler semantics. Hooks must be callable when defined.
 The scheduler still operates on a snapshot of living agents selected at the
 beginning of the scheduler step. Agents spawned during a staged scheduler pass
 are not activated until a later pass.
+
+## Random-stream separation
+
+Randomized built-in activation paths use the named `scheduler` random stream:
+
+- `RandomActivation`;
+- `AgentCollection.shuffle_do()`;
+- shuffled `StagedActivation`.
+
+They obtain this generator through `model.rng_stream("scheduler")`.
+
+The default `model.rng` stream remains available for ordinary model and agent
+behavior. Consuming that default stream does not consume the scheduler stream,
+so unrelated behavior draws do not change later activation order.
+
+Named streams are cached by name and derived independently of stream creation
+order. Custom model components can request their own stream with
+`model.rng_stream("component-name")`.
 
 ## Scheduler metadata
 

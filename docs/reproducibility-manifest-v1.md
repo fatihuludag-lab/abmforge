@@ -10,6 +10,7 @@ A useful ABM run archive should record:
 - scenario and model name
 - parameters and parameter hashes
 - run status
+- named RNG stream policy
 - record counts
 - record hashes
 - Python and platform metadata
@@ -61,6 +62,27 @@ artifacts
 metadata
 ```
 
+## Named RNG stream policy
+
+Generated Manifest V1 documents record the active policy identifier as
+`metadata.rng_stream_policy`.
+
+The current value is:
+
+`named-rng-streams-v1`
+
+This field identifies how ABMForge separates and derives named component
+streams. Framework-generated manifests overwrite a conflicting user-supplied
+value so the recorded policy describes the runtime contract rather than an
+arbitrary annotation.
+
+The manifest records policy identity only; it does not store generator
+continuation state. Snapshots store RNG continuation state through the default
+`rng_state`, the named-stream root, and opened named stream states.
+
+Legacy manifests that predate this metadata entry may not contain
+`metadata.rng_stream_policy`.
+
 ## Recommended archive layout
 
 ```text
@@ -77,7 +99,6 @@ outputs/
 
 ## Future work
 
-- RNG state capture
 - event queue capture
 - snapshot/restore
 - deterministic replay
@@ -123,4 +144,3 @@ as trusted archive content.
 Archives created before artifact inventories existed remain valid as legacy
 alpha archives; artifact checksum validation only runs when `artifacts` is
 present in `manifest.json`.
-

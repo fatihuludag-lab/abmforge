@@ -297,7 +297,7 @@ def test_random_activation_skips_agent_removed_earlier_in_same_step() -> None:
 
     scheduler = RandomActivation(model)
 
-    model.rng = StubRng([0, 1])
+    model._rng_streams["scheduler"] = StubRng([0, 1])  # type: ignore[assignment]
 
     scheduler.step()
 

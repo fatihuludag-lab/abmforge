@@ -13,8 +13,8 @@ def test_scheduling_docs_include_builtin_schedulers() -> None:
 def test_scheduling_docs_describe_reproducibility_and_lifecycle_rules() -> None:
     text = Path("docs/scheduling.md").read_text(encoding="utf-8")
 
-    assert "model-level random number generator" in text
-    assert "same model state and seed" in text
+    assert "named `scheduler` random stream" in text
+    assert "same candidate history, model seed, and scheduler-stream draw history" in text
     assert "Dead agents" in text
     assert "Newly spawned agents" in text
     assert "is_alive == False" in text
@@ -45,3 +45,24 @@ def test_scheduling_docs_describe_strict_simultaneous_contract() -> None:
         assert statement in normalized
 
     assert "living agents that define it" not in normalized
+
+
+def test_scheduling_docs_describe_named_scheduler_stream() -> None:
+    text = Path("docs/scheduling.md").read_text(
+        encoding="utf-8",
+    )
+    normalized = " ".join(text.split())
+
+    expected = [
+        "named `scheduler` random stream",
+        '`model.rng_stream("scheduler")`',
+        "default `model.rng` stream remains available",
+        "unrelated behavior draws do not change later activation order",
+        "`AgentCollection.shuffle_do()`",
+        "shuffled `StagedActivation`",
+    ]
+
+    for statement in expected:
+        assert statement in normalized
+
+    assert "using the model-level random number generator" not in normalized

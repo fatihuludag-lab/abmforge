@@ -330,7 +330,8 @@ model.agents.shuffle_do("step")
 ```
 
 `shuffle_do()` creates one candidate snapshot at the beginning of the call and
-shuffles its indices using `model.rng`.
+shuffles its indices using the named `scheduler` stream returned by
+`model.rng_stream("scheduler")`.
 
 Immediately before each callback, it applies the same identity, membership,
 and lifecycle eligibility checks as `do()`.
@@ -388,7 +389,8 @@ Researchers using sequential activation must document:
 `RandomActivation`:
 
 1. creates a candidate snapshot from currently eligible agents;
-2. generates a permutation using `model.rng`;
+2. generates a permutation using the named `scheduler` stream returned by
+   `model.rng_stream("scheduler")`;
 3. revalidates object identity, collection membership, and `is_alive`
    immediately before each callback;
 4. calls `agent.step()` only for candidates that remain eligible.
@@ -401,25 +403,52 @@ skipped when their turn is reached.
 A replacement object using the same identifier is not activated from the
 removed object's snapshot position.
 
-### 7.2 Random-stream limitation
+### 7.2 Current named-stream contract
 
-The scheduler currently uses the same model-level random-number generator
-that model and agent behavior may also consume.
+`Model.rng` remains the default behavior stream used by existing model and
+agent code.
 
-Therefore:
+`Model.rng_stream(name)` returns a cached named stream. For an explicit model
+seed, the stream is deterministically derived from:
 
-- activation order depends on earlier random draws;
-- adding an unrelated random draw may change later activation order;
-- a fixed seed does not provide component-independent random streams.
+- the versioned `named-rng-streams-v1` policy namespace;
+- model-level root material;
+- the normalized stream name.
 
-### 7.3 Target random-stream contract
+Python's process-randomized `hash()` function is not used. Stream creation
+order does not affect another stream, and consuming the default behavior
+stream does not consume the named `scheduler` stream.
 
-A future random-stream contract will assign scheduler activation to a named
-stream that is separate from behavior, event, initialization, and space
-randomness.
+The following built-in paths use the named `scheduler` stream:
 
-Until then, random activation is reproducible only under an unchanged
-random-draw history.
+- `RandomActivation`;
+- `AgentCollection.shuffle_do()`;
+- shuffled `StagedActivation`.
+
+Consequently, unrelated draws made through `Model.rng` or `Agent.rng` do not
+change later built-in scheduler permutations.
+
+Changes that consume the `scheduler` stream itself can still change later
+scheduler order.
+
+### 7.3 Snapshot and restore contract
+
+Snapshots record:
+
+- the default `rng_state`;
+- the `rng_stream_policy`;
+- model-level `rng_stream_root` material;
+- opened named stream states in deterministic name order.
+
+Restore validates these fields as one versioned group. Opened named streams
+continue from their saved states, while streams that had not yet been opened
+remain derivable from the restored root material.
+
+Legacy snapshots containing only `rng_state` remain restorable.
+
+When the model seed is `None`, new model construction uses fresh root material.
+A snapshot preserves that root so restored unopened streams remain consistent
+with the original model.
 
 ---
 
@@ -523,8 +552,8 @@ reference-model validation blocker.
 1. creates a candidate snapshot from currently eligible agents;
 2. retains that candidate snapshot for all declared stages;
 3. executes stages in declared order;
-4. optionally generates a separate permutation for each stage using
-   `model.rng`;
+4. optionally generates a separate permutation for each stage using the
+   named `scheduler` stream returned by `model.rng_stream("scheduler")`;
 5. revalidates object identity, collection membership, and `is_alive`
    immediately before every stage callback;
 6. calls optional `before_stage(stage)` and `after_stage(stage)` model hooks.
@@ -826,9 +855,9 @@ The manifest and snapshot contracts must record the stream-derivation version an
 | Event times | Finite integer-valued ticks with strict input validation | Hybrid or continuous-time execution |
 | Event ordering | Time, priority, sequence, and event identifier | Context-independent same-time scheduling semantics |
 | Collection `do()` | Insertion-order candidate snapshot with callback-time identity, membership, and liveness validation | Activation of agents added during the current pass |
-| Collection `shuffle_do()` | Seeded candidate-snapshot permutation with callback-time eligibility validation | Independent scheduler RNG stream |
+| Collection `shuffle_do()` | Named scheduler-stream permutation with callback-time eligibility validation | Independence from changes that consume the scheduler stream itself |
 | Sequential activation | Insertion-order candidate snapshot with callback-time eligibility validation | Dynamic additions during the current pass |
-| Random activation | Initial eligible snapshot, seeded permutation, and callback-time eligibility validation | Independence from behavior RNG draws |
+| Random activation | Initial eligible snapshot, named scheduler-stream permutation, callback-time eligibility validation, and isolation from default behavior RNG draws | Independence from changes that consume the scheduler stream itself |
 | Simultaneous activation | Preflight validation of callable `step()` and `advance()`, followed by all eligible decisions before all eligible commits | Automatic current/next-state isolation |
 | Staged activation | Declared stage order, optional per-stage shuffle, and validation before every stage callback | Dynamic additions during the current scheduler call |
 | Same-pass removal | Removed, replaced, or non-living candidates are skipped before their next callback | Complete lifecycle cleanup from direct collection removal |
@@ -836,22 +865,22 @@ The manifest and snapshot contracts must record the stream-derivation version an
 | Recording | Post-step observations use incremented counters | Automatic time-zero observation |
 | Scenario stop | Stop condition is checked before and after one-step execution; stopped runs are eligible when numeric final metrics exist | Study-specific scientific validity beyond the default reporting policy |
 | Failure | Failed status is recorded and the exception is raised | Transactional rollback of a partial step |
-| Snapshot | Selected model, agent, and RNG state is captured | Full world, scheduler, event callback, and recorder restoration |
-| Reproducibility | Conditional same-seed rerun under unchanged execution history | Cross-platform or cross-version equality |
+| Snapshot | Selected model and agent state, default RNG state, named-stream root, and opened named stream states are captured | Full world, scheduler object, event callback, and recorder restoration |
+| Reproducibility | Conditional same-seed rerun with named scheduler isolation from default behavior RNG draws | Cross-platform or cross-version equality |
 
 ## 16. Public-alpha semantic blockers
 
 The following issues must still be resolved before the fixed-step execution
 profile can be treated as complete public-alpha semantics:
 
-1. Scheduler randomness and agent behavior share one RNG stream.
-2. Agent-collection-space lifecycle invariants are not uniformly enforced.
-3. Canonical models lack sufficient scientific invariant and metamorphic
+1. Agent-collection-space lifecycle invariants are not uniformly enforced.
+2. Canonical models lack sufficient scientific invariant and metamorphic
    tests.
 
 Removal-aware callback eligibility, strict integer-tick event scheduling,
-separation of execution status from analysis eligibility, and strict two-phase
-simultaneous activation are now part of the current runtime guarantee.
+separation of execution status from analysis eligibility, strict two-phase
+simultaneous activation, and named scheduler random streams are now part of
+the current runtime guarantee.
 
 These remaining items concern correctness and scientific interpretation
 rather than cosmetic API preferences.
@@ -935,8 +964,8 @@ requested.
 
 The remaining target public-alpha contract adds:
 
-> Named random streams, uniform model-collection-space lifecycle integrity,
-> and scientifically verified reference models.
+> Uniform model-collection-space lifecycle integrity and scientifically
+> verified reference models.
 
 Researchers must report the exact ABMForge version or commit and the
 model-specific scheduling, event-time, randomness, observation, and lifecycle

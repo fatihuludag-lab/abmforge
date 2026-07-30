@@ -102,7 +102,7 @@ def test_collection_do_skips_agent_removed_before_its_turn() -> None:
 
 def test_collection_shuffle_do_skips_agent_removed_before_its_turn() -> None:
     model, log = _make_removal_model()
-    model.rng = cast(Any, _FixedPermutationRng())
+    model._rng_streams["scheduler"] = cast(Any, _FixedPermutationRng())
 
     model.agents.shuffle_do("step")
 
@@ -126,7 +126,7 @@ def test_sequential_activation_skips_removed_agent() -> None:
 
 def test_random_activation_skips_removed_agent() -> None:
     model, log = _make_removal_model()
-    model.rng = cast(Any, _FixedPermutationRng())
+    model._rng_streams["scheduler"] = cast(Any, _FixedPermutationRng())
 
     RandomActivation(model).step()
 

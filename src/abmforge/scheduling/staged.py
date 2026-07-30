@@ -56,7 +56,7 @@ class StagedActivation(Scheduler):
         Non-empty sequence of method names to call on each living agent.
     shuffle:
         If true, shuffle the living-agent snapshot independently for each stage
-        using the model-level random number generator.
+        using the model's named scheduler random stream.
 
     Optional model hooks
     --------------------
@@ -96,7 +96,7 @@ class StagedActivation(Scheduler):
 
             stage_agents = list(agents)
             if self.shuffle:
-                order = self.model.rng.permutation(len(stage_agents))
+                order = self.model.rng_stream("scheduler").permutation(len(stage_agents))
                 stage_agents = [stage_agents[int(i)] for i in order]
 
             for agent in stage_agents:

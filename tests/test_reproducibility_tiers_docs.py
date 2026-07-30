@@ -54,3 +54,20 @@ def test_reproducibility_tiers_recommend_preserving_external_context() -> None:
         "abmforge version or commit hash",
     ]:
         assert phrase in text
+
+
+def test_reproducibility_tiers_document_named_rng_streams() -> None:
+    text = DOC_PATH.read_text(
+        encoding="utf-8",
+    )
+    normalized = " ".join(text.split())
+
+    expected = [
+        "named component streams",
+        '`model.rng_stream("scheduler")`',
+        "opened named stream states",
+        "third-party random generators",
+    ]
+
+    for statement in expected:
+        assert statement in normalized
