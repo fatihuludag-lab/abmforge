@@ -4,7 +4,7 @@
 
 **Document status:** Current alpha contract and target semantic decisions
 **Applies to:** ABMForge `0.3.0a1` development line
-**Stability:** Provisional until the public-alpha semantic blockers are resolved
+**Stability:** Public-alpha semantic baseline
 **Audience:** Model authors, framework contributors, reviewers, and plugin authors
 
 This document defines the observable simulation semantics of ABMForge.
@@ -341,13 +341,19 @@ is reached.
 
 ### 5.4 Scope of the guarantee
 
-Callback-time eligibility is not a complete lifecycle-cleanup operation.
+Callback-time eligibility determines whether a candidate receives an
+activation callback.
 
-Direct collection removal changes collection membership. Models requiring
-world removal, owned-event cancellation, lifecycle-state changes, and
-lifecycle records should use `Model.remove_agent(...)`.
+`AgentCollection.remove(...)` and `Model.remove_agent(...)` both perform
+managed lifecycle removal, including spatial cleanup, owned-event
+cancellation, collection removal, lifecycle transition, and lifecycle
+recording.
+
+`space.remove(...)` performs spatial unplacement only and does not alter
+collection membership or lifecycle state.
 
 ---
+
 ## 6. Sequential activation
 
 ### 6.1 Current behavior
@@ -525,7 +531,7 @@ no-op `advance()` method. ABMForge does not silently create commit adapters.
 
 ### 8.4 Public-alpha status
 
-Strict two-phase simultaneous activation is now part of the current runtime
+Strict two-phase simultaneous activation is part of the current runtime
 guarantee.
 
 The resolved contract includes:
@@ -537,9 +543,11 @@ The resolved contract includes:
 - callback-time removal, replacement, and lifecycle checks in both phases.
 
 Automatic current/next-state isolation remains outside the runtime guarantee.
-Scientific validation of canonical synchronous models remains part of the
-reference-model validation blocker.
 
+The current canonical Model Zoo models use asynchronous random activation and
+now have model-specific scientific verification. A future synchronous
+canonical model must provide its own invariant and metamorphic evidence before
+it is presented as a verified reference model.
 
 ---
 
@@ -904,26 +912,36 @@ Reproducibility manifests record the `named-rng-streams-v1` policy identifier.
 | Snapshot | Selected model and agent state, default RNG state, named-stream root, and opened named stream states are captured | Full world, scheduler object, event callback, and recorder restoration |
 | Reproducibility | Conditional same-seed rerun with named scheduler isolation from default behavior RNG draws | Cross-platform or cross-version equality |
 
-## 16. Public-alpha semantic blockers
+## 16. Public-alpha semantic status
 
-The following issue must still be resolved before the fixed-step execution
-profile can be treated as complete public-alpha semantics:
+No unresolved public-alpha semantic blockers remain for the current fixed-step
+execution profile.
 
-1. Canonical models lack sufficient scientific invariant and metamorphic
-   tests.
+Canonical Model Zoo models now include explicit scientific invariant,
+boundary-case, metamorphic, and same-seed trajectory tests.
 
-Removal-aware callback eligibility, strict integer-tick event scheduling,
-separation of execution status from analysis eligibility, strict two-phase
-simultaneous activation, named scheduler random streams, and uniform
-collection-space lifecycle integrity are now part of the current runtime
-guarantee.
+The resolved public-alpha semantic baseline includes:
 
-The remaining item concerns scientific interpretation and reference-model
-validation rather than a cosmetic API preference.
+1. removal-aware callback eligibility;
+2. strict integer-tick event scheduling;
+3. separation of execution status from analysis eligibility;
+4. strict two-phase simultaneous activation;
+5. named scheduler random streams;
+6. uniform collection-space lifecycle integrity;
+7. scientific reference-model verification for the canonical SIR and
+   Schelling models.
+
+Scientific reference-model verification checks internal conservation,
+transition, boundary, symmetry, reproducibility, and recording properties. It
+does not constitute empirical validation or calibration against observed
+epidemiological or social data.
+
+Future canonical models must add model-specific invariant and metamorphic
+evidence before being described as scientifically verified reference models.
 
 ## 17. Model-author responsibilities
 
-Until the target contracts are implemented, model authors should:
+Model authors remain responsible for documenting and validating their model-specific scientific assumptions:
 
 1. document the scheduler and activation order;
 2. use `AgentCollection.remove(...)` or `Model.remove_agent(...)` for managed lifecycle removal, and use `space.remove(...)` only for spatial unplacement;
@@ -991,18 +1009,22 @@ The current ABMForge runtime is best described as:
 > pre-step event processing, candidate-snapshot activation, callback-time
 > identity and membership validation, deferred same-pass additions,
 > immediate removal visibility, strict prevalidated two-phase simultaneous
-> activation, post-step observation, multiple built-in activation
-> strategies, managed lifecycle removal, and built-in space referential integrity.
+> activation, post-step observation, multiple built-in activation strategies,
+> managed lifecycle removal, and built-in space referential integrity.
 
 Fractional event times and implicit numeric coercion are rejected during
 scheduling, preventing events from being silently executed later than
 requested.
 
-The remaining target public-alpha contract adds:
+The public-alpha semantic blockers are resolved for the current fixed-step
+execution profile and canonical Model Zoo models.
 
-> Scientifically verified reference models with explicit invariant and
-> metamorphic validation.
+The current reference-model evidence includes explicit invariant,
+boundary-case, metamorphic, recording-consistency, and same-seed trajectory
+verification.
+
+This evidence does not constitute empirical validation or calibration.
 
 Researchers must report the exact ABMForge version or commit and the
-model-specific scheduling, event-time, randomness, observation, and lifecycle
-assumptions used in their studies.
+model-specific scheduling, event-time, randomness, observation, lifecycle,
+and scientific-validation assumptions used in their studies.
