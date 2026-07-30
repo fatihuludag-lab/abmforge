@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import secrets
 from collections.abc import Mapping
 from contextlib import suppress
 from datetime import datetime, timezone
@@ -22,7 +24,21 @@ from abmforge.core.status import (
     ModelStatus,
 )
 from abmforge.data.recorder import Recorder
+from abmforge.randomness import RNG_STREAM_POLICY
 from abmforge.time.queue import EventQueue
+
+_RNG_STREAM_NAMESPACE = b"abmforge.named-rng-streams-v1"
+
+
+def _derive_rng_stream_root(seed: int | None) -> str:
+    """Return stable root material without consuming the default RNG."""
+    if seed is None:
+        return secrets.token_hex(32)
+
+    normalized_seed = str(int(seed)).encode("ascii")
+
+    return hashlib.sha256(_RNG_STREAM_NAMESPACE + b"\0seed\0" + normalized_seed).hexdigest()
+
 
 _PROTECTED_MODEL_STATE_FIELDS = frozenset(
     {
@@ -67,6 +83,8 @@ class Model:
         self.parameters = dict(parameters or {})
         self.seed = seed
         self.rng: Generator = np.random.default_rng(seed)
+        self._rng_stream_root = _derive_rng_stream_root(seed)
+        self._rng_streams: dict[str, Generator] = {}
 
         self.run_id = f"run-{uuid4().hex}"
         self.created_at = datetime.now(timezone.utc).isoformat()
@@ -81,6 +99,44 @@ class Model:
         self.events = EventQueue(model=self)
         self.record = Recorder(model=self)
         self.world: Any | None = None
+
+    def rng_stream(self, name: str) -> Generator:
+        """Return a cached deterministic random stream by component name.
+
+        Named streams are derived independently from the model's default
+        ``rng`` generator. Stream creation order and unrelated random draws
+        therefore do not alter another named stream.
+        """
+        if not isinstance(name, str):
+            raise TypeError("RNG stream name must be a string")
+
+        normalized_name = name.strip()
+
+        if not normalized_name:
+            raise ValueError("RNG stream name must be a non-empty string")
+
+        existing = self._rng_streams.get(normalized_name)
+
+        if existing is not None:
+            return existing
+
+        digest = hashlib.sha256()
+        digest.update(_RNG_STREAM_NAMESPACE)
+        digest.update(b"\0stream\0")
+        digest.update(bytes.fromhex(self._rng_stream_root))
+        digest.update(b"\0")
+        digest.update(normalized_name.encode("utf-8"))
+
+        derived_seed = int.from_bytes(
+            digest.digest(),
+            byteorder="big",
+            signed=False,
+        )
+        generator = np.random.default_rng(derived_seed)
+
+        self._rng_streams[normalized_name] = generator
+
+        return generator
 
     def setup(self) -> None:
         """Initialize model state before running.
@@ -190,6 +246,8 @@ class Model:
                 raise ValueError("Snapshot field 'rng_state' must be a mapping")
             model.rng.bit_generator.state = rng_state
 
+        model._restore_rng_streams_from_snapshot(snapshot)
+
         run_id = snapshot.get("run_id")
         if not isinstance(run_id, str):
             raise ValueError("Snapshot field 'run_id' must be a string")
@@ -288,8 +346,96 @@ class Model:
         return model
 
     def _rng_snapshot_state(self) -> dict[str, Any]:
-        """Return NumPy RNG state for Snapshot Schema v1."""
+        """Return the legacy/default RNG state for Snapshot Schema v1."""
         return dict(self.rng.bit_generator.state)
+
+    def _rng_stream_snapshot_states(
+        self,
+    ) -> dict[str, dict[str, Any]]:
+        """Return opened named stream states in deterministic name order."""
+        return {
+            name: dict(self._rng_streams[name].bit_generator.state)
+            for name in sorted(self._rng_streams)
+        }
+
+    def _restore_rng_streams_from_snapshot(
+        self,
+        snapshot: dict[str, Any],
+    ) -> None:
+        """Restore optional named-stream fields while accepting legacy snapshots."""
+        field_names = (
+            "rng_stream_policy",
+            "rng_stream_root",
+            "rng_streams",
+        )
+        present = [field_name in snapshot for field_name in field_names]
+
+        if not any(present):
+            return
+
+        if not all(present):
+            raise ValueError("Snapshot named RNG stream fields must be provided together")
+
+        policy = snapshot["rng_stream_policy"]
+
+        if policy != RNG_STREAM_POLICY:
+            raise ValueError(f"Unsupported RNG stream policy: {policy!r}")
+
+        root = snapshot["rng_stream_root"]
+
+        if not isinstance(root, str) or len(root) != 64:
+            raise ValueError("Snapshot field 'rng_stream_root' must be a 64-character hex string")
+
+        try:
+            bytes.fromhex(root)
+        except ValueError as exc:
+            raise ValueError(
+                "Snapshot field 'rng_stream_root' must contain hexadecimal data"
+            ) from exc
+
+        stream_states = snapshot["rng_streams"]
+
+        if not isinstance(
+            stream_states,
+            dict,
+        ):
+            raise ValueError("Snapshot field 'rng_streams' must be a mapping")
+
+        validated_states: list[tuple[str, dict[str, Any]]] = []
+
+        for name, state in stream_states.items():
+            if not isinstance(name, str):
+                raise ValueError("Snapshot RNG stream names must be strings")
+
+            normalized_name = name.strip()
+
+            if not normalized_name or normalized_name != name:
+                raise ValueError("Snapshot RNG stream names must be normalized non-empty strings")
+
+            if not isinstance(state, dict):
+                raise ValueError(f"Snapshot RNG stream state for {name!r} must be a mapping")
+
+            validated_states.append(
+                (
+                    normalized_name,
+                    state,
+                )
+            )
+
+        self._rng_stream_root = root
+        self._rng_streams = {}
+
+        for name, state in validated_states:
+            generator = self.rng_stream(name)
+
+            try:
+                generator.bit_generator.state = state
+            except (
+                KeyError,
+                TypeError,
+                ValueError,
+            ) as exc:
+                raise ValueError(f"Invalid RNG state for named stream {name!r}") from exc
 
     def _scheduler_metadata(self) -> dict[str, Any]:
         """Return JSON-serializable metadata for an attached scheduler.
@@ -360,6 +506,9 @@ class Model:
             "model_name": type(self).__name__,
             "parameters": dict(self.parameters),
             "rng_state": self._rng_snapshot_state(),
+            "rng_stream_policy": RNG_STREAM_POLICY,
+            "rng_stream_root": self._rng_stream_root,
+            "rng_streams": self._rng_stream_snapshot_states(),
             "model_state": self._model_snapshot_state(),
             "agents": agents,
             "event_queue": self.events.snapshot_metadata(),

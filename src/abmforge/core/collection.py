@@ -122,7 +122,7 @@ class AgentCollection:
         """Call a method on every eligible agent in shuffled order."""
         agents = list(self._agents.values())
         if agents:
-            order = self.model.rng.permutation(len(agents))
+            order = self.model.rng_stream("scheduler").permutation(len(agents))
             agents = [agents[int(i)] for i in order]
 
         for agent in agents:

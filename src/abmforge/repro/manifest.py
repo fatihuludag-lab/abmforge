@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 
 from abmforge._version import __version__
 from abmforge.data.schema import DATASET_SCHEMA_VERSION, DatasetSchemaV1
+from abmforge.randomness import RNG_STREAM_POLICY
 
 if TYPE_CHECKING:
     from abmforge.data.dataset import Dataset
@@ -239,6 +240,9 @@ class ReproducibilityManifest:
         parameters = last_run.get("parameters")
         parameters_hash = _sha256_json(parameters) if parameters is not None else None
 
+        manifest_metadata = dict(metadata or {})
+        manifest_metadata["rng_stream_policy"] = RNG_STREAM_POLICY
+
         manifest = cls(
             schema_version=SCHEMA_VERSION,
             manifest_id=_manifest_id_for(dataset, record_hashes),
@@ -259,7 +263,7 @@ class ReproducibilityManifest:
             environment=_collect_environment(include_command=include_command),
             git=_collect_git_metadata(Path.cwd()) if include_git else None,
             packages=_collect_packages() if include_packages else None,
-            metadata=dict(metadata or {}),
+            metadata=manifest_metadata,
         )
         manifest.validate()
         return manifest
