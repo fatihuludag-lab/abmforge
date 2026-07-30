@@ -429,12 +429,16 @@ random-draw history.
 
 `SimultaneousActivation`:
 
-1. creates a candidate snapshot from currently eligible agents;
-2. revalidates every candidate before its `step()` callback;
-3. completes all eligible `step()` callbacks;
-4. revalidates every candidate before its optional `advance()` callback;
-5. calls `advance()` only when the candidate remains eligible and defines
-   that method.
+1. creates a candidate snapshot from the model collection;
+2. validates every initially eligible candidate before the first callback;
+3. requires callable `step()` and `advance()` methods from every participating
+   candidate;
+4. reports all invalid candidates in one `TypeError` and aborts before any
+   activation callback has run;
+5. revalidates every candidate before its `step()` callback;
+6. completes all remaining eligible `step()` callbacks;
+7. revalidates every candidate before its `advance()` callback;
+8. completes all remaining eligible `advance()` callbacks.
 
 An agent removed before its decision turn does not receive `step()`.
 
@@ -442,29 +446,34 @@ An agent removed during the decision phase does not receive `advance()`.
 
 An agent added during the scheduler call is deferred until a future call.
 
-The scheduler does not currently require every participating agent to
-implement `advance()`.
+A new object inserted under the identifier of a removed snapshot candidate is
+also deferred until a future scheduler call.
 
-The scheduler also does not prevent `step()` from directly changing current
-state.
+Agents already ineligible when the call begins are excluded from the strict
+two-phase capability check.
 
 ### 8.2 Current guarantee
 
 ```text
-all eligible step() callbacks
--> all eligible advance() callbacks
+validate the complete initially eligible candidate snapshot
+-> all remaining eligible step() callbacks
+-> all remaining eligible advance() callbacks
 ```
 
-Callback-time identity, membership, and lifecycle eligibility are checked in
-both phases.
+Validation occurs before activation begins. A contract error therefore cannot
+leave the model with only a prefix of agent callbacks executed.
 
-The current implementation does not guarantee:
+Callback-time identity, membership, and lifecycle eligibility are checked
+again in both phases.
+
+The current implementation guarantees callable two-phase participation and
+all-decision-before-any-commit ordering. It does not guarantee:
 
 - immutable current-state views;
 - automatic next-state buffers;
 - order-independent decision calculations;
 - atomic model-wide state commit;
-- an error when `advance()` is missing.
+- rollback when an agent callback itself raises an exception.
 
 ### 8.3 Required user pattern
 
@@ -482,15 +491,26 @@ class ExampleAgent(Agent):
 Directly changing `self.value` in `step()` may expose the updated value to
 agents activated later in the same decision phase.
 
-### 8.4 Remaining public-alpha work
+Agents with intentionally empty commit work must provide an explicit callable
+no-op `advance()` method. ABMForge does not silently create commit adapters.
 
-The target strict simultaneous contract will:
+### 8.4 Public-alpha status
 
-- require an explicit two-phase capability;
-- fail early when an eligible agent lacks the required commit method;
-- preserve all-decision-before-any-commit ordering;
-- define whether heterogeneous no-op commit adapters are supported;
-- include a canonical synchronous reference-model test.
+Strict two-phase simultaneous activation is now part of the current runtime
+guarantee.
+
+The resolved contract includes:
+
+- complete capability validation before activation;
+- callable `step()` and `advance()` requirements;
+- one aggregated error for all invalid initial candidates;
+- all-decision-before-any-commit ordering;
+- callback-time removal, replacement, and lifecycle checks in both phases.
+
+Automatic current/next-state isolation remains outside the runtime guarantee.
+Scientific validation of canonical synchronous models remains part of the
+reference-model validation blocker.
+
 
 ---
 
@@ -809,7 +829,7 @@ The manifest and snapshot contracts must record the stream-derivation version an
 | Collection `shuffle_do()` | Seeded candidate-snapshot permutation with callback-time eligibility validation | Independent scheduler RNG stream |
 | Sequential activation | Insertion-order candidate snapshot with callback-time eligibility validation | Dynamic additions during the current pass |
 | Random activation | Initial eligible snapshot, seeded permutation, and callback-time eligibility validation | Independence from behavior RNG draws |
-| Simultaneous activation | All eligible `step()` callbacks before eligible `advance()` callbacks, with validation in both phases | Automatic state isolation or mandatory `advance()` |
+| Simultaneous activation | Preflight validation of callable `step()` and `advance()`, followed by all eligible decisions before all eligible commits | Automatic current/next-state isolation |
 | Staged activation | Declared stage order, optional per-stage shuffle, and validation before every stage callback | Dynamic additions during the current scheduler call |
 | Same-pass removal | Removed, replaced, or non-living candidates are skipped before their next callback | Complete lifecycle cleanup from direct collection removal |
 | Same-pass creation | Newly added agents are deferred until a future pass | Immediate participation in the current candidate snapshot |
@@ -822,21 +842,20 @@ The manifest and snapshot contracts must record the stream-derivation version an
 ## 16. Public-alpha semantic blockers
 
 The following issues must still be resolved before the fixed-step execution
-profile can be treated as public-alpha semantics:
+profile can be treated as complete public-alpha semantics:
 
-1. Simultaneous activation does not require a complete two-phase agent
-   contract.
-2. Scheduler randomness and agent behavior share one RNG stream.
-3. Agent-collection-space lifecycle invariants are not uniformly enforced.
-4. Canonical models lack sufficient scientific invariant and metamorphic
+1. Scheduler randomness and agent behavior share one RNG stream.
+2. Agent-collection-space lifecycle invariants are not uniformly enforced.
+3. Canonical models lack sufficient scientific invariant and metamorphic
    tests.
 
 Removal-aware callback eligibility, strict integer-tick event scheduling,
-and the separation of execution status from analysis eligibility are now
-part of the current runtime guarantee.
+separation of execution status from analysis eligibility, and strict two-phase
+simultaneous activation are now part of the current runtime guarantee.
 
 These remaining items concern correctness and scientific interpretation
 rather than cosmetic API preferences.
+
 ## 17. Model-author responsibilities
 
 Until the target contracts are implemented, model authors should:
@@ -906,8 +925,9 @@ The current ABMForge runtime is best described as:
 > A fixed-step Python ABM execution profile with finite integer event ticks,
 > pre-step event processing, candidate-snapshot activation, callback-time
 > identity and membership validation, deferred same-pass additions,
-> immediate removal visibility, post-step observation, and multiple built-in
-> activation strategies.
+> immediate removal visibility, strict prevalidated two-phase simultaneous
+> activation, post-step observation, and multiple built-in activation
+> strategies.
 
 Fractional event times and implicit numeric coercion are rejected during
 scheduling, preventing events from being silently executed later than
@@ -915,10 +935,9 @@ requested.
 
 The remaining target public-alpha contract adds:
 
-> Strict two-phase simultaneous activation, named random streams, uniform
-> model-collection-space lifecycle
-> integrity, and scientifically verified reference models.
+> Named random streams, uniform model-collection-space lifecycle integrity,
+> and scientifically verified reference models.
 
 Researchers must report the exact ABMForge version or commit and the
-model-specific scheduling, event-time, randomness, observation, and
-lifecycle assumptions used in their studies.
+model-specific scheduling, event-time, randomness, observation, and lifecycle
+assumptions used in their studies.

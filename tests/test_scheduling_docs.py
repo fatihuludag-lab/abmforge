@@ -26,3 +26,22 @@ def test_scheduling_docs_include_scheduler_choice_guidance() -> None:
     assert "Choosing a scheduler" in text
     assert "Activation order affects results" in text
     assert "synchronous update" in text
+
+
+def test_scheduling_docs_describe_strict_simultaneous_contract() -> None:
+    text = Path("docs/scheduling.md").read_text(encoding="utf-8")
+    normalized = " ".join(text.split())
+
+    expected = [
+        "Before any callback runs",
+        "callable `step()` and `advance()` methods",
+        "identifies every invalid agent",
+        "No activation callback is executed",
+        "no-op `advance()` method",
+        "preflight validation finishes before any callback is invoked",
+    ]
+
+    for statement in expected:
+        assert statement in normalized
+
+    assert "living agents that define it" not in normalized

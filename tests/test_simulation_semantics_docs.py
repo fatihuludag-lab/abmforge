@@ -78,7 +78,6 @@ def test_simulation_semantics_documents_remaining_target_contracts() -> None:
 
     expected_statements = [
         "distinguish event creation, requested execution, and actual execution",
-        "require an explicit two-phase capability",
         "versioned named streams",
         "Execution status and scientific analysis eligibility",
     ]
@@ -114,7 +113,6 @@ def test_simulation_semantics_lists_remaining_public_alpha_blockers() -> None:
     normalized = " ".join(text.split())
 
     remaining_blockers = [
-        "Simultaneous activation does not require a complete two-phase agent contract.",
         "Scheduler randomness and agent behavior share one RNG stream.",
         "Agent-collection-space lifecycle invariants are not uniformly enforced.",
         "Canonical models lack sufficient scientific invariant and metamorphic tests.",
@@ -127,6 +125,7 @@ def test_simulation_semantics_lists_remaining_public_alpha_blockers() -> None:
         "Removal-aware callback eligibility",
         "strict integer-tick event scheduling",
         "separation of execution status from analysis eligibility",
+        "strict two-phase simultaneous activation",
         "are now part of the current runtime guarantee",
     ]
 
@@ -137,6 +136,7 @@ def test_simulation_semantics_lists_remaining_public_alpha_blockers() -> None:
         "Collection bulk operations may invoke agents removed earlier",
         "Fractional event times are accepted without exact fractional-time execution",
         "Valid stopped runs may be excluded from default analysis reports",
+        "Simultaneous activation does not require a complete two-phase agent contract",
     ]
 
     for blocker in resolved_blockers:
@@ -165,10 +165,40 @@ def test_simulation_semantics_documents_stopped_run_eligibility() -> None:
         "`completed` and `stopped` runs as analysis-eligible",
         "at least one numeric final model metric is available",
         "`analysis_eligibility.csv`",
-        "separation of execution status from analysis eligibility are now part",
+        "separation of execution status from analysis eligibility",
+        "are now part of the current runtime guarantee",
     ]
 
     for statement in expected:
         assert statement in normalized
 
     assert "Valid stopped runs may be excluded from default analysis reports" not in normalized
+
+
+def test_simulation_semantics_documents_strict_two_phase_activation() -> None:
+    text = _read(SEMANTICS_DOC)
+    normalized = " ".join(text.split())
+
+    expected = [
+        "validates every initially eligible candidate before the first callback",
+        "callable `step()` and `advance()` methods",
+        "reports all invalid candidates in one `TypeError`",
+        "before any activation callback has run",
+        "all remaining eligible `step()` callbacks",
+        "all remaining eligible `advance()` callbacks",
+        "explicit callable no-op `advance()` method",
+        "Strict two-phase simultaneous activation is now part",
+    ]
+
+    for statement in expected:
+        assert statement in normalized
+
+    obsolete = [
+        "calls `advance()` only when the candidate remains eligible and defines that method",
+        "does not currently require every participating agent to implement `advance()`",
+        "an error when `advance()` is missing",
+        "Simultaneous activation does not require a complete two-phase agent contract",
+    ]
+
+    for statement in obsolete:
+        assert statement not in normalized

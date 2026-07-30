@@ -49,7 +49,16 @@ Given the same model state and seed, `RandomActivation` should produce reproduci
 
 ## SimultaneousActivation
 
-Calls `step()` for all living agents, then calls `advance()` for living agents that define it.
+Calls `step()` for every eligible agent, then calls `advance()` for every
+agent that remains eligible.
+
+Before any callback runs, the scheduler validates the initial eligible
+candidate snapshot. Every participating agent must define callable `step()`
+and `advance()` methods.
+
+If one or more candidates violate this contract, ABMForge raises one
+`TypeError` that identifies every invalid agent and each missing or
+non-callable method. No activation callback is executed.
 
 ```python
 from abmforge.scheduling import SimultaneousActivation
@@ -57,7 +66,8 @@ from abmforge.scheduling import SimultaneousActivation
 self.scheduler = SimultaneousActivation(self)
 ```
 
-This is useful when agents should calculate their next state without immediately changing the state observed by other agents.
+This scheduler is useful when agents should calculate pending state without
+immediately changing the state observed by other agents.
 
 A typical agent pattern is:
 
@@ -69,6 +79,21 @@ class Cell(Agent):
     def advance(self):
         self.state = self.next_state
 ```
+
+An agent that intentionally has no commit work must still define a callable
+no-op `advance()` method:
+
+```python
+def advance(self) -> None:
+    pass
+```
+
+Agents that are already ineligible when the scheduler call begins are excluded
+from strict two-phase capability validation.
+
+The scheduler guarantees phase ordering, but it does not automatically isolate
+current and next state. Model authors must avoid directly mutating current
+state in `step()` when later decision callbacks must observe the old state.
 
 ## StagedActivation
 
@@ -121,7 +146,7 @@ Built-in schedulers skip agents with `is_alive == False`.
 
 ### Simultaneous update
 
-With `SimultaneousActivation`, state changes should usually be committed in `advance()`, not directly in `step()`.
+With `SimultaneousActivation`, decision calculations belong in `step()` and pending-state commits belong in `advance()`. The scheduler enforces the two callable methods and their phase order, but it cannot prevent a model implementation from mutating current state directly in `step()`.
 
 ## Staged scheduler contract
 
@@ -187,8 +212,10 @@ As a result:
 - replacing an agent with a new object using the same identifier does not
   activate either object from the stale snapshot position.
 
-`SimultaneousActivation` applies the eligibility check independently before
-the decision and commit callbacks.
+`SimultaneousActivation` first validates the complete initially eligible
+candidate snapshot for callable `step()` and `advance()` methods. This
+preflight validation finishes before any callback is invoked. It then applies
+the eligibility check independently before every decision and commit callback.
 
 `StagedActivation` applies the eligibility check before every stage callback.
 
