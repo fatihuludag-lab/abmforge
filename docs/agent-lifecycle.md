@@ -192,6 +192,38 @@ Use `agent.remove()` when the removal is initiated by the agent itself.
 
 Use `model.remove_agent(agent_id)` when the removal is initiated by the model, scheduler, policy rule, or external event.
 
+## Managed collection and space lifecycle integrity
+
+`AgentCollection.remove(...)` and `Model.remove_agent(...)` use the same
+managed lifecycle contract.
+
+The collection accepts only active living agents. Removed or non-living
+agents cannot be added or re-added.
+
+Managed removal performs these operations:
+
+- remove the agent from its actual space when placed;
+- clear `agent.pos` and `agent.world`;
+- cancel pending owned events;
+- remove the agent from `model.agents`;
+- set `is_alive` to false;
+- set lifecycle status to `removed`;
+- write one lifecycle removal record.
+
+For managed removal, spatial cleanup completes before lifecycle mutation.
+A spatial removal failure therefore leaves collection membership, lifecycle
+state, owned events, and lifecycle records unchanged.
+
+Repeated removal raises `KeyError` and does not create a duplicate lifecycle
+record.
+
+An agent object must be the current object stored under its identifier. An
+object with the same identifier but a different object is rejected.
+
+`space.remove(agent)` performs spatial unplacement only. It clears spatial
+indexes, `agent.pos`, and `agent.world`, but it does not remove the agent from
+`model.agents`, cancel events, or change lifecycle status.
+
 ## Research reproducibility recommendation
 
 If agent removal is part of the model's scientific mechanism, document:
@@ -228,6 +260,8 @@ identifier:
 - the replacement is absent from the original candidate snapshot;
 - neither object is activated from that snapshot position.
 
-This activation rule also applies when direct collection removal is used.
-However, direct collection removal does not replace the broader cleanup
-behavior of `Model.remove_agent(...)`.
+This activation rule applies to all managed removal entry points,
+including `AgentCollection.remove(...)` and `Model.remove_agent(...)`.
+
+Direct spatial unplacement through `space.remove(...)` is not lifecycle
+removal. The agent remains an active collection member.

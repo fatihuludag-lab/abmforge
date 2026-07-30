@@ -230,10 +230,10 @@ def test_collection_do_skips_agent_marked_not_alive() -> None:
         label="dead",
         log=log,
     )
-    dead.is_alive = False
-
     model.agents.add(alive)
     model.agents.add(dead)
+
+    dead.is_alive = False
 
     model.agents.do("step")
 

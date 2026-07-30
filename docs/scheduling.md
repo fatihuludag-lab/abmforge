@@ -109,7 +109,7 @@ self.scheduler = StagedActivation(
 )
 ```
 
-If `shuffle=True`, the model-level RNG is used to shuffle agents within each stage.
+If `shuffle=True`, the named `scheduler` random stream is used to shuffle agents within each stage.
 
 ## Choosing a scheduler
 

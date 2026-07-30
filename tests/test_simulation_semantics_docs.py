@@ -111,7 +111,6 @@ def test_simulation_semantics_lists_remaining_public_alpha_blockers() -> None:
     normalized = " ".join(text.split())
 
     remaining_blockers = [
-        "Agent-collection-space lifecycle invariants are not uniformly enforced.",
         "Canonical models lack sufficient scientific invariant and metamorphic tests.",
     ]
 
@@ -124,6 +123,7 @@ def test_simulation_semantics_lists_remaining_public_alpha_blockers() -> None:
         "separation of execution status from analysis eligibility",
         "strict two-phase simultaneous activation",
         "named scheduler random streams",
+        "uniform collection-space lifecycle integrity",
         "are now part of the current runtime guarantee",
     ]
 
@@ -136,6 +136,7 @@ def test_simulation_semantics_lists_remaining_public_alpha_blockers() -> None:
         "Valid stopped runs may be excluded from default analysis reports",
         "Simultaneous activation does not require a complete two-phase agent contract",
         "Scheduler randomness and agent behavior share one RNG stream",
+        "Agent-collection-space lifecycle invariants are not uniformly enforced",
     ]
 
     for blocker in resolved_blockers:
@@ -214,7 +215,7 @@ def test_simulation_semantics_documents_named_rng_streams() -> None:
         "Stream creation order does not affect another stream",
         "opened named stream states",
         "Legacy snapshots containing only `rng_state` remain restorable",
-        "named scheduler random streams are now part",
+        "named scheduler random streams",
     ]
 
     for statement in expected:
@@ -226,6 +227,65 @@ def test_simulation_semantics_documents_named_rng_streams() -> None:
         "a fixed seed does not provide component-independent random streams",
         "A future random-stream contract will assign scheduler activation",
         "Scheduler randomness and agent behavior share one RNG stream",
+    ]
+
+    for statement in obsolete:
+        assert statement not in normalized
+
+
+def test_simulation_semantics_documents_managed_lifecycle_integrity() -> None:
+    text = _read(SEMANTICS_DOC)
+    normalized = " ".join(text.split())
+
+    expected = [
+        (
+            "`AgentCollection.remove(...)` and `Model.remove_agent(...)` "
+            "use the same managed lifecycle operation"
+        ),
+        "accepts only active living agents",
+        "same identifier but a different object",
+        "Spatial cleanup completes before lifecycle mutation",
+        "Repeated removal raises `KeyError`",
+        "Built-in spaces clear both `agent.pos` and `agent.world`",
+        "`space.remove(...)` is spatial unplacement only",
+        "uniform collection-space lifecycle integrity",
+        "Canonical models lack sufficient scientific invariant and metamorphic tests.",
+    ]
+
+    for statement in expected:
+        assert statement in normalized
+
+    obsolete = [
+        "Direct `AgentCollection.remove(...)` changes collection membership.",
+        "Complete lifecycle cleanup from direct collection removal",
+        "Agent-collection-space lifecycle invariants are not uniformly enforced.",
+        "direct collection removal changes collection membership only",
+    ]
+
+    for statement in obsolete:
+        assert statement not in normalized
+
+
+def test_simulation_semantics_randomness_section_matches_named_stream_runtime() -> None:
+    text = _read(SEMANTICS_DOC)
+    normalized = " ".join(text.split())
+
+    expected = [
+        "### 14.1 Current generators",
+        "`Model.rng` remains the default behavior stream",
+        "`Model.rng_stream(name)` provides cached named component streams",
+        "named `scheduler` stream",
+        "`named-rng-streams-v1`",
+    ]
+
+    for statement in expected:
+        assert statement in normalized
+
+    obsolete = [
+        "Each model creates one NumPy random-number generator from the model seed.",
+        "The model, schedulers, and user behavior may consume this shared generator.",
+        "The target design will use versioned named streams",
+        "independent scheduler and agent streams;",
     ]
 
     for statement in obsolete:

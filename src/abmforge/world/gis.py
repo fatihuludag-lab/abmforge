@@ -4,6 +4,12 @@ import math
 from collections import defaultdict
 from typing import Any
 
+from abmforge.world._integrity import (
+    clear_spatial_attributes,
+    ensure_new_placement,
+    resolve_placed_agent,
+)
+
 Position = tuple[float, float]
 
 
@@ -16,65 +22,115 @@ class GISSpace:
     """
 
     def __init__(self) -> None:
-        self._positions: dict[int | str, Position] = {}
-        self._position_agents: dict[Position, list[int | str]] = defaultdict(list)
-        self._agents: dict[int | str, Any] = {}
+        self._positions: dict[
+            int | str,
+            Position,
+        ] = {}
+        self._position_agents: dict[
+            Position,
+            list[int | str],
+        ] = defaultdict(list)
+        self._agents: dict[
+            int | str,
+            Any,
+        ] = {}
 
-    def place(self, agent: Any, position: Position) -> None:
+    def place(
+        self,
+        agent: Any,
+        position: Position,
+    ) -> None:
         """Place an agent at a geographic position."""
+        ensure_new_placement(
+            agent,
+            space=self,
+            positions=self._positions,
+            agents=self._agents,
+        )
+
         agent_id = agent.unique_id
-
-        if agent_id in self._positions:
-            raise ValueError(f"agent is already placed: {agent_id!r}")
-
         self._positions[agent_id] = position
         self._position_agents[position].append(agent_id)
         self._agents[agent_id] = agent
         agent.world = self
         agent.pos = position
 
-    def move(self, agent: Any, position: Position) -> None:
+    def move(
+        self,
+        agent: Any,
+        position: Position,
+    ) -> None:
         """Move a placed agent to a new geographic position."""
-        agent_id = agent.unique_id
-        old_position = self.position_of(agent)
+        agent_id, stored, old_position = resolve_placed_agent(
+            agent,
+            positions=self._positions,
+            agents=self._agents,
+        )
 
         self._position_agents[old_position].remove(agent_id)
+
         if not self._position_agents[old_position]:
             del self._position_agents[old_position]
 
         self._positions[agent_id] = position
         self._position_agents[position].append(agent_id)
-        agent.pos = position
+        stored.pos = position
 
-    def remove(self, agent: Any) -> None:
+    def remove(
+        self,
+        agent: Any,
+    ) -> None:
         """Remove a placed agent from the space."""
-        agent_id = agent.unique_id
-        position = self.position_of(agent)
+        agent_id, stored, position = resolve_placed_agent(
+            agent,
+            positions=self._positions,
+            agents=self._agents,
+        )
 
         self._position_agents[position].remove(agent_id)
+
         if not self._position_agents[position]:
             del self._position_agents[position]
 
         del self._positions[agent_id]
-        self._agents.pop(agent_id, None)
+        del self._agents[agent_id]
 
-        if hasattr(agent, "pos"):
-            delattr(agent, "pos")
+        clear_spatial_attributes(
+            stored,
+            space=self,
+        )
 
-    def position_of(self, agent: Any) -> Position:
+    def position_of(
+        self,
+        agent: Any,
+    ) -> Position:
         """Return an agent's geographic position."""
-        agent_id = getattr(agent, "unique_id", agent)
+        _, _, position = resolve_placed_agent(
+            agent,
+            positions=self._positions,
+            agents=self._agents,
+        )
 
-        try:
-            return self._positions[agent_id]
-        except KeyError as exc:
-            raise KeyError(f"agent is not placed: {agent_id!r}") from exc
+        return position
 
-    def agents_at(self, position: Position) -> list[Any]:
+    def agents_at(
+        self,
+        position: Position,
+    ) -> list[Any]:
         """Return agents at an exact geographic position."""
-        return [self._agents[agent_id] for agent_id in self._position_agents.get(position, [])]
+        return [
+            self._agents[agent_id]
+            for agent_id in self._position_agents.get(
+                position,
+                [],
+            )
+        ]
 
-    def distance(self, a: Any, b: Any) -> float:
+    def distance(
+        self,
+        a: Any,
+        b: Any,
+    ) -> float:
         """Return great-circle distance between two placed agents in kilometers."""
         return self._distance_between_positions(
             self.position_of(a),
@@ -82,13 +138,15 @@ class GISSpace:
         )
 
     @staticmethod
-    def _distance_between_positions(a: Position, b: Position) -> float:
+    def _distance_between_positions(
+        a: Position,
+        b: Position,
+    ) -> float:
         """Return great-circle distance between two positions in kilometers."""
         lon1, lat1 = a
         lon2, lat2 = b
 
         radius = 6371.0
-
         lat1_rad = math.radians(lat1)
         lat2_rad = math.radians(lat2)
         dlat = lat2_rad - lat1_rad
@@ -112,7 +170,10 @@ class GISSpace:
         if radius_km < 0:
             raise ValueError("radius_km must be non-negative")
 
-        if isinstance(agent_or_position, tuple):
+        if isinstance(
+            agent_or_position,
+            tuple,
+        ):
             center = agent_or_position
             source_id = None
         else:
@@ -125,12 +186,20 @@ class GISSpace:
             if source_id is not None and other_id == source_id and not include_center:
                 continue
 
-            if self._distance_between_positions(center, other_position) <= radius_km:
+            if (
+                self._distance_between_positions(
+                    center,
+                    other_position,
+                )
+                <= radius_km
+            ):
                 found.append(self._agents[other_id])
 
         return found
 
-    def to_geojson(self) -> dict[str, Any]:
+    def to_geojson(
+        self,
+    ) -> dict[str, Any]:
         """Export placed agents as a GeoJSON FeatureCollection."""
         features = []
 

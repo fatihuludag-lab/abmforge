@@ -66,3 +66,17 @@ def test_scheduling_docs_describe_named_scheduler_stream() -> None:
         assert statement in normalized
 
     assert "using the model-level random number generator" not in normalized
+
+
+def test_staged_activation_docs_use_named_scheduler_stream() -> None:
+    text = Path("docs/scheduling.md").read_text(
+        encoding="utf-8",
+    )
+    normalized = " ".join(text.split())
+
+    assert (
+        "If `shuffle=True`, the named `scheduler` random stream is used "
+        "to shuffle agents within each stage." in normalized
+    )
+
+    assert "If `shuffle=True`, the model-level RNG is used" not in normalized

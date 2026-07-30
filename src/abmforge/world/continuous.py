@@ -3,6 +3,12 @@ from __future__ import annotations
 import math
 from typing import Any
 
+from abmforge.world._integrity import (
+    clear_spatial_attributes,
+    ensure_new_placement,
+    resolve_placed_agent,
+)
+
 Position = tuple[float, float]
 
 
@@ -22,63 +28,106 @@ class ContinuousSpace:
         self.width = width
         self.height = height
         self.torus = torus
-        self._positions: dict[int | str, Position] = {}
-        self._agents: dict[int | str, Any] = {}
+        self._positions: dict[
+            int | str,
+            Position,
+        ] = {}
+        self._agents: dict[
+            int | str,
+            Any,
+        ] = {}
 
-    def normalize(self, position: Position) -> Position:
+    def normalize(
+        self,
+        position: Position,
+    ) -> Position:
         """Normalize a position according to torus/bounds rules."""
         x, y = position
 
         if self.torus:
-            return (x % self.width, y % self.height)
+            return (
+                x % self.width,
+                y % self.height,
+            )
 
         if not (0 <= x <= self.width and 0 <= y <= self.height):
             raise ValueError(f"position out of bounds: {position!r}")
 
-        return (x, y)
+        return position
 
-    def place(self, agent: Any, position: Position) -> None:
+    def place(
+        self,
+        agent: Any,
+        position: Position,
+    ) -> None:
         """Place an agent at a continuous position."""
         pos = self.normalize(position)
 
-        if agent.unique_id in self._positions:
-            raise ValueError(f"agent is already placed: {agent.unique_id!r}")
+        ensure_new_placement(
+            agent,
+            space=self,
+            positions=self._positions,
+            agents=self._agents,
+        )
 
         self._agents[agent.unique_id] = agent
         self._positions[agent.unique_id] = pos
         agent.world = self
         agent.pos = pos
 
-    def move(self, agent: Any, position: Position) -> None:
+    def move(
+        self,
+        agent: Any,
+        position: Position,
+    ) -> None:
         """Move an agent to a new continuous position."""
-        if agent.unique_id not in self._positions:
-            raise KeyError(f"agent is not placed: {agent.unique_id!r}")
+        unique_id, stored, _ = resolve_placed_agent(
+            agent,
+            positions=self._positions,
+            agents=self._agents,
+        )
 
         pos = self.normalize(position)
-        self._positions[agent.unique_id] = pos
-        agent.pos = pos
+        self._positions[unique_id] = pos
+        stored.pos = pos
 
-    def remove(self, agent: Any) -> None:
+    def remove(
+        self,
+        agent: Any,
+    ) -> None:
         """Remove an agent from the space."""
-        if agent.unique_id not in self._positions:
-            raise KeyError(f"agent is not placed: {agent.unique_id!r}")
+        unique_id, stored, _ = resolve_placed_agent(
+            agent,
+            positions=self._positions,
+            agents=self._agents,
+        )
 
-        del self._positions[agent.unique_id]
-        self._agents.pop(agent.unique_id, None)
+        del self._positions[unique_id]
+        del self._agents[unique_id]
 
-        if hasattr(agent, "pos"):
-            delattr(agent, "pos")
+        clear_spatial_attributes(
+            stored,
+            space=self,
+        )
 
-    def position_of(self, agent: Any) -> Position:
+    def position_of(
+        self,
+        agent: Any,
+    ) -> Position:
         """Return an agent's position."""
-        unique_id = getattr(agent, "unique_id", agent)
+        _, _, position = resolve_placed_agent(
+            agent,
+            positions=self._positions,
+            agents=self._agents,
+        )
 
-        try:
-            return self._positions[unique_id]
-        except KeyError as exc:
-            raise KeyError(f"agent is not placed: {unique_id!r}") from exc
+        return position
 
-    def distance(self, a: Any, b: Any) -> float:
+    def distance(
+        self,
+        a: Any,
+        b: Any,
+    ) -> float:
         """Return Euclidean distance between two agents or positions."""
         ax, ay = self.position_of(a) if not isinstance(a, tuple) else a
         bx, by = self.position_of(b) if not isinstance(b, tuple) else b
@@ -87,12 +136,21 @@ class ContinuousSpace:
         dy = abs(ay - by)
 
         if self.torus:
-            dx = min(dx, self.width - dx)
-            dy = min(dy, self.height - dy)
+            dx = min(
+                dx,
+                self.width - dx,
+            )
+            dy = min(
+                dy,
+                self.height - dy,
+            )
 
         return math.sqrt(dx * dx + dy * dy)
 
-    def agents_at(self, position: tuple[float, float]) -> list[Any]:
+    def agents_at(
+        self,
+        position: Position,
+    ) -> list[Any]:
         """Return agents exactly at a continuous-space position."""
         normalized = self.normalize(position)
 
@@ -115,12 +173,21 @@ class ContinuousSpace:
         for agent in self._agents.values():
             if (
                 not include_center
-                and not isinstance(agent_or_position, tuple)
+                and not isinstance(
+                    agent_or_position,
+                    tuple,
+                )
                 and agent.unique_id == agent_or_position.unique_id
             ):
                 continue
 
-            if self.distance(agent_or_position, agent) <= radius:
+            if (
+                self.distance(
+                    agent_or_position,
+                    agent,
+                )
+                <= radius
+            ):
                 found.append(agent)
 
         return found

@@ -626,28 +626,56 @@ during an activation pass:
 - neither object is activated from the stale snapshot position;
 - the replacement becomes eligible in a future pass.
 
-### 10.4 Collection removal versus model removal
+### 10.4 Managed lifecycle removal
 
-Direct `AgentCollection.remove(...)` changes collection membership.
+`AgentCollection.remove(...)` and `Model.remove_agent(...)` use the same
+managed lifecycle operation.
 
-`Model.remove_agent(...)` is the model-level lifecycle operation and should be
-used when the model also requires:
+The collection accepts only active living agents. Removed or non-living agent
+objects cannot be added or re-added.
 
-- world or space cleanup;
-- lifecycle-state changes;
-- owned-event cancellation;
-- lifecycle recording.
+Managed removal:
 
-### 10.5 Remaining lifecycle work
+1. validates that the supplied agent is the current collection object;
+2. removes the agent from its actual space when spatially placed;
+3. clears spatial position, occupancy, node, and identity indexes;
+4. clears `agent.pos` and `agent.world`;
+5. cancels pending events owned by the agent;
+6. removes the agent from the collection;
+7. changes `is_alive` to false and lifecycle status to `removed`;
+8. writes one `agent_removed` lifecycle record.
 
-Removal-aware activation is now part of the runtime guarantee, but further
-public-alpha lifecycle work includes:
+An object with the same identifier but a different object is rejected.
 
-- uniform model-collection-space referential-integrity checks;
-- consistent cleanup contracts across every built-in space type;
-- an explicit repeated-removal policy;
-- persistent identity rules for recorded data;
-- conformance tests for custom schedulers and spaces.
+Repeated removal raises `KeyError` and does not write a duplicate lifecycle
+record.
+
+### 10.5 Spatial unplacement
+
+`space.remove(...)` is spatial unplacement only.
+
+It removes the agent from that space and clears spatial attributes, but does
+not remove the agent from the model collection, change lifecycle state,
+cancel owned events, or write lifecycle records.
+
+Built-in spaces clear both `agent.pos` and `agent.world` after successful
+unplacement.
+
+Built-in spaces also validate object identity for placement, movement,
+position lookup, and removal. An agent already placed in another space cannot
+be placed into a second built-in space.
+
+### 10.6 Failure ordering
+
+Spatial cleanup completes before lifecycle mutation.
+
+If spatial removal raises an exception, collection membership, lifecycle
+state, owned events, and lifecycle records remain unchanged.
+
+### 10.7 Public-alpha status
+
+Uniform collection-space lifecycle integrity for the managed model lifecycle
+and all built-in spaces is now part of the current runtime guarantee.
 
 ---
 
@@ -809,41 +837,47 @@ Future versions should record:
 
 ## 14. Randomness and determinism
 
-### 14.1 Current generator
+### 14.1 Current generators
 
-Each model creates one NumPy random-number generator from the model seed.
+`Model.rng` remains the default behavior stream used by existing model and
+agent code.
 
-The model, schedulers, and user behavior may consume this shared generator.
+`Model.rng_stream(name)` provides cached named component streams derived
+independently of the default behavior stream and independently of stream
+creation order.
+
+Built-in randomized activation uses the named `scheduler` stream for:
+
+- `RandomActivation`;
+- `AgentCollection.shuffle_do()`;
+- shuffled `StagedActivation`.
+
+The current derivation policy is `named-rng-streams-v1`.
 
 ### 14.2 Current same-seed guarantee
 
-The current safe claim is:
+Under the same code, environment, initial state, execution order, seed, and
+component-stream draw histories, ABMForge is intended to reproduce the same
+model trajectory.
 
-> Under the same code, environment, initial state, execution order, and random-draw history, the same seed is intended to reproduce the same model-level random sequence.
+Unrelated draws from `Model.rng` or `Agent.rng` do not consume the named
+`scheduler` stream and therefore do not change later built-in scheduler
+permutations.
 
-A seed alone does not guarantee:
+The runtime does not guarantee control of:
 
-* independent scheduler and agent streams;
-* identical results after unrelated random draws are added;
-* control of Python’s `random` module;
-* control of third-party-library randomness;
-* identical results across operating systems;
-* identical results across Python, NumPy, or dependency versions;
-* bit-identical archives.
+- Python's global `random` module;
+- third-party-library random generators;
+- operating-system or dependency-version differences;
+- cross-platform bit-identical results;
+- byte-identical archives.
 
-### 14.3 Target random-stream contract
+### 14.3 Snapshot and manifest support
 
-The target design will use versioned named streams for at least:
+Snapshots record the default RNG state, the named-stream policy, root
+material, and opened named-stream states.
 
-```text
-initialization
-behavior
-activation
-events
-space
-```
-
-The manifest and snapshot contracts must record the stream-derivation version and supported stream states.
+Reproducibility manifests record the `named-rng-streams-v1` policy identifier.
 
 ---
 
@@ -860,7 +894,9 @@ The manifest and snapshot contracts must record the stream-derivation version an
 | Random activation | Initial eligible snapshot, named scheduler-stream permutation, callback-time eligibility validation, and isolation from default behavior RNG draws | Independence from changes that consume the scheduler stream itself |
 | Simultaneous activation | Preflight validation of callable `step()` and `advance()`, followed by all eligible decisions before all eligible commits | Automatic current/next-state isolation |
 | Staged activation | Declared stage order, optional per-stage shuffle, and validation before every stage callback | Dynamic additions during the current scheduler call |
-| Same-pass removal | Removed, replaced, or non-living candidates are skipped before their next callback | Complete lifecycle cleanup from direct collection removal |
+| Same-pass removal | Removed, replaced, or non-living candidates are skipped before their next callback | Reactivation during the existing candidate snapshot |
+| Managed lifecycle removal | Collection and model removal share identity-validated built-in-space cleanup, event cancellation, collection removal, lifecycle transition, and recording | Automatic rollback after arbitrary user callback failures |
+| Spatial unplacement | Built-in spaces validate object identity, clear indexes, and clear `agent.pos` and `agent.world` | Lifecycle removal from direct `space.remove(...)` |
 | Same-pass creation | Newly added agents are deferred until a future pass | Immediate participation in the current candidate snapshot |
 | Recording | Post-step observations use incremented counters | Automatic time-zero observation |
 | Scenario stop | Stop condition is checked before and after one-step execution; stopped runs are eligible when numeric final metrics exist | Study-specific scientific validity beyond the default reporting policy |
@@ -870,27 +906,27 @@ The manifest and snapshot contracts must record the stream-derivation version an
 
 ## 16. Public-alpha semantic blockers
 
-The following issues must still be resolved before the fixed-step execution
+The following issue must still be resolved before the fixed-step execution
 profile can be treated as complete public-alpha semantics:
 
-1. Agent-collection-space lifecycle invariants are not uniformly enforced.
-2. Canonical models lack sufficient scientific invariant and metamorphic
+1. Canonical models lack sufficient scientific invariant and metamorphic
    tests.
 
 Removal-aware callback eligibility, strict integer-tick event scheduling,
 separation of execution status from analysis eligibility, strict two-phase
-simultaneous activation, and named scheduler random streams are now part of
-the current runtime guarantee.
+simultaneous activation, named scheduler random streams, and uniform
+collection-space lifecycle integrity are now part of the current runtime
+guarantee.
 
-These remaining items concern correctness and scientific interpretation
-rather than cosmetic API preferences.
+The remaining item concerns scientific interpretation and reference-model
+validation rather than a cosmetic API preference.
 
 ## 17. Model-author responsibilities
 
 Until the target contracts are implemented, model authors should:
 
 1. document the scheduler and activation order;
-2. use `Model.remove_agent(...)` when full lifecycle cleanup is required; direct collection removal changes collection membership only;
+2. use `AgentCollection.remove(...)` or `Model.remove_agent(...)` for managed lifecycle removal, and use `space.remove(...)` only for spatial unplacement;
 3. use finite integer event ticks in the fixed-step profile;
 4. implement explicit current/next state buffers for simultaneous models;
 5. record all random sources and avoid untracked third-party randomness;
@@ -930,9 +966,9 @@ A future manifest should record identifiers such as:
 ```text
 execution_profile = fixed-step-v1
 event_time_policy = integer-tick-v1
-activation_lifecycle_policy = deferred-add-immediate-remove-v1
+activation_lifecycle_policy = managed-removal-v1
 observation_policy = post-step-v1
-rng_policy = named-streams-v1
+rng_policy = named-rng-streams-v1
 ```
 
 Changing one of these policies may alter scientific results even when the public Python method signatures remain unchanged.
@@ -955,8 +991,8 @@ The current ABMForge runtime is best described as:
 > pre-step event processing, candidate-snapshot activation, callback-time
 > identity and membership validation, deferred same-pass additions,
 > immediate removal visibility, strict prevalidated two-phase simultaneous
-> activation, post-step observation, and multiple built-in activation
-> strategies.
+> activation, post-step observation, multiple built-in activation
+> strategies, managed lifecycle removal, and built-in space referential integrity.
 
 Fractional event times and implicit numeric coercion are rejected during
 scheduling, preventing events from being silently executed later than
@@ -964,8 +1000,8 @@ requested.
 
 The remaining target public-alpha contract adds:
 
-> Uniform model-collection-space lifecycle integrity and scientifically
-> verified reference models.
+> Scientifically verified reference models with explicit invariant and
+> metamorphic validation.
 
 Researchers must report the exact ABMForge version or commit and the
 model-specific scheduling, event-time, randomness, observation, and lifecycle
