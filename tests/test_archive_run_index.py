@@ -1,8 +1,9 @@
 import json
 from pathlib import Path
 
+from abmforge.core.model import Model
 from abmforge.data.dataset import Dataset
-from abmforge.experiment import ExperimentArchive, RunIndex
+from abmforge.experiment import ExperimentArchive, RunIndex, Scenario
 from abmforge.experiment.run_index import (
     RUN_IDENTITY_SCHEMA_VERSION,
     RUN_INDEX_SCHEMA_VERSION,
@@ -102,3 +103,28 @@ def test_archive_validation_reports_invalid_run_index(tmp_path: Path) -> None:
     errors = archive.validate()
 
     assert any(error.startswith("Invalid run_index.json:") for error in errors)
+
+
+class RunIndexFingerprintModel(Model):
+    """Minimal model for run-index fingerprint serialization tests."""
+
+
+def test_run_index_json_round_trip_preserves_execution_fingerprint(
+    tmp_path: Path,
+) -> None:
+    scenario = Scenario(
+        model=RunIndexFingerprintModel,
+        parameters={"alpha": 1},
+        seed=1801,
+        steps=2,
+        name="fingerprint-round-trip",
+    )
+    expected = scenario.execution_fingerprint().to_dict()
+    index = RunIndex.from_dataset(scenario.run().dataset)
+
+    path = index.write(tmp_path / "run_index.json")
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    loaded = RunIndex.read(path)
+
+    assert raw["entries"][0]["execution_fingerprint"] == expected
+    assert loaded.entries[0].execution_fingerprint == expected

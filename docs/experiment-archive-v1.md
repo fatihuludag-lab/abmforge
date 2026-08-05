@@ -157,18 +157,27 @@ For recovery, new entries should preserve at least:
 - model module;
 - model qualified name;
 - recovery identity schema version;
+- integrity-checked execution fingerprint;
+- model-source fingerprint kind and SHA-256;
 - scenario name;
 - seed;
 - requested or completed step count;
 - canonical run parameters;
 - completion status.
 
-Recovery must fail closed when execution identity is incomplete. Older entries
-without identity version, model module, qualified name, or step count remain
-readable, but they must not silently suppress a newly planned run. Programmatic
-`stop_when`
-callbacks are not recoverable matches until a stable persisted callback identity
-is defined.
+Recovery must fail closed when execution identity is incomplete. New entries
+use `run-identity-v2` and `execution-fingerprint-v1`. Older entries without a
+supported identity version, a valid fingerprint, model-source hash, model module,
+qualified name, or requested step count remain readable, but they must not
+silently suppress a newly planned run. A modified fingerprint or disagreement
+between the fingerprint and outer run metadata has the same fail-closed result.
+Programmatic `stop_when` callbacks are not recoverable matches until a stable
+persisted callback identity is defined.
+
+The fingerprint does not yet cover input-file checksums, dependency state,
+recorder configuration, plugins, or arbitrary callback identity. See
+[Safe Experiment Recovery](experiment-recovery.md) for scope and migration
+rules.
 
 ### `registry.json`
 

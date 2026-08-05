@@ -19,6 +19,7 @@ from abmforge.core.status import COMPLETED, CREATED, FAILED, RUNNING, STOPPED
 from abmforge.data.dataset import Dataset
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.run_index import RUN_IDENTITY_SCHEMA_VERSION
+from abmforge.repro.execution_fingerprint import ExecutionFingerprintV1
 
 
 class ScenarioValidationError(ValueError):
@@ -220,6 +221,21 @@ class Scenario:
             name=name,
         )
 
+    def execution_fingerprint(
+        self,
+        *,
+        seed: int | None = None,
+    ) -> ExecutionFingerprintV1:
+        """Return the versioned identity for this planned execution."""
+        run_seed = self.seed if seed is None else seed
+        return ExecutionFingerprintV1.create(
+            model=self.model,
+            scenario=self.name or self.model.__name__,
+            seed=run_seed,
+            steps=self.steps,
+            parameters=self.parameters,
+        )
+
     def run(
         self,
         *,
@@ -238,6 +254,7 @@ class Scenario:
         """
         run_seed = self.seed if seed is None else seed
         scenario_name = self.name or self.model.__name__
+        execution_fingerprint = self.execution_fingerprint(seed=run_seed).to_dict()
         started_at = datetime.now(timezone.utc).isoformat()
 
         try:
@@ -248,6 +265,7 @@ class Scenario:
                 run_seed=run_seed,
                 scenario_name=scenario_name,
                 started_at=started_at,
+                execution_fingerprint=execution_fingerprint,
                 raise_on_error=raise_on_error,
             )
             if raise_on_error:
@@ -261,6 +279,7 @@ class Scenario:
             model_module=self.model.__module__,
             model_qualname=self.model.__qualname__,
             run_identity_version=RUN_IDENTITY_SCHEMA_VERSION,
+            execution_fingerprint=execution_fingerprint,
             parameters=dict(self.parameters),
             seed=run_seed,
             status="running",
@@ -383,6 +402,7 @@ class Scenario:
         run_seed: int | None,
         scenario_name: str,
         started_at: str,
+        execution_fingerprint: dict[str, Any],
         raise_on_error: bool,
     ) -> RunResult:
         exception_type = type(exc).__name__
@@ -399,6 +419,7 @@ class Scenario:
             model_module=self.model.__module__,
             model_qualname=self.model.__qualname__,
             run_identity_version=RUN_IDENTITY_SCHEMA_VERSION,
+            execution_fingerprint=execution_fingerprint,
             parameters=dict(self.parameters),
             seed=run_seed,
             status=FAILED,

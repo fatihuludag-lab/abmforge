@@ -30,22 +30,7 @@ def test_missing_scenarios_skips_completed_archive_run() -> None:
         name="baseline",
     )
 
-    run_index = RunIndex(
-        entries=[
-            RunIndexEntry(
-                run_id="run-existing",
-                scenario="baseline",
-                model_name="RecoveryTestModel",
-                model_module=RecoveryTestModel.__module__,
-                model_qualname=RecoveryTestModel.__qualname__,
-                run_identity_version=RUN_IDENTITY_SCHEMA_VERSION,
-                seed=101,
-                status="completed",
-                steps=10,
-                parameters={"growth_rate": 0.1},
-            )
-        ]
-    )
+    run_index = RunIndex.from_dataset(completed.run().dataset)
 
     result = missing_scenarios(
         [completed, missing],
@@ -64,22 +49,8 @@ def test_missing_scenarios_ignores_parameter_order() -> None:
         name="ordered",
     )
 
-    run_index = RunIndex(
-        entries=[
-            RunIndexEntry(
-                run_id="run-existing",
-                scenario="ordered",
-                model_name="RecoveryTestModel",
-                model_module=RecoveryTestModel.__module__,
-                model_qualname=RecoveryTestModel.__qualname__,
-                run_identity_version=RUN_IDENTITY_SCHEMA_VERSION,
-                seed=201,
-                status="completed",
-                steps=5,
-                parameters={"beta": 2, "alpha": 1},
-            )
-        ]
-    )
+    run_index = RunIndex.from_dataset(scenario.run().dataset)
+    run_index.entries[0].parameters = {"beta": 2, "alpha": 1}
 
     result = missing_scenarios([scenario], run_index)
 
@@ -138,22 +109,7 @@ def test_missing_scenarios_preserves_duplicate_runs() -> None:
         name="baseline",
     )
 
-    run_index = RunIndex(
-        entries=[
-            RunIndexEntry(
-                run_id="run-existing",
-                scenario="baseline",
-                model_name="RecoveryTestModel",
-                model_module=RecoveryTestModel.__module__,
-                model_qualname=RecoveryTestModel.__qualname__,
-                run_identity_version=RUN_IDENTITY_SCHEMA_VERSION,
-                seed=500,
-                status="completed",
-                steps=5,
-                parameters={"alpha": 1},
-            )
-        ]
-    )
+    run_index = RunIndex.from_dataset(scenario1.run().dataset)
 
     result = missing_scenarios(
         [scenario1, scenario2, scenario3],
@@ -192,68 +148,77 @@ def test_missing_scenarios_does_not_match_different_step_counts() -> None:
         name="baseline",
     )
 
-    run_index = RunIndex(
-        entries=[
-            RunIndexEntry(
-                run_id="run-existing",
-                scenario="baseline",
-                model_name="RecoveryTestModel",
-                model_module=RecoveryTestModel.__module__,
-                model_qualname=RecoveryTestModel.__qualname__,
-                run_identity_version=RUN_IDENTITY_SCHEMA_VERSION,
-                seed=101,
-                status="completed",
-                steps=10,
-                parameters={"growth_rate": 0.1},
-            )
-        ]
+    archived = Scenario(
+        model=RecoveryTestModel,
+        parameters={"growth_rate": 0.1},
+        seed=101,
+        steps=10,
+        name="baseline",
     )
+    run_index = RunIndex.from_dataset(archived.run().dataset)
 
     result = missing_scenarios([scenario], run_index)
 
     assert result == [scenario]
 
 
-def test_missing_scenarios_does_not_match_same_model_name_from_different_module() -> None:
-    archived_model = type(
-        "SharedModel",
-        (Model,),
-        {"__module__": "archived_package.models"},
-    )
-    planned_model = type(
-        "SharedModel",
-        (Model,),
-        {"__module__": "planned_package.models"},
-    )
+def test_missing_scenarios_does_not_match_same_model_name_from_different_module(
+    tmp_path,
+) -> None:
+    import importlib
+    import sys
+    from textwrap import dedent
 
-    scenario = Scenario(
-        model=planned_model,
-        parameters={"alpha": 1},
-        seed=701,
-        steps=5,
-        name="module-check",
+    archived_module_name = f"archived_model_{tmp_path.name.replace('-', '_')}"
+    planned_module_name = f"planned_model_{tmp_path.name.replace('-', '_')}"
+
+    model_source = dedent(
+        """
+        from abmforge.core.model import Model
+
+
+        class SharedModel(Model):
+            pass
+        """
     )
-
-    run_index = RunIndex(
-        entries=[
-            RunIndexEntry(
-                run_id="run-existing",
-                scenario="module-check",
-                model_name=archived_model.__name__,
-                model_module=archived_model.__module__,
-                model_qualname=archived_model.__qualname__,
-                run_identity_version=RUN_IDENTITY_SCHEMA_VERSION,
-                seed=701,
-                status="completed",
-                steps=5,
-                parameters={"alpha": 1},
-            )
-        ]
+    (tmp_path / f"{archived_module_name}.py").write_text(
+        model_source,
+        encoding="utf-8",
     )
+    (tmp_path / f"{planned_module_name}.py").write_text(
+        model_source,
+        encoding="utf-8",
+    )
+    importlib.invalidate_caches()
 
-    result = missing_scenarios([scenario], run_index)
+    sys.path.insert(0, str(tmp_path))
+    try:
+        archived_module = importlib.import_module(archived_module_name)
+        planned_module = importlib.import_module(planned_module_name)
 
-    assert result == [scenario]
+        archived = Scenario(
+            model=archived_module.SharedModel,
+            parameters={"alpha": 1},
+            seed=701,
+            steps=5,
+            name="module-check",
+        )
+        planned = Scenario(
+            model=planned_module.SharedModel,
+            parameters={"alpha": 1},
+            seed=701,
+            steps=5,
+            name="module-check",
+        )
+        run_index = RunIndex.from_dataset(archived.run().dataset)
+
+        result = missing_scenarios([planned], run_index)
+    finally:
+        sys.path.remove(str(tmp_path))
+        sys.modules.pop(archived_module_name, None)
+        sys.modules.pop(planned_module_name, None)
+
+    assert result == [planned]
 
 
 def test_missing_scenarios_matches_run_index_created_from_actual_scenario_run() -> None:
@@ -337,6 +302,7 @@ def test_actual_run_persists_versioned_recovery_identity() -> None:
     entry = run_index.entries[0]
 
     assert entry.run_identity_version == RUN_IDENTITY_SCHEMA_VERSION
+    assert entry.execution_fingerprint == scenario.execution_fingerprint().to_dict()
 
 
 def test_missing_scenarios_does_not_match_different_identity_version() -> None:
@@ -348,23 +314,137 @@ def test_missing_scenarios_does_not_match_different_identity_version() -> None:
         name="identity-version",
     )
 
-    run_index = RunIndex(
-        entries=[
-            RunIndexEntry(
-                run_id="future-run",
-                scenario="identity-version",
-                model_name=RecoveryTestModel.__name__,
-                model_module=RecoveryTestModel.__module__,
-                model_qualname=RecoveryTestModel.__qualname__,
-                run_identity_version="run-identity-v2",
-                seed=1201,
-                status="completed",
-                steps=5,
-                parameters={"alpha": 1},
-            )
-        ]
-    )
+    run_index = RunIndex.from_dataset(scenario.run().dataset)
+    run_index.entries[0].run_identity_version = "run-identity-v999"
 
     result = missing_scenarios([scenario], run_index)
 
     assert result == [scenario]
+
+
+def test_missing_scenarios_reruns_when_model_source_changes(tmp_path) -> None:
+    import importlib
+    import shutil
+    import sys
+    from textwrap import dedent
+
+    module_name = f"recovery_source_change_{tmp_path.name.replace('-', '_')}"
+    module_path = tmp_path / f"{module_name}.py"
+
+    def write_model(*, increment: int) -> None:
+        module_path.write_text(
+            dedent(
+                f"""
+                from abmforge.core.model import Model
+
+
+                class SourceChangedModel(Model):
+                    def setup(self) -> None:
+                        self.value = 0
+
+                    def step(self) -> None:
+                        self.value += {increment}
+                """
+            ),
+            encoding="utf-8",
+        )
+        importlib.invalidate_caches()
+
+    sys.path.insert(0, str(tmp_path))
+    try:
+        write_model(increment=1)
+        archived_module = importlib.import_module(module_name)
+        archived = Scenario(
+            model=archived_module.SourceChangedModel,
+            parameters={"alpha": 1},
+            seed=1301,
+            steps=2,
+            name="source-change",
+        )
+        run_index = RunIndex.from_dataset(archived.run().dataset)
+
+        sys.modules.pop(module_name, None)
+        shutil.rmtree(tmp_path / "__pycache__", ignore_errors=True)
+
+        write_model(increment=2)
+        planned_module = importlib.import_module(module_name)
+        planned = Scenario(
+            model=planned_module.SourceChangedModel,
+            parameters={"alpha": 1},
+            seed=1301,
+            steps=2,
+            name="source-change",
+        )
+
+        result = missing_scenarios([planned], run_index)
+    finally:
+        sys.path.remove(str(tmp_path))
+        sys.modules.pop(module_name, None)
+
+    assert result == [planned]
+
+
+def test_missing_scenarios_reruns_when_fingerprint_payload_is_tampered() -> None:
+    scenario = Scenario(
+        model=RecoveryTestModel,
+        parameters={"alpha": 1},
+        seed=1401,
+        steps=5,
+        name="tampered-fingerprint",
+    )
+    run_index = RunIndex.from_dataset(scenario.run().dataset)
+    entry = run_index.entries[0]
+
+    assert entry.execution_fingerprint is not None
+    tampered = dict(entry.execution_fingerprint)
+    tampered["steps"] = 500
+    entry.execution_fingerprint = tampered
+
+    assert missing_scenarios([scenario], run_index) == [scenario]
+
+
+def test_missing_scenarios_reruns_when_run_metadata_disagrees_with_fingerprint() -> None:
+    scenario = Scenario(
+        model=RecoveryTestModel,
+        parameters={"alpha": 1},
+        seed=1501,
+        steps=5,
+        name="metadata-mismatch",
+    )
+    run_index = RunIndex.from_dataset(scenario.run().dataset)
+    run_index.entries[0].model_module = "tampered.module"
+
+    assert missing_scenarios([scenario], run_index) == [scenario]
+
+
+def test_missing_scenarios_does_not_trust_v1_identity_with_fingerprint() -> None:
+    scenario = Scenario(
+        model=RecoveryTestModel,
+        parameters={"alpha": 1},
+        seed=1601,
+        steps=5,
+        name="legacy-v1",
+    )
+    run_index = RunIndex.from_dataset(scenario.run().dataset)
+    run_index.entries[0].run_identity_version = "run-identity-v1"
+
+    assert missing_scenarios([scenario], run_index) == [scenario]
+
+
+def test_missing_scenarios_reruns_when_fingerprint_digest_is_missing() -> None:
+    scenario = Scenario(
+        model=RecoveryTestModel,
+        parameters={"alpha": 1},
+        seed=1701,
+        steps=5,
+        name="missing-digest",
+    )
+    run_index = RunIndex.from_dataset(scenario.run().dataset)
+    entry = run_index.entries[0]
+
+    assert entry.execution_fingerprint is not None
+    without_digest = dict(entry.execution_fingerprint)
+    without_digest.pop("digest")
+    entry.execution_fingerprint = without_digest
+
+    assert missing_scenarios([scenario], run_index) == [scenario]

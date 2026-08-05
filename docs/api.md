@@ -499,6 +499,15 @@ Analyze Morris outputs.
 
 ## Reproducibility API
 
+### `ExecutionFingerprintV1`
+
+**Status:** Provisional
+**Import:** `from abmforge.repro import ExecutionFingerprintV1`
+
+Versioned, integrity-checked execution identity used by safe experiment
+recovery. Most users should call `Scenario.execution_fingerprint()` instead of
+constructing this class directly.
+
 ### `ReproducibilityManifest`
 
 **Status:** Provisional  
