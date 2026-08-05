@@ -214,6 +214,7 @@ A typical entry contains:
 - `model_module`
 - `model_qualname`
 - `run_identity_version`
+- `execution_fingerprint`
 - `seed`
 - `status`
 - `steps`
@@ -231,14 +232,21 @@ which runs exist in an archive before loading the full dataset tables.
 
 Archives produced before this feature may not contain `run_index.json`.
 
-Recovery uses a fail-closed execution identity. A completed archived run matches
-a planned scenario only when the identity schema version, model name, module,
-qualified class name, scenario name, seed, step count, and canonical parameters
-agree. Legacy entries
-missing these identity fields are not trusted as completed matches.
+Recovery uses a fail-closed execution identity. New runs use
+`run-identity-v2` together with an integrity-checked
+`execution-fingerprint-v1`. A completed archived run matches a planned scenario
+only when the identity versions, fingerprint digest, model-source SHA-256, model
+name, module, qualified class name, scenario name, seed, requested step count,
+and canonical parameters agree.
 
-Programmatic scenarios with `stop_when` callbacks are also treated as missing
-until ABMForge has a persisted and stable stop-condition identity contract.
+Legacy entries, entries with missing or modified fingerprints, and entries whose
+outer metadata disagrees with the fingerprint remain readable but are not
+trusted as completed matches. Programmatic scenarios with `stop_when` callbacks
+are also treated as missing until ABMForge has a persisted and stable
+stop-condition identity contract.
+
+See [Safe Experiment Recovery](experiment-recovery.md) for the complete matching
+and migration contract.
 
 ## Manifest artifact checksum validation
 

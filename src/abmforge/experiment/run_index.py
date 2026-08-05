@@ -9,7 +9,7 @@ from typing import Any, cast
 from abmforge.data.dataset import Dataset
 
 RUN_INDEX_SCHEMA_VERSION = "run-index-v1"
-RUN_IDENTITY_SCHEMA_VERSION = "run-identity-v1"
+RUN_IDENTITY_SCHEMA_VERSION = "run-identity-v2"
 
 
 @dataclass(slots=True)
@@ -22,6 +22,7 @@ class RunIndexEntry:
     model_module: str | None = None
     model_qualname: str | None = None
     run_identity_version: str | None = None
+    execution_fingerprint: dict[str, Any] | None = None
     seed: int | None = None
     status: str | None = None
     steps: int | None = None
@@ -53,6 +54,7 @@ class RunIndexEntry:
             model_module=_optional_str(data.get("model_module")),
             model_qualname=_optional_str(data.get("model_qualname")),
             run_identity_version=_optional_str(data.get("run_identity_version")),
+            execution_fingerprint=_optional_dict(data.get("execution_fingerprint")),
             seed=_optional_int(data.get("seed")),
             status=_optional_str(data.get("status")),
             steps=_optional_int(data.get("steps")),
@@ -176,3 +178,9 @@ def _parameters(value: Any) -> dict[str, Any]:
     if isinstance(value, dict):
         return dict(value)
     return {}
+
+
+def _optional_dict(value: Any) -> dict[str, Any] | None:
+    if isinstance(value, Mapping):
+        return dict(value)
+    return None

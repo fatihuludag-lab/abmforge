@@ -125,6 +125,16 @@ result.failed()
 The CLI additionally uses a non-zero exit status whenever any run failed,
 whether execution stopped early or continued through the complete plan.
 
+## Safe recovery
+
+When an existing run index is supplied, ABMForge reuses only completed runs with
+a valid `run-identity-v2` and `execution-fingerprint-v1`. Legacy, incomplete,
+tampered, source-unavailable, source-changed, or `stop_when`-based executions
+are treated as missing and run again.
+
+See [Safe Experiment Recovery](experiment-recovery.md) for the identity fields,
+matching rules, migration behavior, and current limitations.
+
 ## Export
 
 ```python

@@ -68,7 +68,19 @@ behavior, and research-workflow guarantees may change before a stable release.
 
 Current development version: `0.3.0a1`.
 
+### Added
+
+- Add `ExecutionFingerprintV1` with model-source SHA-256, canonical parameter
+  hashing, versioned serialization, and digest integrity checks.
+- Persist execution fingerprints in dataset run metadata and `run_index.json`.
+- Document fail-closed recovery, legacy archive behavior, and the current
+  fingerprint scope.
+
 ### Fixed
+
+- Prevent completed runs from being reused after the model source changes.
+- Reject legacy, incomplete, unsupported, tampered, or metadata-inconsistent
+  recovery identities instead of silently suppressing planned runs.
 
 - Respect `Model.stop()` calls made during `Scenario.run()`.
 - Make `NetworkSpace` neighbor and agent iteration order deterministic across
@@ -82,6 +94,9 @@ Current development version: `0.3.0a1`.
 
 ### Changed
 
+- Upgrade recovery matching from `run-identity-v1` to `run-identity-v2` with
+  `execution-fingerprint-v1`; older identities remain readable but are not
+  automatically reusable.
 - Soften alpha-stage positioning claims from "reproducible by default" toward
   "reproducibility-oriented".
 - Make CI mypy checks use the active matrix Python version.
