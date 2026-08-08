@@ -5,6 +5,7 @@ import json
 import platform
 import subprocess
 import sys
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from importlib.metadata import distributions
@@ -14,6 +15,11 @@ from typing import TYPE_CHECKING, Any
 from abmforge._version import __version__
 from abmforge.data.schema import DATASET_SCHEMA_VERSION, DatasetSchemaV1
 from abmforge.randomness import RNG_STREAM_POLICY
+from abmforge.repro.input_provenance import (
+    INPUT_ARTIFACT_PROVENANCE_SCHEMA_VERSION,
+    InputArtifactProvenanceV1,
+)
+from abmforge.repro.source_provenance import SourceRepositoryProvenanceV1
 
 if TYPE_CHECKING:
     from abmforge.data.dataset import Dataset
@@ -80,6 +86,24 @@ def describe_file_artifact(
     if role is not None:
         artifact["role"] = role
     return artifact
+
+
+def _describe_input_artifacts(
+    paths: Sequence[str | Path] | None,
+    *,
+    root: str | Path | None,
+) -> list[dict[str, Any]]:
+    if paths is None:
+        return []
+
+    records = [
+        InputArtifactProvenanceV1.from_path(
+            path,
+            root=root,
+        ).to_dict()
+        for path in paths
+    ]
+    return sorted(records, key=lambda record: record["path"])
 
 
 def _optional_str(value: Any) -> str | None:
@@ -216,6 +240,7 @@ class ReproducibilityManifest:
     environment: dict[str, Any]
     git: dict[str, Any] | None
     packages: list[dict[str, str]] | None
+    input_artifacts: list[dict[str, Any]] = field(default_factory=list)
     artifacts: list[dict[str, Any]] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -228,6 +253,8 @@ class ReproducibilityManifest:
         include_git: bool = True,
         include_packages: bool = True,
         include_command: bool = True,
+        input_artifacts: Sequence[str | Path] | None = None,
+        input_root: str | Path | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> ReproducibilityManifest:
         """Create a reproducibility manifest from a Dataset."""
@@ -263,6 +290,10 @@ class ReproducibilityManifest:
             environment=_collect_environment(include_command=include_command),
             git=_collect_git_metadata(Path.cwd()) if include_git else None,
             packages=_collect_packages() if include_packages else None,
+            input_artifacts=_describe_input_artifacts(
+                input_artifacts,
+                root=input_root,
+            ),
             metadata=manifest_metadata,
         )
         manifest.validate()
@@ -277,6 +308,8 @@ class ReproducibilityManifest:
         include_git: bool = True,
         include_packages: bool = True,
         include_command: bool = True,
+        input_artifacts: Sequence[str | Path] | None = None,
+        input_root: str | Path | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> ReproducibilityManifest:
         """Create a reproducibility manifest from a RunResult."""
@@ -289,14 +322,25 @@ class ReproducibilityManifest:
             }
         )
 
-        return cls.from_dataset(
+        manifest = cls.from_dataset(
             result.dataset,
             experiment_id=experiment_id,
-            include_git=include_git,
+            include_git=False,
             include_packages=include_packages,
             include_command=include_command,
+            input_artifacts=input_artifacts,
+            input_root=input_root,
             metadata=merged_metadata,
         )
+
+        if include_git:
+            if result.model is None:
+                manifest.git = SourceRepositoryProvenanceV1.unavailable().to_dict()
+            else:
+                manifest.git = SourceRepositoryProvenanceV1.from_model(result.model).to_dict()
+
+        manifest.validate()
+        return manifest
 
     def validate(self) -> None:
         """Validate the manifest's minimum structural requirements."""
@@ -327,6 +371,35 @@ class ReproducibilityManifest:
 
             if table_name not in self.record_hashes:
                 raise ValueError(f"Missing record hash for table: {table_name}")
+
+        if not isinstance(self.input_artifacts, list):
+            raise ValueError("input_artifacts must be a list")
+        input_paths: set[str] = set()
+        for index, artifact in enumerate(self.input_artifacts):
+            if not isinstance(artifact, dict):
+                raise ValueError(f"input_artifacts[{index}] must be an object")
+            if artifact.get("schema_version") != INPUT_ARTIFACT_PROVENANCE_SCHEMA_VERSION:
+                raise ValueError(f"input_artifacts[{index}].schema_version is unsupported")
+            if artifact.get("role") != "input":
+                raise ValueError(f"input_artifacts[{index}].role must equal 'input'")
+            artifact_path = artifact.get("path")
+            if not isinstance(artifact_path, str) or not artifact_path:
+                raise ValueError(f"input_artifacts[{index}].path must be a non-empty string")
+            if artifact_path in input_paths:
+                raise ValueError(f"Duplicate input artifact path: {artifact_path}")
+            input_paths.add(artifact_path)
+            artifact_hash = artifact.get("sha256")
+            if (
+                not isinstance(artifact_hash, str)
+                or len(artifact_hash) != 64
+                or any(character not in "0123456789abcdef" for character in artifact_hash)
+            ):
+                raise ValueError(f"input_artifacts[{index}].sha256 must be a SHA-256 hex digest")
+            size_bytes = artifact.get("size_bytes")
+            if not isinstance(size_bytes, int) or size_bytes < 0:
+                raise ValueError(
+                    f"input_artifacts[{index}].size_bytes must be a non-negative integer"
+                )
 
         if not isinstance(self.artifacts, list):
             raise ValueError("artifacts must be a list")
@@ -365,6 +438,8 @@ class ReproducibilityManifest:
             "environment": self.environment,
             "git": self.git,
             "packages": self.packages,
+            "input_artifacts": self.input_artifacts,
+            "input_artifact_count": len(self.input_artifacts),
             "artifacts": self.artifacts,
             "artifact_count": len(self.artifacts),
             "metadata": self.metadata,

@@ -70,6 +70,12 @@ Current development version: `0.3.0a1`.
 
 ### Added
 
+- Add `source-repository-provenance-v1` so run-result manifests discover Git
+  metadata from the executed model's defining source file rather than the
+  process current working directory.
+- Add `input-artifact-v1` records with portable paths, byte sizes, SHA-256
+  checksums, root-containment checks, and a separate manifest input inventory.
+
 - Add `ExecutionFingerprintV1` with model-source SHA-256, canonical parameter
   hashing, versioned serialization, and digest integrity checks.
 - Persist execution fingerprints in dataset run metadata and `run_index.json`.

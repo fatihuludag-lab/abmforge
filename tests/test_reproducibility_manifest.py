@@ -143,6 +143,7 @@ def test_manifest_from_run_result() -> None:
     assert data["metadata"]["run_result_status"] == result.status
     assert data["metadata"]["run_result_steps"] == result.steps
     assert data["metadata"]["rng_stream_policy"] == "named-rng-streams-v1"
+    assert data["git"] is None
 
 
 def test_manifest_content_hash_is_stable_for_same_content() -> None:
@@ -244,3 +245,143 @@ def test_manifest_docs_describe_named_rng_policy() -> None:
 
     for statement in expected:
         assert statement in normalized
+
+
+def test_manifest_from_run_result_uses_model_source_repository_not_cwd(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import importlib
+    import subprocess
+    import sys
+
+    def init_repository(
+        path: Path,
+        *,
+        filename: str,
+        content: str,
+    ) -> str:
+        path.mkdir()
+        (path / filename).write_text(content, encoding="utf-8")
+
+        subprocess.run(
+            ["git", "init", "-q"],
+            cwd=path,
+            check=True,
+        )
+        subprocess.run(
+            ["git", "config", "user.email", "tests@example.com"],
+            cwd=path,
+            check=True,
+        )
+        subprocess.run(
+            ["git", "config", "user.name", "ABMForge Tests"],
+            cwd=path,
+            check=True,
+        )
+        subprocess.run(
+            ["git", "add", filename],
+            cwd=path,
+            check=True,
+        )
+        subprocess.run(
+            ["git", "commit", "-q", "-m", "initial"],
+            cwd=path,
+            check=True,
+        )
+
+        return subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=path,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+
+    source_repo = tmp_path / "source-repo"
+    source_commit = init_repository(
+        source_repo,
+        filename="source_model.py",
+        content=("from abmforge import Model\n\nclass SourceRepositoryModel(Model):\n    pass\n"),
+    )
+
+    working_repo = tmp_path / "working-repo"
+    working_commit = init_repository(
+        working_repo,
+        filename="README.md",
+        content="unrelated working repository\n",
+    )
+
+    assert source_commit != working_commit
+
+    sys.path.insert(0, str(source_repo))
+    try:
+        source_module = importlib.import_module("source_model")
+
+        result = Scenario(
+            model=source_module.SourceRepositoryModel,
+            seed=123,
+            steps=0,
+            name="source-provenance",
+        ).run()
+
+        monkeypatch.chdir(working_repo)
+
+        manifest = ReproducibilityManifest.from_run_result(
+            result,
+            include_git=True,
+            include_packages=False,
+            include_command=False,
+        )
+    finally:
+        sys.path.remove(str(source_repo))
+        sys.modules.pop("source_model", None)
+
+    assert manifest.git is not None
+    assert manifest.git["schema_version"] == ("source-repository-provenance-v1")
+    assert manifest.git["scope"] == "model-source"
+    assert manifest.git["source_available"] is True
+    assert manifest.git["source_path"] == "source_model.py"
+    assert manifest.git["source_sha256"]
+    assert manifest.git["available"] is True
+    assert manifest.git["commit"] == source_commit
+
+
+def test_manifest_from_run_result_records_input_artifact_checksums(
+    tmp_path: Path,
+) -> None:
+    input_root = tmp_path / "study-inputs"
+    input_path = input_root / "data" / "observations.csv"
+    input_path.parent.mkdir(parents=True)
+    input_path.write_text(
+        "agent_id,value\n1,10\n2,20\n",
+        encoding="utf-8",
+    )
+
+    result = Scenario(
+        model=EmptyModel,
+        seed=123,
+        steps=0,
+        name="input-provenance",
+    ).run()
+
+    manifest = ReproducibilityManifest.from_run_result(
+        result,
+        include_git=False,
+        include_packages=False,
+        include_command=False,
+        input_artifacts=[input_path],
+        input_root=input_root,
+    )
+    data = manifest.to_dict()
+
+    assert data["input_artifact_count"] == 1
+    assert data["input_artifacts"] == [
+        {
+            "schema_version": "input-artifact-v1",
+            "path": "data/observations.csv",
+            "role": "input",
+            "size_bytes": input_path.stat().st_size,
+            "sha256": sha256_file(input_path),
+        }
+    ]
