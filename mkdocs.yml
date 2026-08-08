@@ -37,6 +37,7 @@ nav:
   - Dataset Schema: dataset-schema-v1.md
   - Failure Handling: failure-handling.md
   - Reproducibility Manifest: reproducibility-manifest-v1.md
+  - Source and Input Provenance: source-input-provenance.md
   - ODD Export: odd-export.md
   - Model Zoo: model-zoo.md
   - Model Zoo Research Examples: model-zoo-research-examples.md

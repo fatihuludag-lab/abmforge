@@ -14,8 +14,9 @@ A useful ABM run archive should record:
 - record counts
 - record hashes
 - Python and platform metadata
-- optional Git metadata
+- model-source Git metadata and source-file SHA-256 when built from a run result
 - optional package metadata
+- declared external input artifacts and SHA-256 checksums
 - generated artifacts
 
 ## Basic usage
@@ -23,9 +24,17 @@ A useful ABM run archive should record:
 ```python
 from abmforge import ReproducibilityManifest
 
-manifest = ReproducibilityManifest.from_run_result(result)
+manifest = ReproducibilityManifest.from_run_result(
+    result,
+    input_artifacts=["study/data/observations.csv"],
+    input_root="study",
+)
 manifest.write("outputs/run_42")
 ```
+
+Build from `RunResult` when model-source repository provenance is required.
+See [Source and Input Provenance](source-input-provenance.md) for scope,
+security rules, and current limitations.
 
 ## Manifest schema
 
@@ -58,7 +67,10 @@ runs
 environment
 git
 packages
+input_artifacts
+input_artifact_count
 artifacts
+artifact_count
 metadata
 ```
 
@@ -105,6 +117,31 @@ outputs/
 - failure artifacts
 - ODD/TRACE export
 - CoMSES packaging
+
+
+## Model-source Git provenance
+
+For `ReproducibilityManifest.from_run_result(..., include_git=True)`, the `git`
+object uses `source-repository-provenance-v1`. Discovery starts from the
+executed model's defining source file rather than `Path.cwd()` and records the
+source path, source SHA-256, repository commit, branch, dirty state, and remote
+when available.
+
+If model source cannot be inspected, the record is fail-closed with
+`source_available: false`. `from_dataset()` retains its older current-working-
+directory Git behavior because a bare dataset does not necessarily retain the
+executed model object.
+
+## Input artifact inventory and checksums
+
+Manifest v1 stores declared external inputs in `input_artifacts`, separately
+from generated `artifacts`. Each `input-artifact-v1` record includes a portable
+path, `role: input`, byte size, and SHA-256 digest. The manifest also exposes
+`input_artifact_count`.
+
+Use `input_root` to produce study-relative paths. Resolved inputs must remain
+inside that root; traversal and symlink escape are rejected. Inputs are not
+auto-discovered and must be declared explicitly.
 
 
 ## Artifact inventory and checksums

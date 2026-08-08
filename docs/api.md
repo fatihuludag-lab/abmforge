@@ -513,7 +513,40 @@ constructing this class directly.
 **Status:** Provisional  
 **Import:** `from abmforge import ReproducibilityManifest`
 
-Manifest helper for reproducibility metadata.
+Manifest helper for reproducibility metadata. `from_run_result()` can record
+model-source repository provenance and explicitly declared external input
+files:
+
+```python
+manifest = ReproducibilityManifest.from_run_result(
+    result,
+    input_artifacts=["study/data/observations.csv"],
+    input_root="study",
+)
+```
+
+Use `from_run_result()` rather than `from_dataset()` when the manifest must
+identify the executed model's defining repository.
+
+### `SourceRepositoryProvenanceV1`
+
+**Status:** Provisional
+
+**Import:** `from abmforge.repro import SourceRepositoryProvenanceV1`
+
+Collects `source-repository-provenance-v1` metadata from a model class or
+instance. Git discovery starts from the defining source file, and the record
+includes a source-file SHA-256 even when the source is outside Git.
+
+### `InputArtifactProvenanceV1`
+
+**Status:** Provisional
+
+**Import:** `from abmforge.repro import InputArtifactProvenanceV1`
+
+Creates one `input-artifact-v1` record containing a portable path, file size,
+role, and SHA-256 digest. With `root=...`, resolved files must remain inside the
+root; path traversal and symlink escape are rejected.
 
 ## Replay and Snapshot API
 
