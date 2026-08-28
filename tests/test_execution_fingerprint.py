@@ -165,3 +165,20 @@ def test_execution_fingerprint_is_untrusted_when_source_is_unavailable() -> None
 
     assert fingerprint.trusted is False
     assert fingerprint.model_source_sha256 is None
+
+
+def test_execution_fingerprint_v1_digest_contract_is_immutable() -> None:
+    fingerprint = ExecutionFingerprintV1(
+        model_name="LegacyModel",
+        model_module="example.models",
+        model_qualname="LegacyModel",
+        model_source_kind="module-file-sha256",
+        model_source_sha256="1" * 64,
+        scenario="legacy",
+        seed=7,
+        steps=3,
+        parameters_sha256="2" * 64,
+    )
+
+    assert fingerprint.schema_version == "execution-fingerprint-v1"
+    assert fingerprint.digest == "b71c4436a1bc4f3da9880843350572ceac2e51b03fdacdca0853c80cfdc177b3"

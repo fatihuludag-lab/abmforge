@@ -166,7 +166,7 @@ For recovery, new entries should preserve at least:
 - completion status.
 
 Recovery must fail closed when execution identity is incomplete. New entries
-use `run-identity-v2` and `execution-fingerprint-v1`. Older entries without a
+use `run-identity-v2` and `execution-fingerprint-v2`. Older entries without a
 supported identity version, a valid fingerprint, model-source hash, model module,
 qualified name, or requested step count remain readable, but they must not
 silently suppress a newly planned run. A modified fingerprint or disagreement
