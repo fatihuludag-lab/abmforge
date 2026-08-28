@@ -51,6 +51,7 @@ schema_version
 manifest_id
 created_at
 abmforge_version
+framework
 dataset_schema_version
 dataset_schema_hash
 run_id
@@ -73,6 +74,37 @@ artifacts
 artifact_count
 metadata
 ```
+
+## Framework provenance
+
+Newly generated Manifest V1 documents include a `framework` object using
+`framework-provenance-v1`. This object identifies the ABMForge runtime
+separately from model-source provenance and from the legacy `git` field.
+
+The framework record contains:
+
+- `scope: abmforge-framework`;
+- the framework name and version;
+- `install_mode`;
+- `package_tree_sha256` for the runtime ABMForge package tree;
+- repository availability;
+- Git commit, branch, dirty state, and remote when the runtime package is a
+  recognized ABMForge source checkout.
+
+The package-tree hash is deterministic over runtime package files and ignores
+Python cache artifacts such as `__pycache__` directories and `.pyc` files.
+
+Framework provenance is independent of the legacy `git` field and is recorded
+even when `include_git=False`. The `abmforge_version` field remains available
+for compatibility and must equal `framework.version`.
+
+For an installed distribution where source-repository evidence is unavailable,
+ABMForge records the package-tree hash when possible but leaves commit, branch,
+dirty state, and remote unavailable rather than inferring them from an unrelated
+parent repository.
+
+Legacy Manifest V1 files created before framework provenance was introduced may
+omit `framework`. Their missing framework identity must not be fabricated.
 
 ## Named RNG stream policy
 

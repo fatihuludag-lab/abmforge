@@ -385,3 +385,105 @@ def test_manifest_from_run_result_records_input_artifact_checksums(
             "sha256": sha256_file(input_path),
         }
     ]
+
+
+def test_manifest_contains_framework_provenance() -> None:
+    manifest = ReproducibilityManifest.from_dataset(
+        _sample_dataset(),
+        include_git=False,
+        include_packages=False,
+        include_command=False,
+    )
+
+    data = manifest.to_dict()
+    framework = data["framework"]
+
+    assert data["git"] is None
+    assert framework["schema_version"] == "framework-provenance-v1"
+    assert framework["scope"] == "abmforge-framework"
+    assert framework["name"] == "abmforge"
+    assert framework["version"] == abmforge.__version__
+    assert framework["install_mode"] in {
+        "source-checkout",
+        "installed-distribution",
+        "unavailable",
+    }
+
+    if framework["package_tree_sha256"] is not None:
+        assert len(framework["package_tree_sha256"]) == 64
+
+
+def test_run_result_manifest_framework_is_independent_of_git_option() -> None:
+    result = Scenario(
+        model=EmptyModel,
+        seed=123,
+        steps=0,
+        name="framework-manifest-test",
+    ).run()
+
+    manifest = ReproducibilityManifest.from_run_result(
+        result,
+        include_git=False,
+        include_packages=False,
+        include_command=False,
+    )
+
+    data = manifest.to_dict()
+
+    assert data["git"] is None
+    assert data["framework"]["scope"] == "abmforge-framework"
+    assert data["framework"]["version"] == abmforge.__version__
+
+
+def test_manifest_rejects_framework_version_mismatch() -> None:
+    manifest = ReproducibilityManifest.from_dataset(
+        _sample_dataset(),
+        include_git=False,
+        include_packages=False,
+        include_command=False,
+    )
+
+    manifest.framework["version"] = "0.0.0-invalid"
+
+    with pytest.raises(
+        ValueError,
+        match="framework.version must equal abmforge_version",
+    ):
+        manifest.validate()
+
+
+def test_manifest_rejects_invalid_framework_tree_hash() -> None:
+    manifest = ReproducibilityManifest.from_dataset(
+        _sample_dataset(),
+        include_git=False,
+        include_packages=False,
+        include_command=False,
+    )
+
+    manifest.framework["package_tree_sha256"] = "not-a-sha256"
+
+    with pytest.raises(
+        ValueError,
+        match="framework.package_tree_sha256",
+    ):
+        manifest.validate()
+
+
+def test_manifest_docs_describe_framework_provenance() -> None:
+    text = Path("docs/reproducibility-manifest-v1.md").read_text(
+        encoding="utf-8",
+    )
+    normalized = " ".join(text.split())
+
+    expected = [
+        "`framework`",
+        "`framework-provenance-v1`",
+        "`package_tree_sha256`",
+        "independent of the legacy `git` field",
+        "`framework.version`",
+        "Legacy Manifest V1",
+        "must not be fabricated",
+    ]
+
+    for statement in expected:
+        assert statement in normalized

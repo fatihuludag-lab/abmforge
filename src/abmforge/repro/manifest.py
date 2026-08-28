@@ -15,6 +15,10 @@ from typing import TYPE_CHECKING, Any
 from abmforge._version import __version__
 from abmforge.data.schema import DATASET_SCHEMA_VERSION, DatasetSchemaV1
 from abmforge.randomness import RNG_STREAM_POLICY
+from abmforge.repro.framework_provenance import (
+    FRAMEWORK_PROVENANCE_SCHEMA_VERSION,
+    FrameworkProvenanceV1,
+)
 from abmforge.repro.input_provenance import (
     INPUT_ARTIFACT_PROVENANCE_SCHEMA_VERSION,
     InputArtifactProvenanceV1,
@@ -225,6 +229,7 @@ class ReproducibilityManifest:
     manifest_id: str
     created_at: str
     abmforge_version: str
+    framework: dict[str, Any]
     dataset_schema_version: str
     dataset_schema_hash: str
     run_id: str
@@ -275,6 +280,7 @@ class ReproducibilityManifest:
             manifest_id=_manifest_id_for(dataset, record_hashes),
             created_at=_utc_now_iso(),
             abmforge_version=__version__,
+            framework=FrameworkProvenanceV1.from_runtime().to_dict(),
             dataset_schema_version=DATASET_SCHEMA_VERSION,
             dataset_schema_hash=dataset_schema_hash,
             run_id=dataset.run_id,
@@ -356,6 +362,50 @@ class ReproducibilityManifest:
         if not self.abmforge_version:
             raise ValueError("abmforge_version must not be empty")
 
+        if not isinstance(self.framework, dict):
+            raise ValueError("framework must be an object")
+
+        if self.framework.get("schema_version") != FRAMEWORK_PROVENANCE_SCHEMA_VERSION:
+            raise ValueError("framework.schema_version is unsupported")
+
+        if self.framework.get("scope") != "abmforge-framework":
+            raise ValueError("framework.scope must equal 'abmforge-framework'")
+
+        if self.framework.get("name") != "abmforge":
+            raise ValueError("framework.name must equal 'abmforge'")
+
+        if self.framework.get("version") != self.abmforge_version:
+            raise ValueError("framework.version must equal abmforge_version")
+
+        install_mode = self.framework.get("install_mode")
+        if install_mode not in {
+            "source-checkout",
+            "installed-distribution",
+            "unavailable",
+        }:
+            raise ValueError("framework.install_mode is unsupported")
+
+        tree_hash = self.framework.get("package_tree_sha256")
+        if tree_hash is not None and (
+            not isinstance(tree_hash, str)
+            or len(tree_hash) != 64
+            or any(character not in "0123456789abcdef" for character in tree_hash)
+        ):
+            raise ValueError("framework.package_tree_sha256 must be a SHA-256 hex digest")
+
+        repository_available = self.framework.get("repository_available")
+        if not isinstance(repository_available, bool):
+            raise ValueError("framework.repository_available must be a boolean")
+
+        dirty = self.framework.get("dirty")
+        if dirty is not None and not isinstance(dirty, bool):
+            raise ValueError("framework.dirty must be boolean or null")
+
+        for key in ("commit", "branch", "remote"):
+            value = self.framework.get(key)
+            if value is not None and not isinstance(value, str):
+                raise ValueError(f"framework.{key} must be string or null")
+
         if not self.dataset_schema_version:
             raise ValueError("dataset_schema_version must not be empty")
 
@@ -423,6 +473,7 @@ class ReproducibilityManifest:
             "manifest_id": self.manifest_id,
             "created_at": self.created_at,
             "abmforge_version": self.abmforge_version,
+            "framework": self.framework,
             "dataset_schema_version": self.dataset_schema_version,
             "dataset_schema_hash": self.dataset_schema_hash,
             "run_id": self.run_id,
