@@ -1,25 +1,30 @@
 from __future__ import annotations
 
-import json
 import re
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-TARGET_VERSION = "0.3.0a1"
+
+RELEASED_ALPHA_VERSION = "0.3.0a1"
+RELEASED_ALPHA_TAG = f"v{RELEASED_ALPHA_VERSION}"
+RELEASED_ALPHA_DATE = "2026-06-30"
 
 
-def test_pyproject_version_is_first_public_alpha() -> None:
+def current_pyproject_version() -> str:
     text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     match = re.search(r'^version\s*=\s*"([^"]+)"', text, flags=re.MULTILINE)
 
     assert match is not None
-    assert match.group(1) == TARGET_VERSION
-    assert not match.group(1).endswith(".dev0")
+    return match.group(1)
 
 
-def test_release_metadata_strict_check_passes_for_pypi_alpha() -> None:
+def test_current_tree_does_not_reuse_first_public_alpha_version() -> None:
+    assert current_pyproject_version() != RELEASED_ALPHA_VERSION
+
+
+def test_release_metadata_strict_check_passes_for_current_tree() -> None:
     result = subprocess.run(
         [sys.executable, "scripts/check_release_metadata.py", "--strict"],
         cwd=ROOT,
@@ -32,24 +37,13 @@ def test_release_metadata_strict_check_passes_for_pypi_alpha() -> None:
     assert "Release metadata check passed." in result.stdout
 
 
-def test_citation_and_codemeta_versions_match_pypi_alpha() -> None:
-    citation = (ROOT / "CITATION.cff").read_text(encoding="utf-8")
-    codemeta = json.loads((ROOT / "codemeta.json").read_text(encoding="utf-8"))
-
-    assert TARGET_VERSION in citation
-    assert (
-        codemeta.get("softwareVersion") == TARGET_VERSION
-        or codemeta.get("version") == TARGET_VERSION
-    )
-
-
-def test_changelog_mentions_pypi_alpha_release() -> None:
+def test_first_public_alpha_is_recorded_as_released() -> None:
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
 
-    assert f"## [{TARGET_VERSION}]" in changelog
+    assert f"## [{RELEASED_ALPHA_VERSION}] - {RELEASED_ALPHA_DATE}" in changelog
     assert "production PyPI alpha release" in changelog
     assert "pip install abmforge" in changelog
-    assert "v0.3.0a1" in changelog
+    assert RELEASED_ALPHA_TAG in changelog
 
 
 def test_release_workflow_has_manual_production_pypi_gate() -> None:
@@ -80,18 +74,18 @@ def test_pypi_install_smoke_workflow_is_manual_and_non_publishing() -> None:
     assert "pypa/gh-action-pypi-publish" not in workflow
 
 
-def test_pypi_alpha_release_docs_are_present_and_listed() -> None:
+def test_first_public_alpha_release_runbook_is_preserved() -> None:
     docs = (ROOT / "docs" / "pypi-alpha-release.md").read_text(encoding="utf-8")
     nav = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
 
     for term in [
         "PyPI Alpha Release Preparation",
-        "v0.3.0a1",
+        RELEASED_ALPHA_TAG,
         "python -m pip install abmforge",
         "Trusted Publishing",
         "Environment name: pypi",
         "Production Publish Gate",
-        "git tag v0.3.0a1",
+        f"git tag {RELEASED_ALPHA_TAG}",
         "PyPI Install Smoke",
     ]:
         assert term in docs

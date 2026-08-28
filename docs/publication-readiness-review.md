@@ -18,9 +18,9 @@ dataset schemas, reproducibility manifests, archive checksums, ODD-style model
 documentation, a reference reproducible study, issue templates, and a software
 paper scaffold.
 
-ABMForge is not yet production-ready because the public package release,
-TestPyPI/PyPI install smoke, DOI/archive release, full replay guarantees, and
-final paper review are not complete.
+ABMForge now has a public PyPI alpha release, while production readiness
+still requires stronger release-to-research provenance, DOI/archive publication,
+broader replay guarantees, final paper review, and additional maturity evidence.
 
 ## Evidence already in the repository
 
@@ -41,7 +41,7 @@ of Open Research Software submission:
 - research-grade reproducible study;
 - ODD Markdown and JSON artifacts;
 - software paper scaffold;
-- release-readiness without publishing;
+- a published public-alpha package release and release-validation workflows;
 - community issue templates and reproducibility report template;
 - citation metadata and project metadata files.
 
@@ -49,28 +49,30 @@ of Open Research Software submission:
 
 These items should be resolved before a formal software paper submission:
 
-1. **Public alpha release**  
-   Create a release tag and publish the package to TestPyPI/PyPI or clearly
-   document an accepted install route for the target venue.
+### Completed release-readiness evidence
 
-2. **Install smoke from published artifact**  
-   Verify that a clean environment can install the released package and run the
-   installed-package smoke test.
+- **Public alpha release**
+  Version `0.3.0a1` has been published as the first production PyPI alpha.
 
-3. **Release artifact and DOI**  
+- **Install smoke from published artifact**
+  Installed-package smoke workflows exist for validating published artifacts.
+
+### Remaining submission blockers
+
+1. **Release artifact and DOI**
    Create a citable release artifact, for example through GitHub Releases and
    Zenodo.
 
-4. **Final paper review**  
+2. **Final paper review**
    Review `paper.md` for claim accuracy, word count, citations, author metadata,
    affiliation metadata, and limitations.
 
-5. **Manual ODD review**  
+3. **Manual ODD review**
    Review generated ODD files in the reference study. ODD artifacts are
    publication-supporting documents, not automatically validated scientific
    truth.
 
-6. **Repository issue settings**  
+4. **Repository issue settings**
    Confirm that GitHub Issues and Discussions are enabled for public alpha
    support, or document the alternative reporting channel.
 
@@ -113,7 +115,7 @@ The project should not currently claim that it:
 - is API-stable at 1.0 level;
 - has been empirically validated across domains;
 - supports large-scale HPC workflows;
-- is already available from PyPI unless the release has actually happened.
+- treats the current `0.3.0a2.dev0` development checkout as identical to the published `0.3.0a1` artifact.
 
 Preferred wording:
 
@@ -133,7 +135,7 @@ ABMForge is a complete replacement for existing ABM platforms.
 | Risk | Likely reviewer concern | Mitigation |
 |---|---|---|
 | Alpha API | Public API may change before 1.0 | API stability policy and public-alpha surface tests |
-| Release status | Package may not be installable from PyPI | No-publish readiness now; TestPyPI/PyPI release before submission |
+| Release status | Development source may be confused with the published artifact | Preserve immutable `0.3.0a1` release identity and use `0.3.0a2.dev0` for current development |
 | Reproducibility scope | Archive metadata is not full state replay | State limitations explicitly in paper and docs |
 | Model documentation | Generated ODD may be incomplete | Mark ODD as manual-review-required |
 | Differentiation | Another Python ABM framework | Emphasize archive, manifest, dataset, and research workflow contribution |
@@ -162,13 +164,13 @@ Before submission, complete the following:
 
 ## Recommended next PRs
 
-Recommended next work after this readiness review:
+Recommended next work after the first public alpha release:
 
-1. `docs/paper-refinement`
-2. `release/changelog-notes-cleanup`
-3. `docs/readme-positioning-final`
-4. `release/testpypi-publish-smoke` after credentials are available
-5. `release/pypi-alpha-v0.3.0a1` after TestPyPI validation
+1. release/version-identity hardening;
+2. dependency and contributor-test contract hardening;
+3. framework-source identity in reproducibility metadata;
+4. DOI/archive preparation;
+5. paper and benchmark refinement.
 
 ## Current decision
 
@@ -179,4 +181,5 @@ publication-oriented research-workflow alpha
 ```
 
 It is not yet production-ready, but it has a credible path toward a software
-paper submission once release, DOI, and final paper review tasks are completed.
+paper submission once the remaining DOI/archive, validation, and final paper-review
+tasks are completed.

@@ -15,11 +15,16 @@ def current_pyproject_version() -> str:
     return match.group(1)
 
 
-def test_changelog_mentions_current_declared_version() -> None:
+def test_changelog_tracks_current_declared_version() -> None:
     version = current_pyproject_version()
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
 
-    assert f"## [{version}]" in changelog or f"## {version}" in changelog
+    if re.search(r"\.dev[0-9]+$", version):
+        assert re.search(r"^##\s+Unreleased\s*$", changelog, flags=re.MULTILINE)
+        assert f"Current development version: `{version}`." in changelog
+    else:
+        assert f"## [{version}]" in changelog or f"## {version}" in changelog
+
     assert "Release metadata" in changelog
     assert "Public API stability policy" in changelog
     assert "Benchmark reference suite scaffold" in changelog
@@ -49,6 +54,8 @@ def test_release_candidate_prep_doc_exists_and_is_conservative() -> None:
         "not automatically",
         "Known Alpha Limitations",
         "Maintainer Checklist",
+        "A `.devN` version must never be used as a release tag",
+        "Version is non-development before a release tag is created",
     ]:
         assert term in text
 

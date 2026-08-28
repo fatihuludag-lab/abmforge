@@ -1,31 +1,30 @@
-# PyPI Alpha Release Preparation
+# PyPI Alpha Release Preparation - Historical v0.3.0a1
 
-This guide prepares ABMForge for its first production PyPI alpha release.
+This page records ABMForge's first production PyPI alpha release. Version `0.3.0a1` has already been published and must not be reused.
 
-The target first public release is:
+The first public release was:
 
 ```text
 v0.3.0a1
 ```
 
-The package version should be:
+The released package version was:
 
 ```text
 0.3.0a1
 ```
 
-After production PyPI publishing succeeds, users should be able to install
-ABMForge with:
+The published release can be installed with:
 
 ```bash
 python -m pip install abmforge
 ```
 
-This page prepares the release path. It does not publish anything by itself.
+This page is a historical release record. Commands that create or push `v0.3.0a1` must not be rerun.
 
 ## Release Policy
 
-The first production PyPI release should be an alpha release.
+The first production PyPI release was intentionally an alpha release.
 
 Alpha release expectations:
 
@@ -36,13 +35,13 @@ Alpha release expectations:
   feedback.
 - The project is not yet a stable 1.0 production framework.
 
-Recommended public version:
+Historical public version:
 
 ```text
 0.3.0a1
 ```
 
-Recommended tag:
+Historical tag:
 
 ```text
 v0.3.0a1
@@ -108,24 +107,24 @@ docs/release-readiness-no-publish.md
 That path validates metadata, tests, documentation, build artifacts, and
 `twine check` without uploading distributions.
 
-## Release Sequence
+## Historical v0.3.0a1 Release Sequence
 
-Recommended sequence:
+Historical sequence for `v0.3.0a1`:
 
 1. merge release preparation PR;
 2. confirm `main` is green;
 3. confirm strict metadata check passes;
-4. create and push tag `v0.3.0a1`;
+4. created and pushed tag `v0.3.0a1`;
 5. let the release workflow build artifacts from the tag;
 6. inspect artifacts;
 7. run TestPyPI dry run;
 8. run TestPyPI install smoke;
-9. manually run the release workflow on tag `v0.3.0a1` with `publish_pypi=true`;
+9. manually ran the release workflow on tag `v0.3.0a1` with `publish_pypi=true`;
 10. approve the `pypi` environment;
 11. run production PyPI install smoke;
 12. create GitHub Release notes.
 
-## Local Checks Before Tagging
+## Historical Local Checks Before Tagging
 
 Run:
 
@@ -140,11 +139,13 @@ python -m build
 python -m twine check dist/*
 ```
 
-## Create the Alpha Tag
+## Historical Alpha Tag Command
 
-After all checks pass:
+For the historical `v0.3.0a1` release, the tag commands were:
 
-```bash
+> **Historical record:** Do not run these commands again for `v0.3.0a1`.
+
+```text
 git switch main
 git pull --ff-only origin main
 git status --short
@@ -152,7 +153,7 @@ git tag v0.3.0a1
 git push origin v0.3.0a1
 ```
 
-Do not create the tag until the release metadata and changelog are correct.
+The tag was created only after the release metadata and changelog were verified. The existing `v0.3.0a1` tag must never be recreated, moved, or force-updated.
 
 ## Production Install Verification
 

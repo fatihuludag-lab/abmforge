@@ -1,3 +1,3 @@
 """Package version for ABMForge."""
 
-__version__: str = "0.3.0a1"
+__version__: str = "0.3.0a2.dev0"

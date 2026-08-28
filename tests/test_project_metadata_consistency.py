@@ -7,7 +7,7 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_VERSION = "0.3.0a1"
+EXPECTED_VERSION = "0.3.0a2.dev0"
 
 
 def normalized_text(text: str) -> str:
@@ -59,7 +59,7 @@ def test_release_documentation_contains_current_development_state() -> None:
     assert "## Unreleased" in changelog
     assert f"Current development version: `{EXPECTED_VERSION}`." in changelog
     assert f"Current development version: `{EXPECTED_VERSION}`." in release_notes
-    assert "not a stable release" in release_notes.lower()
+    assert "## Current main is not a formal release" in release_notes
 
 
 def test_data_query_dependencies_include_duckdb() -> None:
