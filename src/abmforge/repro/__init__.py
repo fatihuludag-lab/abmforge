@@ -5,6 +5,10 @@ from abmforge.repro.execution_fingerprint import (
     ExecutionFingerprintV1,
     canonical_parameters_sha256,
 )
+from abmforge.repro.framework_provenance import (
+    FRAMEWORK_PROVENANCE_SCHEMA_VERSION,
+    FrameworkProvenanceV1,
+)
 from abmforge.repro.input_provenance import (
     INPUT_ARTIFACT_PROVENANCE_SCHEMA_VERSION,
     InputArtifactProvenanceV1,
@@ -23,6 +27,8 @@ __all__ = [
     "EXECUTION_FINGERPRINT_SCHEMA_VERSION",
     "ExecutionFingerprintV1",
     "canonical_parameters_sha256",
+    "FRAMEWORK_PROVENANCE_SCHEMA_VERSION",
+    "FrameworkProvenanceV1",
     "INPUT_ARTIFACT_PROVENANCE_SCHEMA_VERSION",
     "InputArtifactProvenanceV1",
     "ReproducibilityManifest",

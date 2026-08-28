@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+
+import abmforge
 from abmforge.data.dataset import Dataset
 from abmforge.experiment.archive import ExperimentArchive
 
@@ -44,3 +47,43 @@ def test_experiment_archive_validate_reports_missing_files(tmp_path):
     assert "Missing manifest.json" in errors
     assert "Missing dataset_schema.json" in errors
     assert "Data directory is empty" in errors
+
+
+def test_experiment_archive_manifest_records_framework_provenance(tmp_path):
+    dataset = Dataset(run_id="run-framework")
+    dataset.add_run(
+        run_id="run-framework",
+        scenario="framework_scenario",
+        model_name="FrameworkModel",
+        parameters={"x": 1},
+        seed=42,
+        status="completed",
+    )
+    dataset.record_model(
+        step=0,
+        time=0.0,
+        metric="count",
+        value=1,
+    )
+
+    archive = ExperimentArchive.create(tmp_path / "archive")
+    archive.write_run_outputs(dataset)
+
+    manifest = json.loads(archive.manifest_path.read_text(encoding="utf-8"))
+    framework = manifest["framework"]
+
+    assert framework["schema_version"] == "framework-provenance-v1"
+    assert framework["scope"] == "abmforge-framework"
+    assert framework["name"] == "abmforge"
+    assert framework["version"] == abmforge.__version__
+    assert framework["install_mode"] in {
+        "source-checkout",
+        "installed-distribution",
+        "unavailable",
+    }
+
+    tree_hash = framework["package_tree_sha256"]
+    if tree_hash is not None:
+        assert len(tree_hash) == 64
+
+    assert archive.validate() == []
