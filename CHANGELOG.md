@@ -2,20 +2,20 @@
 
 
 
-## [0.3.0a1] - Unreleased
+## [0.3.0a1] - 2026-06-30
 
 ### Highlights
 
-- Prepared ABMForge for its first production PyPI alpha release.
+- Published ABMForge's first production PyPI alpha release.
 - Added production PyPI trusted-publishing gate documentation and workflow checks.
 - Prepared the user-facing install path for `pip install abmforge`.
 
-### Release Preparation
+### Release Record
 
-- Target tag: `v0.3.0a1`.
-- Target package version: `0.3.0a1`.
-- Production PyPI publishing requires manual workflow dispatch, tag ref, and `pypi` environment approval.
-- TestPyPI dry run remains required before production publishing.
+- Release tag: `v0.3.0a1`.
+- Released package version: `0.3.0a1`.
+- Production PyPI publishing used manual workflow dispatch, a tag ref, and `pypi` environment approval.
+- The release path included a TestPyPI dry run before production publishing.
 
 ### Known Limitations
 
@@ -66,7 +66,7 @@ behavior, and research-workflow guarantees may change before a stable release.
 
 ## Unreleased
 
-Current development version: `0.3.0a1`.
+Current development version: `0.3.0a2.dev0`.
 
 ### Added
 
@@ -110,7 +110,7 @@ Current development version: `0.3.0a1`.
 
 ### Notes
 
-- The current main branch is newer than the `v0.2.0a3` tag.
+- The current main branch is newer than the `v0.3.0a1` release.
 - This development version is not a GitHub release artifact.
 - Independent reproduction still requires preserving model source code, input
   data, dependency state, and execution environment.

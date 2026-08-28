@@ -43,7 +43,7 @@ Run:
 python scripts/check_release_metadata.py --strict
 ```
 
-Strict mode requires the current declared version to appear in `CHANGELOG.md`.
+For a development version such as `0.3.0a2.dev0`, strict mode requires an `Unreleased` section and an explicit current-development-version marker in `CHANGELOG.md`. For a formal release version, strict mode requires a matching release heading.
 
 ## Changelog Requirements
 
@@ -58,7 +58,7 @@ Each release candidate changelog entry should include:
 - test and CI changes;
 - known limitations.
 
-Development versions may be marked as `Unreleased` until a tag is created.
+Development versions are tracked under `Unreleased`. A `.devN` version must never be used as a release tag; before tagging, package metadata must be promoted to an intentional non-development version.
 
 ## Release Candidate Local Checks
 
@@ -94,19 +94,21 @@ A TestPyPI dry run should use the release workflow:
 
 1. run the workflow without publishing;
 2. inspect distribution artifacts;
-3. run the workflow manually from the same valid version tag with `publish_testpypi=true`;
+3. after promoting metadata to a non-development release version, run the workflow manually from the valid version tag with `publish_testpypi=true`;
 4. approve the `testpypi` environment;
 5. install from TestPyPI in a clean environment;
 6. run smoke checks.
 
 ## Tagging Guidance
 
-Use pre-release tags for candidate work:
+Use a new non-development version for candidate or release tags:
 
 ```text
-v0.3.0a1
+v0.3.0a2
 v0.3.0rc1
 ```
+
+Never create a tag such as `v0.3.0a2.dev0`. Promote the package metadata to a non-development version first.
 
 Do not tag a production release until:
 
@@ -130,7 +132,9 @@ Before a release candidate, the project should be honest about limitations:
 ## Maintainer Checklist
 
 - [ ] Current version is intentional.
-- [ ] Changelog entry exists for the current version.
+- [ ] Development versions use `Unreleased` plus the current-version marker.
+- [ ] Version is non-development before a release tag is created.
+- [ ] Formal release versions have a matching changelog release entry.
 - [ ] `python scripts/check_release_metadata.py --strict` passes.
 - [ ] Documentation builds with `mkdocs build --strict`.
 - [ ] Tests pass.

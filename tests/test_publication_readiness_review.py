@@ -36,7 +36,8 @@ def test_publication_readiness_review_qualifies_claims() -> None:
         "replaces Mesa, NetLogo, Repast, MASON, or Agents.jl",
         "full deterministic replay",
         "production-ready",
-        "available from PyPI unless the release has actually happened",
+        "treats the current `0.3.0a2.dev0` development checkout as identical "
+        "to the published `0.3.0a1` artifact.",
     ]
 
     for term in required_terms:

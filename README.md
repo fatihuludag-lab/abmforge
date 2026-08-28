@@ -355,7 +355,7 @@ The current focus is:
 - improving documentation
 - strengthening CI
 - expanding examples
-- preparing a clean v0.3.0a1 no-publish release-readiness path
+- hardening post-v0.3.0a1 release and development-version identity
 
 ## Roadmap
 

@@ -57,6 +57,13 @@ def validate_release_tag(tag: str) -> list[str]:
     pyproject_version = _read_pyproject_version()
     runtime_version = _read_runtime_version()
 
+    if ".dev" in tag_version:
+        errors.append(
+            f"Release tag {tag!r} targets a development version {tag_version!r}. "
+            "Bump package metadata to a non-development version before creating "
+            "a release tag."
+        )
+
     if pyproject_version != runtime_version:
         errors.append(
             "Package version metadata is inconsistent: "

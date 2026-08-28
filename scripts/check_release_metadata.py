@@ -107,6 +107,10 @@ def collect_version_values() -> list[MetadataValue]:
     return [value for value in values if value is not None]
 
 
+def is_development_version(version: str) -> bool:
+    return re.search(r"\.dev[0-9]+$", version) is not None
+
+
 def validate_metadata(*, strict: bool = False) -> list[str]:
     errors: list[str] = []
     values = collect_version_values()
@@ -139,17 +143,36 @@ def validate_metadata(*, strict: bool = False) -> list[str]:
         for source in missing_optional:
             errors.append(f"Missing formal-release metadata source: {source}")
 
-        changelog_versions = read_changelog_versions()
-        if not changelog_versions:
-            errors.append("CHANGELOG.md has no release version headings.")
-        else:
-            declared_version = values[0].value
-            normalized = {version.removeprefix("v") for version in changelog_versions}
-            if declared_version.removeprefix("v") not in normalized:
+        declared_version = values[0].value
+        changelog_text = read_text(ROOT / "CHANGELOG.md")
+
+        if is_development_version(declared_version):
+            if not re.search(
+                r"^##\s+Unreleased\s*$",
+                changelog_text,
+                flags=re.MULTILINE,
+            ):
                 errors.append(
-                    "CHANGELOG.md does not mention the current declared version: "
+                    "CHANGELOG.md has no Unreleased section for the current development version."
+                )
+
+            development_marker = f"Current development version: `{declared_version}`."
+            if development_marker not in changelog_text:
+                errors.append(
+                    "CHANGELOG.md does not identify the current development version: "
                     f"{declared_version}"
                 )
+        else:
+            changelog_versions = read_changelog_versions()
+            if not changelog_versions:
+                errors.append("CHANGELOG.md has no release version headings.")
+            else:
+                normalized = {version.removeprefix("v") for version in changelog_versions}
+                if declared_version.removeprefix("v") not in normalized:
+                    errors.append(
+                        "CHANGELOG.md does not mention the current declared version: "
+                        f"{declared_version}"
+                    )
 
     return errors
 
