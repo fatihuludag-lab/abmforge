@@ -110,9 +110,17 @@ cd abmforge
 pip install -e ".[dev]"
 ```
 
+The `dev` extra is the complete contributor and CI validation environment.
+It includes the optional dependencies exercised by the full test,
+documentation, analysis, visualization, and data-validation workflows.
+
+Feature-specific extras remain available for users who do not need the full
+development environment:
+
 Optional extras:
 
 ```bash
+pip install -e ".[data]"
 pip install -e ".[viz]"
 pip install -e ".[analysis]"
 pip install -e ".[docs]"
@@ -326,6 +334,8 @@ Install development dependencies:
 ```bash
 pip install -e ".[dev]"
 ```
+
+The `dev` extra is the same validation dependency contract used by CI.
 
 Run local checks:
 

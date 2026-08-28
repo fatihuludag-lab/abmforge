@@ -38,7 +38,7 @@ From the repository root:
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -e ".[dev,data,viz,analysis,docs]"
+python -m pip install -e ".[dev]"
 python -m pip check
 ```
 
@@ -199,7 +199,7 @@ analysis scripts
 For a quick local review, run:
 
 ```bash
-python -m pip install -e ".[dev,data,viz,analysis,docs]"
+python -m pip install -e ".[dev]"
 python -m pip check
 
 abmforge run examples/scenarios/wealth_baseline.yaml \

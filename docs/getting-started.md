@@ -15,9 +15,14 @@ For development from the repository root:
 pip install -e ".[dev]"
 ```
 
+For contributors, `dev` installs the complete validation environment used by
+CI. Users who need only individual feature families can install the narrower
+extras below.
+
 Optional extras:
 
 ```bash
+pip install -e ".[data]"
 pip install -e ".[viz]"
 pip install -e ".[analysis]"
 pip install -e ".[docs]"
