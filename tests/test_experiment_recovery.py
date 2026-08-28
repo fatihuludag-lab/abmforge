@@ -8,6 +8,10 @@ from abmforge.experiment.run_index import (
     RunIndexEntry,
 )
 from abmforge.experiment.scenario import Scenario
+from abmforge.repro.execution_fingerprint import (
+    ExecutionFingerprintV1,
+    ExecutionFingerprintV2,
+)
 
 
 class RecoveryTestModel(Model):
@@ -446,5 +450,65 @@ def test_missing_scenarios_reruns_when_fingerprint_digest_is_missing() -> None:
     without_digest = dict(entry.execution_fingerprint)
     without_digest.pop("digest")
     entry.execution_fingerprint = without_digest
+
+    assert missing_scenarios([scenario], run_index) == [scenario]
+
+
+def test_missing_scenarios_does_not_reuse_v1_fingerprint_under_v2_planner() -> None:
+    scenario = Scenario(
+        model=RecoveryTestModel,
+        parameters={"alpha": 1},
+        seed=1801,
+        steps=5,
+        name="legacy-fingerprint-v1",
+    )
+
+    run_index = RunIndex.from_dataset(scenario.run().dataset)
+    entry = run_index.entries[0]
+
+    entry.execution_fingerprint = ExecutionFingerprintV1.create(
+        model=scenario.model,
+        scenario=scenario.name or scenario.model.__name__,
+        seed=scenario.seed,
+        steps=scenario.steps,
+        parameters=scenario.parameters,
+    ).to_dict()
+
+    assert entry.execution_fingerprint["schema_version"] == "execution-fingerprint-v1"
+
+    assert missing_scenarios([scenario], run_index) == [scenario]
+
+
+def test_missing_scenarios_reruns_when_framework_tree_changes() -> None:
+    scenario = Scenario(
+        model=RecoveryTestModel,
+        parameters={"alpha": 1},
+        seed=1901,
+        steps=5,
+        name="framework-change",
+    )
+
+    run_index = RunIndex.from_dataset(scenario.run().dataset)
+    entry = run_index.entries[0]
+
+    current = scenario.execution_fingerprint()
+    assert current.framework_package_tree_sha256 is not None
+
+    different_hash = "a" * 64 if current.framework_package_tree_sha256 != "a" * 64 else "b" * 64
+
+    archived = ExecutionFingerprintV2.create(
+        model=scenario.model,
+        scenario=scenario.name or scenario.model.__name__,
+        seed=scenario.seed,
+        steps=scenario.steps,
+        parameters=scenario.parameters,
+        framework_version=current.framework_version,
+        framework_package_tree_sha256=different_hash,
+    )
+
+    assert archived.trusted is True
+    assert archived.digest != current.digest
+
+    entry.execution_fingerprint = archived.to_dict()
 
     assert missing_scenarios([scenario], run_index) == [scenario]

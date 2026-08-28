@@ -7,12 +7,43 @@ import inspect
 import json
 from collections.abc import Mapping
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 from abmforge.core.model import Model
+from abmforge.repro.framework_provenance import FrameworkProvenanceV1
 
-EXECUTION_FINGERPRINT_SCHEMA_VERSION = "execution-fingerprint-v1"
+EXECUTION_FINGERPRINT_V1_SCHEMA_VERSION = "execution-fingerprint-v1"
+EXECUTION_FINGERPRINT_V2_SCHEMA_VERSION = "execution-fingerprint-v2"
+
+# Public alias for the schema emitted by current/default execution APIs.
+EXECUTION_FINGERPRINT_SCHEMA_VERSION = EXECUTION_FINGERPRINT_V2_SCHEMA_VERSION
+
+
+@dataclass(frozen=True, slots=True)
+class FrameworkExecutionIdentity:
+    """Process-scoped framework identity used by execution fingerprints."""
+
+    version: str
+    package_tree_sha256: str | None
+
+    @property
+    def trusted(self) -> bool:
+        return bool(self.version) and _is_sha256_hex(self.package_tree_sha256)
+
+
+@lru_cache(maxsize=1)
+def runtime_framework_execution_identity() -> FrameworkExecutionIdentity:
+    """Return the cached runtime framework identity for this process."""
+
+    provenance = FrameworkProvenanceV1.from_runtime()
+
+    return FrameworkExecutionIdentity(
+        version=provenance.version,
+        package_tree_sha256=provenance.package_tree_sha256,
+    )
+
 
 _SOURCE_KIND_MODULE_FILE = "module-file-sha256"
 _SOURCE_KIND_CLASS_SOURCE = "class-source-sha256"
@@ -39,7 +70,7 @@ class ExecutionFingerprintV1:
     seed: int | None
     steps: int | None
     parameters_sha256: str
-    schema_version: str = EXECUTION_FINGERPRINT_SCHEMA_VERSION
+    schema_version: str = EXECUTION_FINGERPRINT_V1_SCHEMA_VERSION
 
     @classmethod
     def create(
@@ -70,7 +101,7 @@ class ExecutionFingerprintV1:
     def trusted(self) -> bool:
         """Whether this fingerprint is safe for automatic run reuse."""
         return (
-            self.schema_version == EXECUTION_FINGERPRINT_SCHEMA_VERSION
+            self.schema_version == EXECUTION_FINGERPRINT_V1_SCHEMA_VERSION
             and self.model_source_kind != _SOURCE_KIND_UNAVAILABLE
             and self.model_source_sha256 is not None
         )
@@ -97,7 +128,7 @@ class ExecutionFingerprintV1:
         Invalid, incomplete, unsupported, or tampered values return ``None``.
         Recovery code must treat ``None`` as an untrusted legacy identity.
         """
-        if data.get("schema_version") != EXECUTION_FINGERPRINT_SCHEMA_VERSION:
+        if data.get("schema_version") != EXECUTION_FINGERPRINT_V1_SCHEMA_VERSION:
             return None
 
         model_name = _required_string(data, "model_name")
@@ -159,6 +190,199 @@ class ExecutionFingerprintV1:
             "seed": self.seed,
             "steps": self.steps,
             "parameters_sha256": self.parameters_sha256,
+        }
+
+
+def _is_sha256_hex(value: str | None) -> bool:
+    if value is None or len(value) != 64:
+        return False
+    return all(character in "0123456789abcdef" for character in value)
+
+
+def _valid_model_source_identity(
+    source_kind: str,
+    source_sha256: str | None,
+) -> bool:
+    if source_kind == _SOURCE_KIND_UNAVAILABLE:
+        return source_sha256 is None
+
+    if source_kind not in {
+        "module-file-sha256",
+        "class-source-sha256",
+    }:
+        return False
+
+    return _is_sha256_hex(source_sha256)
+
+
+@dataclass(frozen=True, slots=True)
+class ExecutionFingerprintV2:
+    """Framework-aware deterministic identity of one planned execution.
+
+    Version 2 preserves the model and execution identity represented by V1 and
+    additionally binds the fingerprint to the exact ABMForge runtime package
+    tree used to plan and execute the run.
+    """
+
+    model_name: str
+    model_module: str
+    model_qualname: str
+    model_source_kind: str
+    model_source_sha256: str | None
+    scenario: str
+    seed: int | None
+    steps: int | None
+    parameters_sha256: str
+    framework_version: str
+    framework_package_tree_sha256: str | None
+    schema_version: str = EXECUTION_FINGERPRINT_V2_SCHEMA_VERSION
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        model: type[Model],
+        scenario: str,
+        seed: int | None,
+        steps: int | None,
+        parameters: Mapping[str, Any],
+        framework_version: str,
+        framework_package_tree_sha256: str | None,
+    ) -> ExecutionFingerprintV2:
+        """Create a framework-aware fingerprint for one planned execution."""
+        source_kind, source_sha256 = _fingerprint_model_source(model)
+
+        return cls(
+            model_name=model.__name__,
+            model_module=model.__module__,
+            model_qualname=model.__qualname__,
+            model_source_kind=source_kind,
+            model_source_sha256=source_sha256,
+            scenario=scenario,
+            seed=seed,
+            steps=steps,
+            parameters_sha256=canonical_parameters_sha256(parameters),
+            framework_version=framework_version,
+            framework_package_tree_sha256=framework_package_tree_sha256,
+        )
+
+    @property
+    def trusted(self) -> bool:
+        """Whether this fingerprint is safe for automatic run reuse."""
+        return (
+            self.schema_version == EXECUTION_FINGERPRINT_V2_SCHEMA_VERSION
+            and self.model_source_kind != _SOURCE_KIND_UNAVAILABLE
+            and _valid_model_source_identity(
+                self.model_source_kind,
+                self.model_source_sha256,
+            )
+            and _is_sha256_hex(self.parameters_sha256)
+            and bool(self.framework_version)
+            and _is_sha256_hex(self.framework_package_tree_sha256)
+        )
+
+    @property
+    def digest(self) -> str:
+        """Return the canonical SHA-256 digest for the V2 payload."""
+        return _sha256_json(self._payload())
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a JSON-compatible representation including integrity data."""
+        payload = self._payload()
+        payload["digest"] = self.digest
+        payload["trusted"] = self.trusted
+        return payload
+
+    @classmethod
+    def from_dict(
+        cls,
+        data: Mapping[str, Any],
+    ) -> ExecutionFingerprintV2 | None:
+        """Parse and integrity-check a serialized V2 fingerprint."""
+        if data.get("schema_version") != EXECUTION_FINGERPRINT_V2_SCHEMA_VERSION:
+            return None
+
+        model_name = _required_string(data, "model_name")
+        model_module = _required_string(data, "model_module")
+        model_qualname = _required_string(data, "model_qualname")
+        model_source_kind = _required_string(data, "model_source_kind")
+        scenario = _required_string(data, "scenario")
+        parameters_sha256 = _required_string(data, "parameters_sha256")
+        framework_version = _required_string(data, "framework_version")
+
+        if (
+            model_name is None
+            or model_module is None
+            or model_qualname is None
+            or model_source_kind is None
+            or scenario is None
+            or parameters_sha256 is None
+            or framework_version is None
+        ):
+            return None
+
+        source_value = data.get("model_source_sha256")
+        if source_value is not None and not isinstance(source_value, str):
+            return None
+
+        if not _valid_model_source_identity(
+            model_source_kind,
+            source_value,
+        ):
+            return None
+
+        if not _is_sha256_hex(parameters_sha256):
+            return None
+
+        framework_hash = data.get("framework_package_tree_sha256")
+        if framework_hash is not None:
+            if not isinstance(framework_hash, str):
+                return None
+            if not _is_sha256_hex(framework_hash):
+                return None
+
+        seed = _optional_integer(data.get("seed"))
+        steps = _optional_integer(data.get("steps"))
+
+        if data.get("seed") is not None and seed is None:
+            return None
+        if data.get("steps") is not None and steps is None:
+            return None
+
+        fingerprint = cls(
+            model_name=model_name,
+            model_module=model_module,
+            model_qualname=model_qualname,
+            model_source_kind=model_source_kind,
+            model_source_sha256=source_value,
+            scenario=scenario,
+            seed=seed,
+            steps=steps,
+            parameters_sha256=parameters_sha256,
+            framework_version=framework_version,
+            framework_package_tree_sha256=framework_hash,
+        )
+
+        digest = data.get("digest")
+        if not isinstance(digest, str) or digest != fingerprint.digest:
+            return None
+
+        return fingerprint
+
+    def _payload(self) -> dict[str, Any]:
+        return {
+            "schema_version": self.schema_version,
+            "model_name": self.model_name,
+            "model_module": self.model_module,
+            "model_qualname": self.model_qualname,
+            "model_source_kind": self.model_source_kind,
+            "model_source_sha256": self.model_source_sha256,
+            "scenario": self.scenario,
+            "seed": self.seed,
+            "steps": self.steps,
+            "parameters_sha256": self.parameters_sha256,
+            "framework_version": self.framework_version,
+            "framework_package_tree_sha256": self.framework_package_tree_sha256,
         }
 
 

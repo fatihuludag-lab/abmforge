@@ -499,14 +499,19 @@ Analyze Morris outputs.
 
 ## Reproducibility API
 
-### `ExecutionFingerprintV1`
+### `ExecutionFingerprintV2`
 
 **Status:** Provisional
-**Import:** `from abmforge.repro import ExecutionFingerprintV1`
+**Import:** `from abmforge.repro import ExecutionFingerprintV2`
 
 Versioned, integrity-checked execution identity used by safe experiment
-recovery. Most users should call `Scenario.execution_fingerprint()` instead of
-constructing this class directly.
+recovery. V2 binds the planned execution to both the model-source identity and
+the ABMForge framework version and package-tree SHA-256. Most users should call
+`Scenario.execution_fingerprint()` instead of constructing this class directly.
+
+`ExecutionFingerprintV1` remains available as a legacy schema for reading and
+validating older identity payloads, but V1 fingerprints are not automatically
+reusable by the V2 recovery planner.
 
 ### `ReproducibilityManifest`
 

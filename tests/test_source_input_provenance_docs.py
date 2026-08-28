@@ -15,7 +15,7 @@ def test_source_input_provenance_page_documents_contracts() -> None:
         "from_dataset()",
         "Path.cwd()",
         "symlink escape",
-        "execution-fingerprint-v1",
+        "execution-fingerprint-v2",
     )
     for term in required:
         assert term in text

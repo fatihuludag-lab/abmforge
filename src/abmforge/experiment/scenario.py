@@ -19,7 +19,10 @@ from abmforge.core.status import COMPLETED, CREATED, FAILED, RUNNING, STOPPED
 from abmforge.data.dataset import Dataset
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.run_index import RUN_IDENTITY_SCHEMA_VERSION
-from abmforge.repro.execution_fingerprint import ExecutionFingerprintV1
+from abmforge.repro.execution_fingerprint import (
+    ExecutionFingerprintV2,
+    runtime_framework_execution_identity,
+)
 
 
 class ScenarioValidationError(ValueError):
@@ -225,15 +228,19 @@ class Scenario:
         self,
         *,
         seed: int | None = None,
-    ) -> ExecutionFingerprintV1:
-        """Return the versioned identity for this planned execution."""
+    ) -> ExecutionFingerprintV2:
+        """Return the framework-aware identity for this planned execution."""
         run_seed = self.seed if seed is None else seed
-        return ExecutionFingerprintV1.create(
+        framework = runtime_framework_execution_identity()
+
+        return ExecutionFingerprintV2.create(
             model=self.model,
             scenario=self.name or self.model.__name__,
             seed=run_seed,
             steps=self.steps,
             parameters=self.parameters,
+            framework_version=framework.version,
+            framework_package_tree_sha256=framework.package_tree_sha256,
         )
 
     def run(

@@ -132,7 +132,7 @@ currently claim complete research reconstruction. In particular:
 - input files are not discovered automatically;
 - directory datasets require researchers to list their material files;
 - `input-artifact-v1` checksums are not yet part of
-  `execution-fingerprint-v1` recovery identity;
+  `execution-fingerprint-v2` recovery identity;
 - Git commit metadata does not preserve an uncommitted patch;
 - dependency and interpreter details remain separate manifest fields;
 - external services, databases, environment variables, and secrets are not
