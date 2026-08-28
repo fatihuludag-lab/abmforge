@@ -11,6 +11,9 @@ pip install -e ".[dev]"
 pytest
 ```
 
+The `dev` extra installs the complete dependency surface used by CI and the
+full local validation suite.
+
 On Windows:
 
 ```powershell

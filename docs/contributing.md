@@ -10,6 +10,9 @@ cd abmforge
 pip install -e ".[dev]"
 ```
 
+The `dev` extra is the complete contributor environment used by CI, including
+the optional dependencies exercised by the full validation suite.
+
 ## Checks
 
 Run before opening a pull request:

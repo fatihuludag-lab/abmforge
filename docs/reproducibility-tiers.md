@@ -39,7 +39,7 @@ Tier 0 asks whether ABMForge can be installed and imported consistently.
 Examples:
 
 ```bash
-python -m pip install -e ".[dev,data,viz,analysis,docs]"
+python -m pip install -e ".[dev]"
 python -m pip check
 python -c "import abmforge; print(abmforge.__version__)"
 ```

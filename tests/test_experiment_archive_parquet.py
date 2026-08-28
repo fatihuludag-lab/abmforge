@@ -6,6 +6,7 @@ from abmforge.data.dataset import Dataset
 from abmforge.experiment.archive import ExperimentArchive
 
 pytest.importorskip("pandas")
+pytest.importorskip("pyarrow")
 
 
 def test_experiment_archive_write_parquet_outputs(tmp_path):
