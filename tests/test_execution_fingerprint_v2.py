@@ -70,46 +70,6 @@ def test_v1_does_not_accept_v2_payload() -> None:
     assert ExecutionFingerprintV1.from_dict(payload) is None
 
 
-def test_scenario_execution_fingerprint_uses_v2() -> None:
-    from abmforge.experiment.scenario import Scenario
-
-    scenario = Scenario(
-        model=FingerprintV2TestModel,
-        parameters={"alpha": 1},
-        seed=501,
-        steps=4,
-        name="scenario-v2",
-    )
-
-    fingerprint = scenario.execution_fingerprint()
-
-    assert isinstance(fingerprint, ExecutionFingerprintV2)
-    assert fingerprint.schema_version == "execution-fingerprint-v2"
-    assert fingerprint.framework_version
-    assert fingerprint.framework_package_tree_sha256 is not None
-    assert fingerprint.trusted is True
-
-
-def test_scenario_run_persists_v2_fingerprint() -> None:
-    from abmforge.experiment.scenario import Scenario
-
-    scenario = Scenario(
-        model=FingerprintV2TestModel,
-        parameters={"alpha": 1},
-        seed=502,
-        steps=0,
-        name="scenario-run-v2",
-    )
-
-    result = scenario.run()
-    payload = result.dataset.runs[-1]["execution_fingerprint"]
-
-    assert payload["schema_version"] == "execution-fingerprint-v2"
-    assert payload["framework_version"]
-    assert payload["framework_package_tree_sha256"]
-    assert ExecutionFingerprintV2.from_dict(payload) is not None
-
-
 def test_runtime_framework_execution_identity_is_cached(
     monkeypatch,
 ) -> None:
@@ -148,19 +108,18 @@ def test_runtime_framework_execution_identity_is_cached(
     assert first.trusted is True
 
 
-def test_current_execution_fingerprint_schema_constant_is_v2() -> None:
+def test_v2_remains_legacy_while_current_schema_is_v3() -> None:
     from abmforge.repro.execution_fingerprint import (
         EXECUTION_FINGERPRINT_SCHEMA_VERSION,
         EXECUTION_FINGERPRINT_V1_SCHEMA_VERSION,
         EXECUTION_FINGERPRINT_V2_SCHEMA_VERSION,
+        EXECUTION_FINGERPRINT_V3_SCHEMA_VERSION,
     )
 
     assert EXECUTION_FINGERPRINT_V1_SCHEMA_VERSION == "execution-fingerprint-v1"
-    assert (
-        EXECUTION_FINGERPRINT_SCHEMA_VERSION
-        == EXECUTION_FINGERPRINT_V2_SCHEMA_VERSION
-        == "execution-fingerprint-v2"
-    )
+    assert EXECUTION_FINGERPRINT_V2_SCHEMA_VERSION == "execution-fingerprint-v2"
+    assert EXECUTION_FINGERPRINT_V3_SCHEMA_VERSION == "execution-fingerprint-v3"
+    assert EXECUTION_FINGERPRINT_SCHEMA_VERSION == EXECUTION_FINGERPRINT_V3_SCHEMA_VERSION
 
 
 def test_v2_rejects_invalid_model_source_identity() -> None:
@@ -199,3 +158,22 @@ def test_v2_rejects_invalid_parameter_digest() -> None:
 
     assert fingerprint.trusted is False
     assert ExecutionFingerprintV2.from_dict(fingerprint.to_dict()) is None
+
+
+def test_execution_fingerprint_v2_digest_contract_is_immutable() -> None:
+    fingerprint = ExecutionFingerprintV2(
+        model_name="ContractModel",
+        model_module="example.contract",
+        model_qualname="ContractModel",
+        model_source_kind="module-file-sha256",
+        model_source_sha256="1" * 64,
+        scenario="contract",
+        seed=17,
+        steps=23,
+        parameters_sha256="2" * 64,
+        framework_version="0.3.0a2.dev0",
+        framework_package_tree_sha256="3" * 64,
+    )
+
+    assert fingerprint.schema_version == "execution-fingerprint-v2"
+    assert fingerprint.digest == "718cff479fd35e2d94e8bef66a9a74f36c7c24f0a507c93cda472d5f69e766da"

@@ -166,7 +166,7 @@ For recovery, new entries should preserve at least:
 - completion status.
 
 Recovery must fail closed when execution identity is incomplete. New entries
-use `run-identity-v2` and `execution-fingerprint-v2`. Older entries without a
+use `run-identity-v2` and `execution-fingerprint-v3`. Older entries without a
 supported identity version, a valid fingerprint, model-source hash, model module,
 qualified name, or requested step count remain readable, but they must not
 silently suppress a newly planned run. A modified fingerprint or disagreement
@@ -174,7 +174,7 @@ between the fingerprint and outer run metadata has the same fail-closed result.
 Programmatic `stop_when` callbacks are not recoverable matches until a stable
 persisted callback identity is defined.
 
-The fingerprint does not yet cover input-file checksums, dependency state,
+The V3 fingerprint covers explicitly declared input-file checksums but does not automatically discover undeclared inputs. Dependency state,
 recorder configuration, plugins, or arbitrary callback identity. See
 [Safe Experiment Recovery](experiment-recovery.md) for scope and migration
 rules.

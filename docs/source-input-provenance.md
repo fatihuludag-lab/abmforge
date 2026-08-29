@@ -100,6 +100,16 @@ Each `input-artifact-v1` record contains:
 
 The manifest also records `input_artifact_count`.
 
+The execution layer separately canonicalizes explicitly declared input files as
+`declared-input-identity-v1`. The identity sorts the portable
+`input-artifact-v1` records and computes one aggregate SHA-256 over the complete
+declared input set. `ExecutionFingerprintV3` stores that schema version,
+artifact count, and aggregate digest so safe recovery can distinguish
+executions whose declared input bytes differ.
+
+This contract is declaration-based: ABMForge does not automatically discover
+files, databases, services, or other external resources opened by model code.
+
 ## Path and integrity rules
 
 When `input_root` is supplied:
@@ -131,8 +141,8 @@ currently claim complete research reconstruction. In particular:
 
 - input files are not discovered automatically;
 - directory datasets require researchers to list their material files;
-- `input-artifact-v1` checksums are not yet part of
-  `execution-fingerprint-v2` recovery identity;
+- only explicitly declared input files participate in the
+  `declared-input-identity-v1` bound into `execution-fingerprint-v3`;
 - Git commit metadata does not preserve an uncommitted patch;
 - dependency and interpreter details remain separate manifest fields;
 - external services, databases, environment variables, and secrets are not

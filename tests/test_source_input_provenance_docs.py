@@ -9,13 +9,14 @@ def test_source_input_provenance_page_documents_contracts() -> None:
     required = (
         "source-repository-provenance-v1",
         "input-artifact-v1",
+        "declared-input-identity-v1",
         'scope": "model-source',
         "input_artifact_count",
         "from_run_result()",
         "from_dataset()",
         "Path.cwd()",
         "symlink escape",
-        "execution-fingerprint-v2",
+        "execution-fingerprint-v3",
     )
     for term in required:
         assert term in text

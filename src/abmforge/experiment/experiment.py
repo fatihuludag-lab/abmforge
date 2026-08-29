@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import csv
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -172,7 +172,19 @@ class Experiment:
         steps: int = 0,
         name: str | None = None,
         continue_on_error: bool = False,
+        input_artifacts: Sequence[str | Path] | None = None,
+        input_root: str | Path | None = None,
     ) -> None:
+        if isinstance(input_artifacts, (str, Path)):
+            raise TypeError("input_artifacts must be a sequence of paths, not a scalar path")
+
+        normalized_inputs = tuple(input_artifacts or ())
+
+        if scenarios is not None and (normalized_inputs or input_root is not None):
+            raise ValueError(
+                "Experiment-level declared inputs cannot be used with explicit scenarios."
+            )
+
         self._explicit_scenarios = scenarios
         self.model = model
         self.parameters = parameters or {}
@@ -180,6 +192,8 @@ class Experiment:
         self.steps = steps
         self.name = name
         self.continue_on_error = continue_on_error
+        self.input_artifacts = normalized_inputs
+        self.input_root = input_root
 
         if self._explicit_scenarios is None and self.model is None:
             raise ValueError("Either scenarios or model must be provided.")
@@ -204,6 +218,8 @@ class Experiment:
                         seed=seed,
                         steps=self.steps,
                         name=self.name or self.model.__name__,
+                        input_artifacts=self.input_artifacts,
+                        input_root=self.input_root,
                     )
                 )
 

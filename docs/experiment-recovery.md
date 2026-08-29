@@ -16,15 +16,15 @@ Three versioned structures participate in recovery:
 - `run-index-v1` is the JSON container schema used by `run_index.json`.
 - `run-identity-v2` defines the fields required for an archived run to be
   considered reusable.
-- `execution-fingerprint-v2` provides an integrity-checked digest of the planned
+- `execution-fingerprint-v3` provides an integrity-checked digest of the planned
   execution, its model source, and the exact ABMForge framework package tree.
 
 A completed run must satisfy all three contracts before it can match a planned
 scenario.
 
-## ExecutionFingerprintV2
+## ExecutionFingerprintV3
 
-`Scenario.execution_fingerprint()` creates an `ExecutionFingerprintV2` with:
+`Scenario.execution_fingerprint()` creates an `ExecutionFingerprintV3` with:
 
 - model class name;
 - model module;
@@ -46,7 +46,7 @@ into the corresponding `run_index.json` entry.
 The provisional Python API is available from:
 
 ```python
-from abmforge.repro import ExecutionFingerprintV2
+from abmforge.repro import ExecutionFingerprintV3
 ```
 
 Most users should obtain fingerprints through `Scenario` rather than construct
@@ -79,7 +79,7 @@ An archived entry is reusable only when all of the following are true:
 1. The archived status is `completed`.
 2. `run_identity_version` equals `run-identity-v2`.
 3. An `execution_fingerprint` object is present.
-4. Its schema is `execution-fingerprint-v2`.
+4. Its schema is `execution-fingerprint-v3`.
 5. Its required fields and digest pass integrity validation.
 6. Model source is available, so the fingerprint is trusted.
 7. The outer run-index metadata agrees with the fingerprint for model identity,
@@ -112,22 +112,22 @@ callables do not yet have a persisted and stable identity contract.
 Older archives remain readable and valid for inspection. They are not silently
 upgraded and are not automatically trusted for recovery.
 
-Archived `execution-fingerprint-v1` records remain readable but are not trusted
+Archived `execution-fingerprint-v1` and `execution-fingerprint-v2` records remain readable but are not trusted
 for automatic reuse by the V2 recovery planner. To obtain reusable records,
 execute the scenarios again with a version of ABMForge that writes
-`execution-fingerprint-v2`. The new run metadata and `run_index.json` entries
+`execution-fingerprint-v3`. The new run metadata and `run_index.json` entries
 will then carry framework-aware identity evidence.
 
 This policy prefers additional computation over silently reusing a scientifically
 different run.
 
-## Scope and limitations of v2
+## Scope and limitations of v3
 
-`execution-fingerprint-v2` covers model source, Python import identity, scenario
+`execution-fingerprint-v3` covers model source, Python import identity, scenario
 name, seed, requested steps, parameters, ABMForge framework version, and the
-runtime ABMForge package-tree SHA-256. It does **not** yet include:
+runtime ABMForge package-tree SHA-256, and the canonical identity of explicitly declared input files. It does **not** yet include:
 
-- input dataset or external-file checksums;
+- undeclared input files or external data sources that are not listed as declared inputs;
 - Git commit or dirty-tree state;
 - dependency or interpreter versions;
 - scheduler configuration beyond values represented by the model source and

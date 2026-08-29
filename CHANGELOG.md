@@ -79,6 +79,9 @@ Current development version: `0.3.0a2.dev0`.
 - Add `ExecutionFingerprintV2` with model-source SHA-256, canonical parameter
   hashing, ABMForge framework version and package-tree SHA-256, versioned
   serialization, and digest integrity checks.
+- Add `DeclaredInputIdentityV1` and `ExecutionFingerprintV3` so explicitly
+  declared input-file identities participate in execution fingerprints and
+  fail-closed recovery decisions.
 - Persist execution fingerprints in dataset run metadata and `run_index.json`.
 - Document fail-closed recovery, legacy archive behavior, and the current
   fingerprint scope.
@@ -102,8 +105,9 @@ Current development version: `0.3.0a2.dev0`.
 ### Changed
 
 - Upgrade recovery matching to `run-identity-v2` with
-  `execution-fingerprint-v2`; legacy `execution-fingerprint-v1` identities
-  remain readable but are not automatically reusable.
+  `execution-fingerprint-v3`; legacy `execution-fingerprint-v1` and
+  `execution-fingerprint-v2` identities remain readable but are not
+  automatically reusable.
 - Soften alpha-stage positioning claims from "reproducible by default" toward
   "reproducibility-oriented".
 - Make CI mypy checks use the active matrix Python version.
