@@ -15,12 +15,17 @@ from typing import TYPE_CHECKING, Any
 from abmforge._version import __version__
 from abmforge.data.schema import DATASET_SCHEMA_VERSION, DatasetSchemaV1
 from abmforge.randomness import RNG_STREAM_POLICY
+from abmforge.repro.execution_fingerprint import (
+    EXECUTION_FINGERPRINT_V3_SCHEMA_VERSION,
+    ExecutionFingerprintV3,
+)
 from abmforge.repro.framework_provenance import (
     FRAMEWORK_PROVENANCE_SCHEMA_VERSION,
     FrameworkProvenanceV1,
 )
 from abmforge.repro.input_provenance import (
     INPUT_ARTIFACT_PROVENANCE_SCHEMA_VERSION,
+    DeclaredInputIdentityV1,
     InputArtifactProvenanceV1,
 )
 from abmforge.repro.source_provenance import SourceRepositoryProvenanceV1
@@ -449,6 +454,45 @@ class ReproducibilityManifest:
             if not isinstance(size_bytes, int) or size_bytes < 0:
                 raise ValueError(
                     f"input_artifacts[{index}].size_bytes must be a non-negative integer"
+                )
+
+        manifest_input_sha256 = DeclaredInputIdentityV1.canonical_artifacts_sha256(
+            self.input_artifacts
+        )
+
+        for run in self.runs:
+            if not isinstance(run, dict):
+                continue
+
+            execution_fingerprint = run.get("execution_fingerprint")
+
+            if (
+                not isinstance(execution_fingerprint, dict)
+                or execution_fingerprint.get("schema_version")
+                != EXECUTION_FINGERPRINT_V3_SCHEMA_VERSION
+            ):
+                continue
+
+            fingerprint = ExecutionFingerprintV3.from_dict(execution_fingerprint)
+
+            if fingerprint is None:
+                raise ValueError("execution-fingerprint-v3 failed integrity validation")
+
+            if (
+                self.framework.get("version") != fingerprint.framework_version
+                or self.framework.get("package_tree_sha256")
+                != fingerprint.framework_package_tree_sha256
+            ):
+                raise ValueError(
+                    "manifest framework identity does not match execution-fingerprint-v3"
+                )
+
+            if (
+                len(self.input_artifacts) != fingerprint.input_artifact_count
+                or manifest_input_sha256 != fingerprint.input_artifacts_sha256
+            ):
+                raise ValueError(
+                    "manifest declared input identity does not match execution-fingerprint-v3"
                 )
 
         if not isinstance(self.artifacts, list):

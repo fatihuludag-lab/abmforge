@@ -11,6 +11,7 @@ from abmforge.experiment.scenario import Scenario
 from abmforge.repro.execution_fingerprint import (
     ExecutionFingerprintV1,
     ExecutionFingerprintV2,
+    ExecutionFingerprintV3,
 )
 
 
@@ -496,7 +497,7 @@ def test_missing_scenarios_reruns_when_framework_tree_changes() -> None:
 
     different_hash = "a" * 64 if current.framework_package_tree_sha256 != "a" * 64 else "b" * 64
 
-    archived = ExecutionFingerprintV2.create(
+    archived = ExecutionFingerprintV3.create(
         model=scenario.model,
         scenario=scenario.name or scenario.model.__name__,
         seed=scenario.seed,
@@ -504,6 +505,7 @@ def test_missing_scenarios_reruns_when_framework_tree_changes() -> None:
         parameters=scenario.parameters,
         framework_version=current.framework_version,
         framework_package_tree_sha256=different_hash,
+        declared_inputs=scenario.declared_input_identity(),
     )
 
     assert archived.trusted is True
@@ -511,4 +513,78 @@ def test_missing_scenarios_reruns_when_framework_tree_changes() -> None:
 
     entry.execution_fingerprint = archived.to_dict()
 
+    assert missing_scenarios([scenario], run_index) == [scenario]
+
+
+def test_missing_scenarios_reuses_same_declared_inputs(tmp_path) -> None:
+    root = tmp_path / "study"
+    input_path = root / "data" / "observations.csv"
+    input_path.parent.mkdir(parents=True)
+    input_path.write_bytes(b"value\n1\n")
+
+    scenario = Scenario(
+        model=RecoveryTestModel,
+        parameters={"alpha": 1},
+        seed=2001,
+        steps=2,
+        name="input-reuse",
+        input_artifacts=[input_path],
+        input_root=root,
+    )
+
+    run_index = RunIndex.from_dataset(scenario.run().dataset)
+
+    assert missing_scenarios([scenario], run_index) == []
+
+
+def test_missing_scenarios_reruns_when_declared_input_content_changes(
+    tmp_path,
+) -> None:
+    root = tmp_path / "study"
+    input_path = root / "data" / "observations.csv"
+    input_path.parent.mkdir(parents=True)
+    input_path.write_bytes(b"value\n1\n")
+
+    scenario = Scenario(
+        model=RecoveryTestModel,
+        parameters={"alpha": 1},
+        seed=2002,
+        steps=2,
+        name="input-change",
+        input_artifacts=[input_path],
+        input_root=root,
+    )
+
+    run_index = RunIndex.from_dataset(scenario.run().dataset)
+
+    input_path.write_bytes(b"value\n2\n")
+
+    assert missing_scenarios([scenario], run_index) == [scenario]
+
+
+def test_missing_scenarios_does_not_reuse_v2_under_v3_planner() -> None:
+    scenario = Scenario(
+        model=RecoveryTestModel,
+        parameters={"alpha": 1},
+        seed=2003,
+        steps=2,
+        name="legacy-v2-fingerprint",
+    )
+
+    run_index = RunIndex.from_dataset(scenario.run().dataset)
+    entry = run_index.entries[0]
+
+    current = scenario.execution_fingerprint()
+
+    entry.execution_fingerprint = ExecutionFingerprintV2.create(
+        model=scenario.model,
+        scenario=scenario.name or scenario.model.__name__,
+        seed=scenario.seed,
+        steps=scenario.steps,
+        parameters=scenario.parameters,
+        framework_version=current.framework_version,
+        framework_package_tree_sha256=(current.framework_package_tree_sha256),
+    ).to_dict()
+
+    assert entry.execution_fingerprint["schema_version"] == "execution-fingerprint-v2"
     assert missing_scenarios([scenario], run_index) == [scenario]

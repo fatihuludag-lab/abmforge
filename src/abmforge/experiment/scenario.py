@@ -4,7 +4,7 @@ import importlib
 import platform
 import sys
 import traceback
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -20,9 +20,10 @@ from abmforge.data.dataset import Dataset
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.run_index import RUN_IDENTITY_SCHEMA_VERSION
 from abmforge.repro.execution_fingerprint import (
-    ExecutionFingerprintV2,
+    ExecutionFingerprintV3,
     runtime_framework_execution_identity,
 )
+from abmforge.repro.input_provenance import DeclaredInputIdentityV1
 
 
 class ScenarioValidationError(ValueError):
@@ -88,6 +89,8 @@ class Scenario:
     steps: int = 0
     stop_when: Callable[[Model], bool] | None = None
     name: str | None = None
+    input_artifacts: Sequence[str | Path] = field(default_factory=tuple)
+    input_root: str | Path | None = None
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> Scenario:
@@ -224,16 +227,24 @@ class Scenario:
             name=name,
         )
 
+    def declared_input_identity(self) -> DeclaredInputIdentityV1:
+        """Return the current identity of explicitly declared input files."""
+        return DeclaredInputIdentityV1.from_paths(
+            self.input_artifacts,
+            root=self.input_root,
+        )
+
     def execution_fingerprint(
         self,
         *,
         seed: int | None = None,
-    ) -> ExecutionFingerprintV2:
-        """Return the framework-aware identity for this planned execution."""
+    ) -> ExecutionFingerprintV3:
+        """Return the input- and framework-aware identity for this execution."""
         run_seed = self.seed if seed is None else seed
         framework = runtime_framework_execution_identity()
+        declared_inputs = self.declared_input_identity()
 
-        return ExecutionFingerprintV2.create(
+        return ExecutionFingerprintV3.create(
             model=self.model,
             scenario=self.name or self.model.__name__,
             seed=run_seed,
@@ -241,6 +252,7 @@ class Scenario:
             parameters=self.parameters,
             framework_version=framework.version,
             framework_package_tree_sha256=framework.package_tree_sha256,
+            declared_inputs=declared_inputs,
         )
 
     def run(

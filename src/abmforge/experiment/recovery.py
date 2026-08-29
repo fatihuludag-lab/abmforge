@@ -15,7 +15,7 @@ from abmforge.experiment.run_index import (
 )
 from abmforge.experiment.scenario import Scenario
 from abmforge.repro.execution_fingerprint import (
-    ExecutionFingerprintV2,
+    ExecutionFingerprintV3,
     canonical_parameters_sha256,
 )
 
@@ -129,7 +129,7 @@ def _canonical_run_key(
 
 def _key_from_entry(
     entry: RunIndexEntry,
-    fingerprint: ExecutionFingerprintV2,
+    fingerprint: ExecutionFingerprintV3,
 ) -> RunKey:
     return _canonical_run_key(
         model_name=fingerprint.model_name,
@@ -146,13 +146,13 @@ def _key_from_entry(
 
 def _trusted_fingerprint_from_entry(
     entry: RunIndexEntry,
-) -> ExecutionFingerprintV2 | None:
+) -> ExecutionFingerprintV3 | None:
     if entry.run_identity_version != RUN_IDENTITY_SCHEMA_VERSION:
         return None
     if entry.execution_fingerprint is None:
         return None
 
-    fingerprint = ExecutionFingerprintV2.from_dict(entry.execution_fingerprint)
+    fingerprint = ExecutionFingerprintV3.from_dict(entry.execution_fingerprint)
     if fingerprint is None or not fingerprint.trusted:
         return None
 

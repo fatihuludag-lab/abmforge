@@ -363,6 +363,8 @@ def test_manifest_from_run_result_records_input_artifact_checksums(
         seed=123,
         steps=0,
         name="input-provenance",
+        input_artifacts=[input_path],
+        input_root=input_root,
     ).run()
 
     manifest = ReproducibilityManifest.from_run_result(

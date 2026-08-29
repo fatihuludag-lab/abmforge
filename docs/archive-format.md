@@ -234,9 +234,9 @@ Archives produced before this feature may not contain `run_index.json`.
 
 Recovery uses a fail-closed execution identity. New runs use
 `run-identity-v2` together with an integrity-checked
-`execution-fingerprint-v2`. A completed archived run matches a planned scenario
+`execution-fingerprint-v3`. A completed archived run matches a planned scenario
 only when the identity versions, fingerprint digest, model-source SHA-256,
-ABMForge framework version, framework package-tree SHA-256, model name, module,
+ABMForge framework version, framework package-tree SHA-256, declared-input schema version, declared-input artifact count, declared-input set SHA-256, model name, module,
 qualified class name, scenario name, seed, requested step count, and canonical
 parameters agree.
 
