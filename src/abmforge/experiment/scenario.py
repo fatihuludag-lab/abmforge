@@ -19,45 +19,16 @@ from abmforge.core.status import COMPLETED, CREATED, FAILED, RUNNING, STOPPED
 from abmforge.data.dataset import Dataset
 from abmforge.experiment.result import RunResult
 from abmforge.experiment.run_index import RUN_IDENTITY_SCHEMA_VERSION
+from abmforge.experiment.scenario_schema import (
+    ScenarioSchemaV1,
+    ScenarioValidationError,
+    StopConditionV1,
+)
 from abmforge.repro.execution_fingerprint import (
     ExecutionFingerprintV3,
     runtime_framework_execution_identity,
 )
 from abmforge.repro.input_provenance import DeclaredInputIdentityV1
-
-
-class ScenarioValidationError(ValueError):
-    # Raised when a scenario YAML document fails validation.
-    #
-    # The message is intentionally human-readable because it is surfaced by the
-    # command-line interface before a scenario run starts.
-
-    def __init__(
-        self,
-        message: str,
-        *,
-        path: str | Path | None = None,
-        field: str | None = None,
-        hint: str | None = None,
-    ) -> None:
-        self.message = message
-        self.path = Path(path) if path is not None else None
-        self.field = field
-        self.hint = hint
-
-        details: list[str] = []
-        if self.path is not None:
-            details.append(f"file: {self.path}")
-        if self.field is not None:
-            details.append(f"field: {self.field}")
-
-        formatted = message
-        if details:
-            formatted = f"{formatted} ({'; '.join(details)})"
-        if hint:
-            formatted = f"{formatted}. Hint: {hint}"
-
-        super().__init__(formatted)
 
 
 def _import_model_class(import_path: str) -> type[Model]:
@@ -91,6 +62,13 @@ class Scenario:
     name: str | None = None
     input_artifacts: Sequence[str | Path] = field(default_factory=tuple)
     input_root: str | Path | None = None
+    schema_version: str | None = None
+    extensions: dict[str, Any] = field(default_factory=dict)
+    stop_condition: StopConditionV1 | None = None
+
+    def __post_init__(self) -> None:
+        if self.stop_when is not None and self.stop_condition is not None:
+            raise ValueError("Scenario cannot define both stop_when and stop_condition")
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> Scenario:
@@ -121,93 +99,13 @@ class Scenario:
                 hint="Use a key-value YAML document with fields such as 'model' and 'run'.",
             )
 
-        model_path = config.get("model")
-        if model_path is None:
-            raise ScenarioValidationError(
-                "Missing required field: model",
-                path=scenario_path,
-                field="model",
-                hint="Set 'model' to a dotted import path such as 'model.model.MyModel'.",
-            )
-
-        if not isinstance(model_path, str) or not model_path:
-            raise ScenarioValidationError(
-                "Field 'model' must be a string",
-                path=scenario_path,
-                field="model",
-                hint="Use a dotted Python import path string.",
-            )
-
-        name = config.get("name")
-        if name is not None and not isinstance(name, str):
-            raise ScenarioValidationError(
-                "Field 'name' must be a string or null",
-                path=scenario_path,
-                field="name",
-                hint="Use a YAML string or remove the field.",
-            )
-
-        parameters = config.get("parameters", {})
-        if parameters is None:
-            parameters = {}
-
-        if not isinstance(parameters, Mapping):
-            raise ScenarioValidationError(
-                "Field 'parameters' must be a mapping/object",
-                path=scenario_path,
-                field="parameters",
-                hint="Use key-value pairs under 'parameters' or set it to null.",
-            )
-
-        run_config = config.get("run", {})
-        if run_config is None:
-            run_config = {}
-
-        if not isinstance(run_config, Mapping):
-            raise ScenarioValidationError(
-                "Field 'run' must be a mapping/object",
-                path=scenario_path,
-                field="run",
-                hint="Use a mapping with at least 'steps'.",
-            )
-
-        if "steps" not in run_config:
-            raise ScenarioValidationError(
-                "Missing required field: run.steps",
-                path=scenario_path,
-                field="run.steps",
-                hint="Set a non-negative integer number of simulation steps.",
-            )
-
-        seed = run_config.get("seed")
-        steps = run_config["steps"]
-
-        if seed is not None and (not isinstance(seed, int) or isinstance(seed, bool)):
-            raise ScenarioValidationError(
-                "Field 'run.seed' must be an integer or null",
-                path=scenario_path,
-                field="run.seed",
-                hint="Use an integer seed for reproducibility or null for no explicit seed.",
-            )
-
-        if not isinstance(steps, int) or isinstance(steps, bool):
-            raise ScenarioValidationError(
-                "Field 'run.steps' must be an integer",
-                path=scenario_path,
-                field="run.steps",
-                hint="Use an integer value such as 10.",
-            )
-
-        if steps < 0:
-            raise ScenarioValidationError(
-                "Field 'run.steps' must be non-negative",
-                path=scenario_path,
-                field="run.steps",
-                hint="Use zero or a positive integer.",
-            )
+        schema = ScenarioSchemaV1.from_mapping(
+            config,
+            path=scenario_path,
+        )
 
         try:
-            model_cls = _import_model_class(model_path)
+            model_cls = _import_model_class(schema.model)
         except (ImportError, AttributeError, TypeError, ValueError) as exc:
             raise ScenarioValidationError(
                 str(exc),
@@ -219,12 +117,28 @@ class Scenario:
                 ),
             ) from exc
 
+        resolved_input_root: Path | None = None
+        resolved_input_artifacts: tuple[Path, ...] = ()
+
+        if schema.input_root is not None:
+            resolved_input_root = (scenario_path.parent / Path(schema.input_root)).resolve()
+
+            resolved_input_artifacts = tuple(
+                (resolved_input_root / Path(input_path)).resolve()
+                for input_path in schema.input_artifacts
+            )
+
         return cls(
             model=model_cls,
-            parameters=dict(parameters),
-            seed=seed,
-            steps=steps,
-            name=name,
+            parameters=dict(schema.parameters),
+            seed=schema.seed,
+            steps=schema.steps,
+            name=schema.name,
+            input_artifacts=resolved_input_artifacts,
+            input_root=resolved_input_root,
+            schema_version=schema.schema_version,
+            extensions=dict(schema.extensions),
+            stop_condition=schema.stop,
         )
 
     def declared_input_identity(self) -> DeclaredInputIdentityV1:
@@ -321,7 +235,7 @@ class Scenario:
             for _ in range(self.steps):
                 if model.status == STOPPED:
                     break
-                if self.stop_when is not None and self.stop_when(model):
+                if self._stop_requested(model):
                     model.stop("stop_condition")
                     break
 
@@ -329,7 +243,7 @@ class Scenario:
                 if model.status == STOPPED:
                     break
 
-                if self.stop_when is not None and self.stop_when(model):
+                if self._stop_requested(model):
                     model.stop("stop_condition")
                     break
 
@@ -363,6 +277,13 @@ class Scenario:
             steps=model.steps,
             stop_reason=model.stop_reason,
         )
+
+    def _stop_requested(self, model: Model) -> bool:
+        if self.stop_condition is not None:
+            return self.stop_condition.evaluate(model)
+        if self.stop_when is not None:
+            return bool(self.stop_when(model))
+        return False
 
     def _failed_after_model_created(
         self,

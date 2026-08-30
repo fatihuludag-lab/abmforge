@@ -4,6 +4,14 @@
 multi-run experiment: a model, fixed base parameters, swept parameters, seed
 generation, and run length.
 
+Experiment YAML is a separate configuration contract from Scenario Schema V1.
+Do not add `schema_version: abmforge.scenario.v1` to Experiment YAML. The two
+formats share some field names but have different root structures and loaders.
+
+The Scenario Schema V1 `inputs` block is likewise not an Experiment YAML field.
+Declared-input syntax documented in the Scenario YAML reference applies to
+`Scenario.from_yaml(...)`, not to this multi-run configuration format.
+
 ```yaml
 name: grid-template-experiment
 

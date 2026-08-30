@@ -33,6 +33,12 @@ from abmforge.experiment.run_index import (
     RunIndexEntry,
 )
 from abmforge.experiment.scenario import Scenario
+from abmforge.experiment.scenario_schema import (
+    SCENARIO_SCHEMA_VERSION,
+    ScenarioSchemaV1,
+    ScenarioValidationError,
+    StopConditionV1,
+)
 from abmforge.experiment.seed_sequence import (
     DEFAULT_MAX_SEED,
     SEED_SEQUENCE_VERSION,
@@ -54,6 +60,10 @@ __all__ = [
     "RunIndex",
     "RUN_INDEX_SCHEMA_VERSION",
     "Scenario",
+    "SCENARIO_SCHEMA_VERSION",
+    "ScenarioSchemaV1",
+    "ScenarioValidationError",
+    "StopConditionV1",
     "SeedSequence",
     "SEED_SEQUENCE_VERSION",
     "DEFAULT_MAX_SEED",

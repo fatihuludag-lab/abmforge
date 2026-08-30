@@ -1,3 +1,4 @@
+schema_version: abmforge.scenario.v1
 name: network-diffusion-baseline
 model: model.NetworkDiffusionModel
 parameters:

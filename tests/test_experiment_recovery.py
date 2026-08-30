@@ -8,6 +8,7 @@ from abmforge.experiment.run_index import (
     RunIndexEntry,
 )
 from abmforge.experiment.scenario import Scenario
+from abmforge.experiment.scenario_schema import StopConditionV1
 from abmforge.repro.execution_fingerprint import (
     ExecutionFingerprintV1,
     ExecutionFingerprintV2,
@@ -455,7 +456,7 @@ def test_missing_scenarios_reruns_when_fingerprint_digest_is_missing() -> None:
     assert missing_scenarios([scenario], run_index) == [scenario]
 
 
-def test_missing_scenarios_does_not_reuse_v1_fingerprint_under_v2_planner() -> None:
+def test_missing_scenarios_does_not_reuse_v1_fingerprint_under_v3_planner() -> None:
     scenario = Scenario(
         model=RecoveryTestModel,
         parameters={"alpha": 1},
@@ -588,3 +589,25 @@ def test_missing_scenarios_does_not_reuse_v2_under_v3_planner() -> None:
 
     assert entry.execution_fingerprint["schema_version"] == "execution-fingerprint-v2"
     assert missing_scenarios([scenario], run_index) == [scenario]
+
+
+def test_missing_scenarios_does_not_recover_declarative_stop_condition() -> None:
+    scenario = Scenario(
+        model=RecoveryTestModel,
+        parameters={"alpha": 1},
+        seed=1401,
+        steps=5,
+        name="declarative-stop",
+        stop_condition=StopConditionV1(
+            field="steps",
+            operator="ge",
+            value=1,
+        ),
+    )
+
+    run_result = scenario.run()
+    run_index = RunIndex.from_dataset(run_result.dataset)
+
+    result = missing_scenarios([scenario], run_index)
+
+    assert result == [scenario]

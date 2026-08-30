@@ -1,3 +1,4 @@
+schema_version: abmforge.scenario.v1
 name: research-template-baseline
 model: model.model.ResearchStudyModel
 parameters:
