@@ -1,0 +1,4579 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Reproducible, experiment-native agent-based modeling for Python">
+      
+      
+      
+      
+        <link rel="prev" href="../scheduling/">
+      
+      
+        <link rel="next" href="../delayed-events/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Simulation Semantics V1 - ABMForge</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#simulation-semantics-v1" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="ABMForge" class="md-header__button md-logo" aria-label="ABMForge" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ABMForge
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Simulation Semantics V1
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/fatihuludag-lab/abmforge" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="ABMForge" class="md-nav__button md-logo" aria-label="ABMForge" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ABMForge
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/fatihuludag-lab/abmforge" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../researcher-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Researcher Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../abm-study-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ABM Study Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../archive-table-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Archive Table Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sensitivity-robustness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensitivity and Robustness
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../researcher-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Researcher Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../seed-sequence-policy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Seed Sequence Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment-replicates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiment Replicates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../archive-grouped-run-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Archive Grouped Run Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../first-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spaces
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scheduling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scheduling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simulation Semantics V1
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simulation Semantics V1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-terminology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Terminology
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Terminology">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulation-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simulation time
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tick" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tick
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#activation-pass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Activation pass
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eligible-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Eligible agent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current-state-and-next-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current state and next state
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-current-fixed-step-model-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Current fixed-step model loop
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Current fixed-step model loop">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-current-runtime-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Current runtime order
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-consequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Consequences
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-target-fixed-step-phase-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Target fixed-step phase contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-event-time-semantics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Event-time semantics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Event-time semantics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-current-fixed-step-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Current fixed-step contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-execution-timing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Execution timing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-same-tick-event-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Same-tick event behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-remaining-event-system-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Remaining event-system work
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-agent-collection-bulk-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Agent collection bulk operations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Agent collection bulk operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-shared-callback-time-eligibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Shared callback-time eligibility
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-agentcollectiondo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 AgentCollection.do
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-agentcollectionshuffle_do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 AgentCollection.shuffle_do
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-scope-of-the-guarantee" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 Scope of the guarantee
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-sequential-activation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Sequential activation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Sequential activation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-current-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Current behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-scientific-implication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Scientific implication
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-random-activation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Random activation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Random activation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-current-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Current behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-current-named-stream-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Current named-stream contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-snapshot-and-restore-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 Snapshot and restore contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-simultaneous-activation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Simultaneous activation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Simultaneous activation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-current-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Current behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-current-guarantee" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Current guarantee
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-required-user-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 Required user pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-public-alpha-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 Public-alpha status
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-staged-activation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Staged activation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Staged activation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-current-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 Current behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-lifecycle-visibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2 Lifecycle visibility
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93-research-reporting-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3 Research reporting requirements
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-agent-creation-and-removal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Agent creation and removal
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Agent creation and removal">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#101-same-pass-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1 Same-pass creation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#102-same-pass-removal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2 Same-pass removal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#103-same-identifier-replacement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3 Same-identifier replacement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#104-managed-lifecycle-removal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.4 Managed lifecycle removal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#105-spatial-unplacement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.5 Spatial unplacement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#106-failure-ordering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.6 Failure ordering
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#107-public-alpha-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7 Public-alpha status
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-recording-semantics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Recording semantics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Recording semantics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#111-current-automatic-recording" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.1 Current automatic recording
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#112-time-zero-observations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2 Time-zero observations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#113-frequency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.3 Frequency
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#114-conditional-recording" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.4 Conditional recording
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#115-event-and-lifecycle-record-times" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.5 Event and lifecycle record times
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#116-target-observation-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.6 Target observation contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-stop-condition-semantics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Stop-condition semantics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Stop-condition semantics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#121-direct-model-stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.1 Direct model stop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#122-scenario-stop-condition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.2 Scenario stop condition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#123-outcome-interpretation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.3 Outcome interpretation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-failure-semantics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Failure semantics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Failure semantics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#131-current-model-loop-failure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.1 Current model-loop failure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#132-no-automatic-rollback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.2 No automatic rollback
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#133-target-failure-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.3 Target failure contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-randomness-and-determinism" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Randomness and determinism
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14. Randomness and determinism">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#141-current-generators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14.1 Current generators
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#142-current-same-seed-guarantee" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14.2 Current same-seed guarantee
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#143-snapshot-and-manifest-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14.3 Snapshot and manifest support
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-current-guarantee-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Current guarantee matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-public-alpha-semantic-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Public-alpha semantic status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-model-author-responsibilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. Model-author responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18-framework-contributor-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18. Framework-contributor requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19-versioning-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19. Versioning policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#20-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        20. Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../delayed-events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Delayed Events
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agent-lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent Lifecycle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-lifecycle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Lifecycle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../typed-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Typed Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment-recovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Safe Experiment Recovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario-yaml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scenario YAML Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../archive-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiment Archive Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment-archive-v1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiment Archive Specification v1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../archive-migration-strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Archive Migration Strategy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-reproducible-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference Reproducible Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment-archive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiment Archive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset-schema-v1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../failure-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Failure Handling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reproducibility-manifest-v1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducibility Manifest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../source-input-provenance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source and Input Provenance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../odd-export/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ODD Export
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-zoo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Zoo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-zoo-research-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Zoo Research Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../visualization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visualization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../replay/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Replay
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GISSpace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mesa-comparison-methodology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mesa Comparison Methodology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-stability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Stability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../publication-readiness-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publication Readiness Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../software-paper-package/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Software Paper Package
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releasing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-readiness-no-publish/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Readiness Without Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-candidate-prep/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Candidate Preparation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testpypi-dry-run/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TestPyPI Dry Run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pypi-alpha-release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyPI Alpha Release
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../community-and-issues/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Community and Issues
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recording/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recording Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-reproducible-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference Reproducible Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reproducibility-tiers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducibility Tiers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment-yaml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Experiment YAML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reporting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reporting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-terminology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Terminology
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Terminology">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulation-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simulation time
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tick" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tick
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#activation-pass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Activation pass
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eligible-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Eligible agent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current-state-and-next-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current state and next state
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-current-fixed-step-model-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Current fixed-step model loop
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Current fixed-step model loop">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-current-runtime-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Current runtime order
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-consequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Consequences
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-target-fixed-step-phase-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Target fixed-step phase contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-event-time-semantics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Event-time semantics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Event-time semantics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-current-fixed-step-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Current fixed-step contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-execution-timing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Execution timing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-same-tick-event-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Same-tick event behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-remaining-event-system-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Remaining event-system work
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-agent-collection-bulk-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Agent collection bulk operations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Agent collection bulk operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-shared-callback-time-eligibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Shared callback-time eligibility
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-agentcollectiondo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 AgentCollection.do
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-agentcollectionshuffle_do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 AgentCollection.shuffle_do
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-scope-of-the-guarantee" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 Scope of the guarantee
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-sequential-activation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Sequential activation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Sequential activation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-current-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Current behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-scientific-implication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Scientific implication
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-random-activation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Random activation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Random activation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-current-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Current behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-current-named-stream-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Current named-stream contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-snapshot-and-restore-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 Snapshot and restore contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-simultaneous-activation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Simultaneous activation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Simultaneous activation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-current-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Current behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-current-guarantee" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Current guarantee
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-required-user-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 Required user pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-public-alpha-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 Public-alpha status
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-staged-activation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Staged activation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Staged activation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-current-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 Current behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-lifecycle-visibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2 Lifecycle visibility
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93-research-reporting-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3 Research reporting requirements
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-agent-creation-and-removal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Agent creation and removal
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Agent creation and removal">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#101-same-pass-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1 Same-pass creation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#102-same-pass-removal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2 Same-pass removal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#103-same-identifier-replacement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3 Same-identifier replacement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#104-managed-lifecycle-removal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.4 Managed lifecycle removal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#105-spatial-unplacement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.5 Spatial unplacement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#106-failure-ordering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.6 Failure ordering
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#107-public-alpha-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7 Public-alpha status
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-recording-semantics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Recording semantics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Recording semantics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#111-current-automatic-recording" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.1 Current automatic recording
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#112-time-zero-observations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2 Time-zero observations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#113-frequency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.3 Frequency
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#114-conditional-recording" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.4 Conditional recording
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#115-event-and-lifecycle-record-times" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.5 Event and lifecycle record times
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#116-target-observation-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.6 Target observation contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-stop-condition-semantics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Stop-condition semantics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Stop-condition semantics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#121-direct-model-stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.1 Direct model stop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#122-scenario-stop-condition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.2 Scenario stop condition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#123-outcome-interpretation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.3 Outcome interpretation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-failure-semantics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Failure semantics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Failure semantics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#131-current-model-loop-failure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.1 Current model-loop failure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#132-no-automatic-rollback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.2 No automatic rollback
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#133-target-failure-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.3 Target failure contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-randomness-and-determinism" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Randomness and determinism
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14. Randomness and determinism">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#141-current-generators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14.1 Current generators
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#142-current-same-seed-guarantee" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14.2 Current same-seed guarantee
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#143-snapshot-and-manifest-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14.3 Snapshot and manifest support
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-current-guarantee-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Current guarantee matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-public-alpha-semantic-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Public-alpha semantic status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-model-author-responsibilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. Model-author responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18-framework-contributor-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18. Framework-contributor requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19-versioning-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19. Versioning policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#20-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        20. Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="simulation-semantics-v1">Simulation Semantics V1</h1>
+<h2 id="status">Status</h2>
+<p><strong>Document status:</strong> Current alpha contract and target semantic decisions
+<strong>Applies to:</strong> ABMForge <code>0.3.0a1</code> development line
+<strong>Stability:</strong> Public-alpha semantic baseline
+<strong>Audience:</strong> Model authors, framework contributors, reviewers, and plugin authors</p>
+<p>This document defines the observable simulation semantics of ABMForge.</p>
+<p>It distinguishes between:</p>
+<ol>
+<li><strong>Current behavior</strong> — behavior implemented by the current runtime.</li>
+<li><strong>Target contract</strong> — behavior ABMForge intends to guarantee after the corresponding semantic corrections are implemented.</li>
+<li><strong>Unsupported behavior</strong> — behavior that users must not currently assume.</li>
+</ol>
+<p>This distinction is important because documenting an existing implementation does not automatically make every existing behavior desirable or stable.</p>
+<p>Related documentation:</p>
+<ul>
+<li><a href="../scheduling/">Scheduling</a></li>
+<li><a href="../delayed-events/">Delayed Events</a></li>
+<li><a href="../agent-lifecycle/">Agent Lifecycle</a></li>
+<li><a href="../model-lifecycle/">Model Lifecycle</a></li>
+<li><a href="../recording/">Recording Data</a></li>
+<li><a href="../reproducibility-tiers/">Reproducibility Tiers</a></li>
+<li><a href="../replay/">Replay and Snapshots</a></li>
+</ul>
+<hr />
+<h2 id="1-scope">1. Scope</h2>
+<p>Simulation semantics include:</p>
+<ul>
+<li>model step and time progression;</li>
+<li>event processing order;</li>
+<li>agent activation order;</li>
+<li>agent creation and removal visibility;</li>
+<li>simultaneous and staged state transitions;</li>
+<li>recording time;</li>
+<li>stop-condition evaluation;</li>
+<li>random-number ownership;</li>
+<li>failure and partial-step behavior.</li>
+</ul>
+<p>This document does not define:</p>
+<ul>
+<li>domain-specific model validity;</li>
+<li>calibration or statistical inference methods;</li>
+<li>continuous-time simulation;</li>
+<li>distributed simulation;</li>
+<li>full checkpoint/resume;</li>
+<li>executable event replay;</li>
+<li>bit-identical results across platforms or dependency versions.</li>
+</ul>
+<hr />
+<h2 id="2-terminology">2. Terminology</h2>
+<h3 id="step">Step</h3>
+<p>A <strong>step</strong> is one completed iteration of the fixed-step model loop.</p>
+<p>The model exposes the completed-step count as:</p>
+<pre><code class="language-python">model.steps
+</code></pre>
+<p>The initial value is <code>0</code>.</p>
+<h3 id="simulation-time">Simulation time</h3>
+<p>Simulation time is exposed as:</p>
+<pre><code class="language-python">model.time
+</code></pre>
+<p>The initial value is <code>0.0</code>.</p>
+<p>The current fixed-step runner increases time by <code>1.0</code> after each completed model step.</p>
+<h3 id="tick">Tick</h3>
+<p>In the current fixed-step execution profile, a <strong>tick</strong> corresponds to one model step and one <code>1.0</code> increase in simulation time.</p>
+<p>ABMForge does not currently provide a separate tick object.</p>
+<h3 id="activation-pass">Activation pass</h3>
+<p>An <strong>activation pass</strong> is one scheduler or collection bulk-operation call over a selected set of agents.</p>
+<p>Examples:</p>
+<pre><code class="language-python">model.agents.do(&quot;step&quot;)
+model.agents.shuffle_do(&quot;step&quot;)
+model.scheduler.step()
+</code></pre>
+<h3 id="phase">Phase</h3>
+<p>A <strong>phase</strong> is an ordered part of a model iteration, such as event processing, model activation, recording, or stop-condition evaluation.</p>
+<h3 id="eligible-agent">Eligible agent</h3>
+<p>An <strong>eligible agent</strong> is an agent permitted to receive a callback in a particular activation pass or stage.</p>
+<p>Eligibility depends on:</p>
+<ul>
+<li>membership policy;</li>
+<li>lifecycle state;</li>
+<li>when the activation snapshot was created;</li>
+<li>the selected scheduler.</li>
+</ul>
+<h3 id="current-state-and-next-state">Current state and next state</h3>
+<p>For synchronous models:</p>
+<ul>
+<li><strong>current state</strong> is the state visible during the decision phase;</li>
+<li><strong>next state</strong> is pending state intended to become current during a later commit phase.</li>
+</ul>
+<p>The current runtime does not automatically isolate current and next state.</p>
+<hr />
+<h2 id="3-current-fixed-step-model-loop">3. Current fixed-step model loop</h2>
+<h3 id="31-current-runtime-order">3.1 Current runtime order</h3>
+<p>For each requested model step, the current runtime performs:</p>
+<pre><code class="language-text">1. Process events due at the current model time
+2. Call model.step()
+3. Increment model.steps by 1
+4. Increment model.time by 1.0
+5. Collect registered model and agent observations
+</code></pre>
+<p>Equivalent pseudocode:</p>
+<pre><code class="language-python">for _ in range(requested_steps):
+    if not model.running:
+        break
+
+    model.events.process_due(time=model.time)
+    model.step()
+
+    model.steps += 1
+    model.time += 1.0
+
+    model.record.collect()
+</code></pre>
+<h3 id="32-consequences">3.2 Consequences</h3>
+<p>Under the current implementation:</p>
+<ul>
+<li>events due at time <code>t</code> are processed before <code>model.step()</code> for time <code>t</code>;</li>
+<li>observations are collected after the model step;</li>
+<li>observations use the incremented <code>steps</code> and <code>time</code> values;</li>
+<li>the first automatic post-step observation is associated with step <code>1</code> and time <code>1.0</code>;</li>
+<li>no automatic time-zero observation is collected;</li>
+<li>an exception during event processing, <code>model.step()</code>, or recording marks the model as failed;</li>
+<li>if <code>model.stop()</code> is called inside <code>model.step()</code>, the current loop still increments the counters and performs the post-step recording for that iteration unless an exception interrupts execution.</li>
+</ul>
+<h3 id="33-target-fixed-step-phase-contract">3.3 Target fixed-step phase contract</h3>
+<p>The target fixed-step execution profile will use explicit named phases:</p>
+<pre><code class="language-text">TICK_START
+→ PRE_STEP_EVENTS
+→ ACTIVATION
+→ COUNTER_ADVANCE
+→ POST_STEP_OBSERVATION
+→ STOP_EVALUATION
+→ TICK_END
+</code></pre>
+<p>The exact placement of post-step events, if introduced, must be specified by a later version of this contract.</p>
+<p>No plugin or scheduler may silently reorder these phases.</p>
+<hr />
+<h2 id="4-event-time-semantics">4. Event-time semantics</h2>
+<h3 id="41-current-fixed-step-contract">4.1 Current fixed-step contract</h3>
+<p>The built-in fixed-step execution profile accepts only finite,
+integer-valued event ticks.</p>
+<p>Events may be scheduled using:</p>
+<pre><code class="language-python">model.events.schedule_at(time, callback=...)
+model.events.schedule_after(delay, callback=...)
+</code></pre>
+<p>Accepted values include integers and integer-valued floats:</p>
+<pre><code class="language-python">model.events.schedule_at(2, callback=callback)
+model.events.schedule_at(2.0, callback=callback)
+model.events.schedule_after(1, callback=callback)
+model.events.schedule_after(1.0, callback=callback)
+</code></pre>
+<p>Accepted values are normalized to <code>float</code> for queue storage and ordering.</p>
+<p>The current contract rejects:</p>
+<ul>
+<li>fractional absolute event times;</li>
+<li>fractional delays;</li>
+<li>Boolean values;</li>
+<li>strings and objects accepted only through implicit numeric coercion;</li>
+<li>non-finite values;</li>
+<li>negative delays;</li>
+<li>absolute event times earlier than the current model time.</li>
+</ul>
+<p>A rejected scheduling request does not:</p>
+<ul>
+<li>consume an event identifier;</li>
+<li>create a pending event;</li>
+<li>write an event record.</li>
+</ul>
+<h3 id="42-execution-timing">4.2 Execution timing</h3>
+<p>For an event scheduled at tick <code>t</code>, the fixed-step runner processes the
+event before <code>model.step()</code> when <code>model.time == t</code>.</p>
+<p>Pending events are ordered by:</p>
+<pre><code class="language-text">event tick
+-&gt; priority
+-&gt; insertion sequence
+-&gt; event identifier
+</code></pre>
+<p><code>process_due(time=t)</code> executes pending events whose scheduled tick is less
+than or equal to <code>t</code>.</p>
+<p>Because fractional event times are rejected during scheduling, the built-in
+runner cannot silently delay a fractional event until the next integer
+model time.</p>
+<p>The fixed-step profile is not a continuous-time or general discrete-event
+simulation engine.</p>
+<h3 id="43-same-tick-event-behavior">4.3 Same-tick event behavior</h3>
+<p>During <code>process_due(time=t)</code>, an event callback may schedule another event
+for tick <code>t</code>.</p>
+<p>Because the queue continues draining while due events remain, the newly
+scheduled event may execute during the same event-processing call.</p>
+<p>An event scheduled for the current tick from inside <code>model.step()</code> is
+created after the pre-step event drain. It therefore executes during a
+later event-processing phase.</p>
+<p>This callback-context distinction is current behavior.</p>
+<h3 id="44-remaining-event-system-work">4.4 Remaining event-system work</h3>
+<p>Future event-system revisions should:</p>
+<ul>
+<li>distinguish event creation, requested execution, and actual execution
+  timestamps in event records;</li>
+<li>define a resource-safety policy for recursive same-tick scheduling;</li>
+<li>formalize any post-step event phase;</li>
+<li>version the event-time and event-phase policies in run metadata;</li>
+<li>use a separate experimental profile for hybrid or continuous-time
+  simulation.</li>
+</ul>
+<hr />
+<h2 id="5-agent-collection-bulk-operations">5. Agent collection bulk operations</h2>
+<h3 id="51-shared-callback-time-eligibility">5.1 Shared callback-time eligibility</h3>
+<p>All built-in collection bulk operations and schedulers use a shared
+callback-time activation eligibility rule.</p>
+<p>A candidate agent is eligible immediately before a callback only when:</p>
+<ol>
+<li>the collection still stores an object under the agent identifier;</li>
+<li>the collection still stores the same object under that identifier;</li>
+<li>the candidate agent remains alive.</li>
+</ol>
+<p>Candidate agents are selected from a snapshot created at the beginning of the
+activation pass or scheduler call.</p>
+<p>Consequences:</p>
+<ul>
+<li>an agent added during the pass is deferred until a future pass;</li>
+<li>an agent removed before its turn is skipped;</li>
+<li>an agent marked not alive before its turn is skipped;</li>
+<li>if an agent is removed and replaced by another object with the same
+  identifier, neither the removed snapshot object nor the newly added
+  replacement is activated from that snapshot position;</li>
+<li>self-removal is safe and prevents callbacks in later phases or stages.</li>
+</ul>
+<p>This rule prevents stale objects retained by an activation snapshot from being
+called after removal.</p>
+<h3 id="52-agentcollectiondo">5.2 <code>AgentCollection.do</code></h3>
+<pre><code class="language-python">model.agents.do(&quot;step&quot;)
+</code></pre>
+<p><code>do()</code> creates an insertion-ordered candidate snapshot at the beginning of the
+call.</p>
+<p>Immediately before each callback, it revalidates object identity, current
+collection membership, and lifecycle eligibility.</p>
+<p>Insertion order remains part of the activation semantics.</p>
+<h3 id="53-agentcollectionshuffle_do">5.3 <code>AgentCollection.shuffle_do</code></h3>
+<pre><code class="language-python">model.agents.shuffle_do(&quot;step&quot;)
+</code></pre>
+<p><code>shuffle_do()</code> creates one candidate snapshot at the beginning of the call and
+shuffles its indices using the named <code>scheduler</code> stream returned by
+<code>model.rng_stream("scheduler")</code>.</p>
+<p>Immediately before each callback, it applies the same identity, membership,
+and lifecycle eligibility checks as <code>do()</code>.</p>
+<p>An agent removed after the permutation is generated is skipped when its turn
+is reached.</p>
+<h3 id="54-scope-of-the-guarantee">5.4 Scope of the guarantee</h3>
+<p>Callback-time eligibility determines whether a candidate receives an
+activation callback.</p>
+<p><code>AgentCollection.remove(...)</code> and <code>Model.remove_agent(...)</code> both perform
+managed lifecycle removal, including spatial cleanup, owned-event
+cancellation, collection removal, lifecycle transition, and lifecycle
+recording.</p>
+<p><code>space.remove(...)</code> performs spatial unplacement only and does not alter
+collection membership or lifecycle state.</p>
+<hr />
+<h2 id="6-sequential-activation">6. Sequential activation</h2>
+<h3 id="61-current-behavior">6.1 Current behavior</h3>
+<p><code>SequentialActivation</code>:</p>
+<ol>
+<li>creates an insertion-ordered candidate snapshot;</li>
+<li>visits candidates in snapshot order;</li>
+<li>revalidates object identity, collection membership, and <code>is_alive</code>
+   immediately before each callback;</li>
+<li>calls <code>agent.step()</code> only for eligible candidates.</li>
+</ol>
+<p>An agent added after the candidate snapshot is created is deferred until a
+future scheduler call.</p>
+<p>An agent removed or marked not alive before its turn is skipped.</p>
+<p>If a removed agent is replaced by another object using the same identifier,
+the old object fails callback-time identity validation and the replacement is
+not present in the original snapshot.</p>
+<h3 id="62-scientific-implication">6.2 Scientific implication</h3>
+<p>Insertion order is part of the model semantics.</p>
+<p>Researchers using sequential activation must document:</p>
+<ul>
+<li>how initial insertion order is determined;</li>
+<li>whether creation order has theoretical meaning;</li>
+<li>whether dynamic creation changes future activation priority;</li>
+<li>whether results are sensitive to activation order.</li>
+</ul>
+<hr />
+<h2 id="7-random-activation">7. Random activation</h2>
+<h3 id="71-current-behavior">7.1 Current behavior</h3>
+<p><code>RandomActivation</code>:</p>
+<ol>
+<li>creates a candidate snapshot from currently eligible agents;</li>
+<li>generates a permutation using the named <code>scheduler</code> stream returned by
+   <code>model.rng_stream("scheduler")</code>;</li>
+<li>revalidates object identity, collection membership, and <code>is_alive</code>
+   immediately before each callback;</li>
+<li>calls <code>agent.step()</code> only for candidates that remain eligible.</li>
+</ol>
+<p>Agents added after candidate selection are deferred.</p>
+<p>Agents removed or marked not alive after the permutation is generated are
+skipped when their turn is reached.</p>
+<p>A replacement object using the same identifier is not activated from the
+removed object's snapshot position.</p>
+<h3 id="72-current-named-stream-contract">7.2 Current named-stream contract</h3>
+<p><code>Model.rng</code> remains the default behavior stream used by existing model and
+agent code.</p>
+<p><code>Model.rng_stream(name)</code> returns a cached named stream. For an explicit model
+seed, the stream is deterministically derived from:</p>
+<ul>
+<li>the versioned <code>named-rng-streams-v1</code> policy namespace;</li>
+<li>model-level root material;</li>
+<li>the normalized stream name.</li>
+</ul>
+<p>Python's process-randomized <code>hash()</code> function is not used. Stream creation
+order does not affect another stream, and consuming the default behavior
+stream does not consume the named <code>scheduler</code> stream.</p>
+<p>The following built-in paths use the named <code>scheduler</code> stream:</p>
+<ul>
+<li><code>RandomActivation</code>;</li>
+<li><code>AgentCollection.shuffle_do()</code>;</li>
+<li>shuffled <code>StagedActivation</code>.</li>
+</ul>
+<p>Consequently, unrelated draws made through <code>Model.rng</code> or <code>Agent.rng</code> do not
+change later built-in scheduler permutations.</p>
+<p>Changes that consume the <code>scheduler</code> stream itself can still change later
+scheduler order.</p>
+<h3 id="73-snapshot-and-restore-contract">7.3 Snapshot and restore contract</h3>
+<p>Snapshots record:</p>
+<ul>
+<li>the default <code>rng_state</code>;</li>
+<li>the <code>rng_stream_policy</code>;</li>
+<li>model-level <code>rng_stream_root</code> material;</li>
+<li>opened named stream states in deterministic name order.</li>
+</ul>
+<p>Restore validates these fields as one versioned group. Opened named streams
+continue from their saved states, while streams that had not yet been opened
+remain derivable from the restored root material.</p>
+<p>Legacy snapshots containing only <code>rng_state</code> remain restorable.</p>
+<p>When the model seed is <code>None</code>, new model construction uses fresh root material.
+A snapshot preserves that root so restored unopened streams remain consistent
+with the original model.</p>
+<hr />
+<h2 id="8-simultaneous-activation">8. Simultaneous activation</h2>
+<h3 id="81-current-behavior">8.1 Current behavior</h3>
+<p><code>SimultaneousActivation</code>:</p>
+<ol>
+<li>creates a candidate snapshot from the model collection;</li>
+<li>validates every initially eligible candidate before the first callback;</li>
+<li>requires callable <code>step()</code> and <code>advance()</code> methods from every participating
+   candidate;</li>
+<li>reports all invalid candidates in one <code>TypeError</code> and aborts before any
+   activation callback has run;</li>
+<li>revalidates every candidate before its <code>step()</code> callback;</li>
+<li>completes all remaining eligible <code>step()</code> callbacks;</li>
+<li>revalidates every candidate before its <code>advance()</code> callback;</li>
+<li>completes all remaining eligible <code>advance()</code> callbacks.</li>
+</ol>
+<p>An agent removed before its decision turn does not receive <code>step()</code>.</p>
+<p>An agent removed during the decision phase does not receive <code>advance()</code>.</p>
+<p>An agent added during the scheduler call is deferred until a future call.</p>
+<p>A new object inserted under the identifier of a removed snapshot candidate is
+also deferred until a future scheduler call.</p>
+<p>Agents already ineligible when the call begins are excluded from the strict
+two-phase capability check.</p>
+<h3 id="82-current-guarantee">8.2 Current guarantee</h3>
+<pre><code class="language-text">validate the complete initially eligible candidate snapshot
+-&gt; all remaining eligible step() callbacks
+-&gt; all remaining eligible advance() callbacks
+</code></pre>
+<p>Validation occurs before activation begins. A contract error therefore cannot
+leave the model with only a prefix of agent callbacks executed.</p>
+<p>Callback-time identity, membership, and lifecycle eligibility are checked
+again in both phases.</p>
+<p>The current implementation guarantees callable two-phase participation and
+all-decision-before-any-commit ordering. It does not guarantee:</p>
+<ul>
+<li>immutable current-state views;</li>
+<li>automatic next-state buffers;</li>
+<li>order-independent decision calculations;</li>
+<li>atomic model-wide state commit;</li>
+<li>rollback when an agent callback itself raises an exception.</li>
+</ul>
+<h3 id="83-required-user-pattern">8.3 Required user pattern</h3>
+<p>Synchronous models should use explicit pending state:</p>
+<pre><code class="language-python">class ExampleAgent(Agent):
+    def step(self) -&gt; None:
+        self.next_value = self.compute_next_value()
+
+    def advance(self) -&gt; None:
+        self.value = self.next_value
+</code></pre>
+<p>Directly changing <code>self.value</code> in <code>step()</code> may expose the updated value to
+agents activated later in the same decision phase.</p>
+<p>Agents with intentionally empty commit work must provide an explicit callable
+no-op <code>advance()</code> method. ABMForge does not silently create commit adapters.</p>
+<h3 id="84-public-alpha-status">8.4 Public-alpha status</h3>
+<p>Strict two-phase simultaneous activation is part of the current runtime
+guarantee.</p>
+<p>The resolved contract includes:</p>
+<ul>
+<li>complete capability validation before activation;</li>
+<li>callable <code>step()</code> and <code>advance()</code> requirements;</li>
+<li>one aggregated error for all invalid initial candidates;</li>
+<li>all-decision-before-any-commit ordering;</li>
+<li>callback-time removal, replacement, and lifecycle checks in both phases.</li>
+</ul>
+<p>Automatic current/next-state isolation remains outside the runtime guarantee.</p>
+<p>The current canonical Model Zoo models use asynchronous random activation and
+now have model-specific scientific verification. A future synchronous
+canonical model must provide its own invariant and metamorphic evidence before
+it is presented as a verified reference model.</p>
+<hr />
+<h2 id="9-staged-activation">9. Staged activation</h2>
+<h3 id="91-current-behavior">9.1 Current behavior</h3>
+<p><code>StagedActivation</code>:</p>
+<ol>
+<li>creates a candidate snapshot from currently eligible agents;</li>
+<li>retains that candidate snapshot for all declared stages;</li>
+<li>executes stages in declared order;</li>
+<li>optionally generates a separate permutation for each stage using the
+   named <code>scheduler</code> stream returned by <code>model.rng_stream("scheduler")</code>;</li>
+<li>revalidates object identity, collection membership, and <code>is_alive</code>
+   immediately before every stage callback;</li>
+<li>calls optional <code>before_stage(stage)</code> and <code>after_stage(stage)</code> model hooks.</li>
+</ol>
+<h3 id="92-lifecycle-visibility">9.2 Lifecycle visibility</h3>
+<p>Under the current implementation:</p>
+<ul>
+<li>agents added after candidate selection do not participate in the current
+  scheduler call;</li>
+<li>agents removed during an earlier stage are skipped in later stages;</li>
+<li>agents removed before their turn in the current stage are skipped;</li>
+<li>agents marked not alive are skipped;</li>
+<li>a same-identifier replacement is deferred because it is not part of the
+  original candidate snapshot;</li>
+<li>each shuffled stage may use a different activation order;</li>
+<li>declared stage methods must exist and be callable.</li>
+</ul>
+<h3 id="93-research-reporting-requirements">9.3 Research reporting requirements</h3>
+<p>A staged model should document:</p>
+<ul>
+<li>stage names and order;</li>
+<li>whether stage-level shuffling is enabled;</li>
+<li>which state changes are visible to later stages;</li>
+<li>whether creation or removal may occur during stages;</li>
+<li>what the model-level stage hooks do;</li>
+<li>which random stream controls stage order.</li>
+</ul>
+<hr />
+<h2 id="10-agent-creation-and-removal">10. Agent creation and removal</h2>
+<h3 id="101-same-pass-creation">10.1 Same-pass creation</h3>
+<p>Built-in activation paths create a candidate snapshot at the beginning of
+their activation pass or scheduler call.</p>
+<p>An agent added after that snapshot is created is registered immediately but
+is not activated until a future pass.</p>
+<p>This guarantee applies to:</p>
+<ul>
+<li><code>AgentCollection.do()</code>;</li>
+<li><code>AgentCollection.shuffle_do()</code>;</li>
+<li><code>SequentialActivation</code>;</li>
+<li><code>RandomActivation</code>;</li>
+<li><code>SimultaneousActivation</code>;</li>
+<li><code>StagedActivation</code>.</li>
+</ul>
+<h3 id="102-same-pass-removal">10.2 Same-pass removal</h3>
+<p>An agent removed before its next callback becomes immediately ineligible.</p>
+<p>Eligibility requires:</p>
+<ul>
+<li>current membership in the collection;</li>
+<li>identity equality with the object currently stored under the identifier;</li>
+<li>a living lifecycle state.</li>
+</ul>
+<p>This prevents stale candidate references from being called after removal.</p>
+<h3 id="103-same-identifier-replacement">10.3 Same-identifier replacement</h3>
+<p>If an agent is removed and a new object is inserted under the same identifier
+during an activation pass:</p>
+<ul>
+<li>the removed object fails the callback-time identity check;</li>
+<li>the replacement object is absent from the original candidate snapshot;</li>
+<li>neither object is activated from the stale snapshot position;</li>
+<li>the replacement becomes eligible in a future pass.</li>
+</ul>
+<h3 id="104-managed-lifecycle-removal">10.4 Managed lifecycle removal</h3>
+<p><code>AgentCollection.remove(...)</code> and <code>Model.remove_agent(...)</code> use the same
+managed lifecycle operation.</p>
+<p>The collection accepts only active living agents. Removed or non-living agent
+objects cannot be added or re-added.</p>
+<p>Managed removal:</p>
+<ol>
+<li>validates that the supplied agent is the current collection object;</li>
+<li>removes the agent from its actual space when spatially placed;</li>
+<li>clears spatial position, occupancy, node, and identity indexes;</li>
+<li>clears <code>agent.pos</code> and <code>agent.world</code>;</li>
+<li>cancels pending events owned by the agent;</li>
+<li>removes the agent from the collection;</li>
+<li>changes <code>is_alive</code> to false and lifecycle status to <code>removed</code>;</li>
+<li>writes one <code>agent_removed</code> lifecycle record.</li>
+</ol>
+<p>An object with the same identifier but a different object is rejected.</p>
+<p>Repeated removal raises <code>KeyError</code> and does not write a duplicate lifecycle
+record.</p>
+<h3 id="105-spatial-unplacement">10.5 Spatial unplacement</h3>
+<p><code>space.remove(...)</code> is spatial unplacement only.</p>
+<p>It removes the agent from that space and clears spatial attributes, but does
+not remove the agent from the model collection, change lifecycle state,
+cancel owned events, or write lifecycle records.</p>
+<p>Built-in spaces clear both <code>agent.pos</code> and <code>agent.world</code> after successful
+unplacement.</p>
+<p>Built-in spaces also validate object identity for placement, movement,
+position lookup, and removal. An agent already placed in another space cannot
+be placed into a second built-in space.</p>
+<h3 id="106-failure-ordering">10.6 Failure ordering</h3>
+<p>Spatial cleanup completes before lifecycle mutation.</p>
+<p>If spatial removal raises an exception, collection membership, lifecycle
+state, owned events, and lifecycle records remain unchanged.</p>
+<h3 id="107-public-alpha-status">10.7 Public-alpha status</h3>
+<p>Uniform collection-space lifecycle integrity for the managed model lifecycle
+and all built-in spaces is now part of the current runtime guarantee.</p>
+<hr />
+<h2 id="11-recording-semantics">11. Recording semantics</h2>
+<h3 id="111-current-automatic-recording">11.1 Current automatic recording</h3>
+<p>Registered model and agent observations are collected after:</p>
+<pre><code class="language-text">model.step()
+→ model.steps += 1
+→ model.time += 1.0
+</code></pre>
+<p>Therefore, an automatic record containing:</p>
+<pre><code class="language-text">step = 1
+time = 1.0
+</code></pre>
+<p>describes the post-step state after the first completed model step.</p>
+<h3 id="112-time-zero-observations">11.2 Time-zero observations</h3>
+<p>The current model loop does not automatically collect an initial time-zero observation.</p>
+<p>Users requiring a baseline observation must collect it explicitly or use a future recording profile that declares an initialization phase.</p>
+<h3 id="113-frequency">11.3 Frequency</h3>
+<p>The <code>every</code> option is evaluated using the current completed-step count.</p>
+<p>For example, <code>every=2</code> records at completed steps divisible by <code>2</code>.</p>
+<h3 id="114-conditional-recording">11.4 Conditional recording</h3>
+<p>A <code>when</code> predicate is evaluated at recording time, after the model step and counter increment.</p>
+<p>Agent-level <code>where</code> predicates are evaluated for agents present in the collection at recording time.</p>
+<h3 id="115-event-and-lifecycle-record-times">11.5 Event and lifecycle record times</h3>
+<p>Event and lifecycle transitions are currently recorded using the model’s current <code>steps</code> and <code>time</code> when the recorder method is called.</p>
+<p>The event record does not by itself distinguish:</p>
+<ul>
+<li>when the event was created;</li>
+<li>when it was scheduled to run;</li>
+<li>when it became due;</li>
+<li>when it actually executed.</li>
+</ul>
+<h3 id="116-target-observation-contract">11.6 Target observation contract</h3>
+<p>A future observation schema will explicitly declare:</p>
+<ul>
+<li>observation phase;</li>
+<li>variable type;</li>
+<li>unit;</li>
+<li>missing-value policy;</li>
+<li>aggregation level;</li>
+<li>whether the observation represents pre-step, post-step, initialization, or finalization state.</li>
+</ul>
+<hr />
+<h2 id="12-stop-condition-semantics">12. Stop-condition semantics</h2>
+<h3 id="121-direct-model-stop">12.1 Direct model stop</h3>
+<p>Calling:</p>
+<pre><code class="language-python">model.stop(reason)
+</code></pre>
+<p>sets:</p>
+<pre><code class="language-text">running = false
+status = stopped
+stop_reason = reason
+</code></pre>
+<p>A stopped model cannot be restarted through the current fixed-step runner.</p>
+<h3 id="122-scenario-stop-condition">12.2 Scenario stop condition</h3>
+<p>A scenario-level <code>stop_when</code> callback is currently evaluated:</p>
+<ol>
+<li>before each requested model step;</li>
+<li>after each completed one-step model execution.</li>
+</ol>
+<p>If the callback is true before the first step:</p>
+<ul>
+<li>the model is stopped;</li>
+<li>no model step is executed for that iteration.</li>
+</ul>
+<p>If the callback becomes true after a completed step:</p>
+<ul>
+<li>the step has already run;</li>
+<li>counters have already advanced;</li>
+<li>post-step recording has already occurred;</li>
+<li>the model is then marked stopped.</li>
+</ul>
+<h3 id="123-outcome-interpretation">12.3 Outcome interpretation</h3>
+<p><code>stopped</code> means execution ended because of an explicit model or scenario condition.</p>
+<p>It does not inherently mean:</p>
+<ul>
+<li>failed;</li>
+<li>invalid;</li>
+<li>incomplete;</li>
+<li>excluded from analysis.</li>
+</ul>
+<p>Execution status and scientific analysis eligibility are separate concepts.</p>
+<p>The default researcher-report policy treats <code>completed</code> and <code>stopped</code> runs as analysis-eligible when at least one numeric final model metric is available. Failed and non-terminal runs remain visible but are excluded from default metric analysis with an explicit reason in <code>analysis_eligibility.csv</code>.</p>
+<hr />
+<h2 id="13-failure-semantics">13. Failure semantics</h2>
+<h3 id="131-current-model-loop-failure">13.1 Current model-loop failure</h3>
+<p>An exception during the fixed-step loop:</p>
+<ul>
+<li>stops execution;</li>
+<li>sets the model status to failed;</li>
+<li>re-raises the exception.</li>
+</ul>
+<p>The model may already contain partial state changes from:</p>
+<ul>
+<li>processed events;</li>
+<li>partially completed activation;</li>
+<li>the model step;</li>
+<li>partially completed recording.</li>
+</ul>
+<h3 id="132-no-automatic-rollback">13.2 No automatic rollback</h3>
+<p>The current runtime does not provide transactional rollback of a partially executed simulation step.</p>
+<p>Users must not assume that a failed step leaves the model at the previous completed state.</p>
+<h3 id="133-target-failure-contract">13.3 Target failure contract</h3>
+<p>Future versions should record:</p>
+<ul>
+<li>failure phase;</li>
+<li>current step and time;</li>
+<li>active scheduler stage;</li>
+<li>related agent or event identity where available;</li>
+<li>whether records were committed;</li>
+<li>whether the run is retryable;</li>
+<li>whether the artifact is complete, partial, or corrupt.</li>
+</ul>
+<hr />
+<h2 id="14-randomness-and-determinism">14. Randomness and determinism</h2>
+<h3 id="141-current-generators">14.1 Current generators</h3>
+<p><code>Model.rng</code> remains the default behavior stream used by existing model and
+agent code.</p>
+<p><code>Model.rng_stream(name)</code> provides cached named component streams derived
+independently of the default behavior stream and independently of stream
+creation order.</p>
+<p>Built-in randomized activation uses the named <code>scheduler</code> stream for:</p>
+<ul>
+<li><code>RandomActivation</code>;</li>
+<li><code>AgentCollection.shuffle_do()</code>;</li>
+<li>shuffled <code>StagedActivation</code>.</li>
+</ul>
+<p>The current derivation policy is <code>named-rng-streams-v1</code>.</p>
+<h3 id="142-current-same-seed-guarantee">14.2 Current same-seed guarantee</h3>
+<p>Under the same code, environment, initial state, execution order, seed, and
+component-stream draw histories, ABMForge is intended to reproduce the same
+model trajectory.</p>
+<p>Unrelated draws from <code>Model.rng</code> or <code>Agent.rng</code> do not consume the named
+<code>scheduler</code> stream and therefore do not change later built-in scheduler
+permutations.</p>
+<p>The runtime does not guarantee control of:</p>
+<ul>
+<li>Python's global <code>random</code> module;</li>
+<li>third-party-library random generators;</li>
+<li>operating-system or dependency-version differences;</li>
+<li>cross-platform bit-identical results;</li>
+<li>byte-identical archives.</li>
+</ul>
+<h3 id="143-snapshot-and-manifest-support">14.3 Snapshot and manifest support</h3>
+<p>Snapshots record the default RNG state, the named-stream policy, root
+material, and opened named-stream states.</p>
+<p>Reproducibility manifests record the <code>named-rng-streams-v1</code> policy identifier.</p>
+<hr />
+<h2 id="15-current-guarantee-matrix">15. Current guarantee matrix</h2>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Current guarantee</th>
+<th>Not currently guaranteed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fixed-step time</td>
+<td><code>steps += 1</code> and <code>time += 1.0</code> after a completed model step</td>
+<td>Variable-step or continuous-time execution</td>
+</tr>
+<tr>
+<td>Event times</td>
+<td>Finite integer-valued ticks with strict input validation</td>
+<td>Hybrid or continuous-time execution</td>
+</tr>
+<tr>
+<td>Event ordering</td>
+<td>Time, priority, sequence, and event identifier</td>
+<td>Context-independent same-time scheduling semantics</td>
+</tr>
+<tr>
+<td>Collection <code>do()</code></td>
+<td>Insertion-order candidate snapshot with callback-time identity, membership, and liveness validation</td>
+<td>Activation of agents added during the current pass</td>
+</tr>
+<tr>
+<td>Collection <code>shuffle_do()</code></td>
+<td>Named scheduler-stream permutation with callback-time eligibility validation</td>
+<td>Independence from changes that consume the scheduler stream itself</td>
+</tr>
+<tr>
+<td>Sequential activation</td>
+<td>Insertion-order candidate snapshot with callback-time eligibility validation</td>
+<td>Dynamic additions during the current pass</td>
+</tr>
+<tr>
+<td>Random activation</td>
+<td>Initial eligible snapshot, named scheduler-stream permutation, callback-time eligibility validation, and isolation from default behavior RNG draws</td>
+<td>Independence from changes that consume the scheduler stream itself</td>
+</tr>
+<tr>
+<td>Simultaneous activation</td>
+<td>Preflight validation of callable <code>step()</code> and <code>advance()</code>, followed by all eligible decisions before all eligible commits</td>
+<td>Automatic current/next-state isolation</td>
+</tr>
+<tr>
+<td>Staged activation</td>
+<td>Declared stage order, optional per-stage shuffle, and validation before every stage callback</td>
+<td>Dynamic additions during the current scheduler call</td>
+</tr>
+<tr>
+<td>Same-pass removal</td>
+<td>Removed, replaced, or non-living candidates are skipped before their next callback</td>
+<td>Reactivation during the existing candidate snapshot</td>
+</tr>
+<tr>
+<td>Managed lifecycle removal</td>
+<td>Collection and model removal share identity-validated built-in-space cleanup, event cancellation, collection removal, lifecycle transition, and recording</td>
+<td>Automatic rollback after arbitrary user callback failures</td>
+</tr>
+<tr>
+<td>Spatial unplacement</td>
+<td>Built-in spaces validate object identity, clear indexes, and clear <code>agent.pos</code> and <code>agent.world</code></td>
+<td>Lifecycle removal from direct <code>space.remove(...)</code></td>
+</tr>
+<tr>
+<td>Same-pass creation</td>
+<td>Newly added agents are deferred until a future pass</td>
+<td>Immediate participation in the current candidate snapshot</td>
+</tr>
+<tr>
+<td>Recording</td>
+<td>Post-step observations use incremented counters</td>
+<td>Automatic time-zero observation</td>
+</tr>
+<tr>
+<td>Scenario stop</td>
+<td>Stop condition is checked before and after one-step execution; stopped runs are eligible when numeric final metrics exist</td>
+<td>Study-specific scientific validity beyond the default reporting policy</td>
+</tr>
+<tr>
+<td>Failure</td>
+<td>Failed status is recorded and the exception is raised</td>
+<td>Transactional rollback of a partial step</td>
+</tr>
+<tr>
+<td>Snapshot</td>
+<td>Selected model and agent state, default RNG state, named-stream root, and opened named stream states are captured</td>
+<td>Full world, scheduler object, event callback, and recorder restoration</td>
+</tr>
+<tr>
+<td>Reproducibility</td>
+<td>Conditional same-seed rerun with named scheduler isolation from default behavior RNG draws</td>
+<td>Cross-platform or cross-version equality</td>
+</tr>
+</tbody>
+</table>
+<h2 id="16-public-alpha-semantic-status">16. Public-alpha semantic status</h2>
+<p>No unresolved public-alpha semantic blockers remain for the current fixed-step
+execution profile.</p>
+<p>Canonical Model Zoo models now include explicit scientific invariant,
+boundary-case, metamorphic, and same-seed trajectory tests.</p>
+<p>The resolved public-alpha semantic baseline includes:</p>
+<ol>
+<li>removal-aware callback eligibility;</li>
+<li>strict integer-tick event scheduling;</li>
+<li>separation of execution status from analysis eligibility;</li>
+<li>strict two-phase simultaneous activation;</li>
+<li>named scheduler random streams;</li>
+<li>uniform collection-space lifecycle integrity;</li>
+<li>scientific reference-model verification for the canonical SIR and
+   Schelling models.</li>
+</ol>
+<p>Scientific reference-model verification checks internal conservation,
+transition, boundary, symmetry, reproducibility, and recording properties. It
+does not constitute empirical validation or calibration against observed
+epidemiological or social data.</p>
+<p>Future canonical models must add model-specific invariant and metamorphic
+evidence before being described as scientifically verified reference models.</p>
+<h2 id="17-model-author-responsibilities">17. Model-author responsibilities</h2>
+<p>Model authors remain responsible for documenting and validating their model-specific scientific assumptions:</p>
+<ol>
+<li>document the scheduler and activation order;</li>
+<li>use <code>AgentCollection.remove(...)</code> or <code>Model.remove_agent(...)</code> for managed lifecycle removal, and use <code>space.remove(...)</code> only for spatial unplacement;</li>
+<li>use finite integer event ticks in the fixed-step profile;</li>
+<li>implement explicit current/next state buffers for simultaneous models;</li>
+<li>record all random sources and avoid untracked third-party randomness;</li>
+<li>define whether stopped runs are scientifically valid;</li>
+<li>add model-specific conservation and transition invariants;</li>
+<li>preserve source, input, dependency, seed, and environment information;</li>
+<li>treat archive validation as artifact validation, not model validation;</li>
+<li>treat generated ODD output as a draft requiring scholarly review.</li>
+</ol>
+<hr />
+<h2 id="18-framework-contributor-requirements">18. Framework-contributor requirements</h2>
+<p>Any change to model execution must answer:</p>
+<ul>
+<li>Does the phase order change?</li>
+<li>Does agent eligibility change?</li>
+<li>Does event ordering change?</li>
+<li>Does the random-draw sequence change?</li>
+<li>Does the observation phase change?</li>
+<li>Can run status or stop reason change?</li>
+<li>Can existing model trajectories change?</li>
+<li>Does the snapshot or archive schema change?</li>
+<li>Is a migration or deprecation path required?</li>
+<li>Which characterization, invariant, property, or metamorphic tests prove the contract?</li>
+</ul>
+<p>A change that modifies trajectories must be labeled as a scientific behavior change in the changelog and release notes.</p>
+<hr />
+<h2 id="19-versioning-policy">19. Versioning policy</h2>
+<p>Simulation semantics are versioned independently from package marketing language.</p>
+<p>A future manifest should record identifiers such as:</p>
+<pre><code class="language-text">execution_profile = fixed-step-v1
+event_time_policy = integer-tick-v1
+activation_lifecycle_policy = managed-removal-v1
+observation_policy = post-step-v1
+rng_policy = named-rng-streams-v1
+</code></pre>
+<p>Changing one of these policies may alter scientific results even when the public Python method signatures remain unchanged.</p>
+<p>Such changes require:</p>
+<ul>
+<li>explicit release notes;</li>
+<li>regression tests;</li>
+<li>migration guidance;</li>
+<li>updated reference outputs;</li>
+<li>updated reproducibility metadata.</li>
+</ul>
+<hr />
+<h2 id="20-summary">20. Summary</h2>
+<p>The current ABMForge runtime is best described as:</p>
+<blockquote>
+<p>A fixed-step Python ABM execution profile with finite integer event ticks,
+pre-step event processing, candidate-snapshot activation, callback-time
+identity and membership validation, deferred same-pass additions,
+immediate removal visibility, strict prevalidated two-phase simultaneous
+activation, post-step observation, multiple built-in activation strategies,
+managed lifecycle removal, and built-in space referential integrity.</p>
+</blockquote>
+<p>Fractional event times and implicit numeric coercion are rejected during
+scheduling, preventing events from being silently executed later than
+requested.</p>
+<p>The public-alpha semantic blockers are resolved for the current fixed-step
+execution profile and canonical Model Zoo models.</p>
+<p>The current reference-model evidence includes explicit invariant,
+boundary-case, metamorphic, recording-consistency, and same-seed trajectory
+verification.</p>
+<p>This evidence does not constitute empirical validation or calibration.</p>
+<p>Researchers must report the exact ABMForge version or commit and the
+model-specific scheduling, event-time, randomness, observation, lifecycle,
+and scientific-validation assumptions used in their studies.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
