@@ -1,3 +1,4 @@
+schema_version: abmforge.scenario.v1
 name: wealth_baseline
 model: examples.wealth_model.model.WealthModel
 parameters:

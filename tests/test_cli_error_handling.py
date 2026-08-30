@@ -10,6 +10,7 @@ def test_cli_run_invalid_scenario_prints_clean_validation_error(
     scenario_file = tmp_path / "invalid.yaml"
     scenario_file.write_text(
         """
+schema_version: abmforge.scenario.v1
 name: invalid_scenario
 parameters:
   x: 1
@@ -47,6 +48,7 @@ def test_cli_run_invalid_steps_prints_clean_validation_error(
     scenario_file = tmp_path / "invalid_steps.yaml"
     scenario_file.write_text(
         """
+schema_version: abmforge.scenario.v1
 name: invalid_steps
 model: tests.test_scenario_yaml_validation.ScenarioValidationModel
 run:

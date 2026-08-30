@@ -61,10 +61,11 @@ def missing_scenarios(
     missing: list[Scenario] = []
 
     for scenario in scenarios:
-        # Programmatic stop conditions are arbitrary Python callables and do not
-        # yet have a persisted, stable execution identity. Treat such scenarios
-        # as missing rather than risk matching a scientifically different run.
-        if scenario.stop_when is not None:
+        # Stop conditions are not yet part of execution-fingerprint-v3.
+        # Programmatic callables are arbitrary Python and declarative stop
+        # conditions are serializable but still outside the persisted identity.
+        # Treat both as missing rather than risk scientific false reuse.
+        if scenario.stop_when is not None or scenario.stop_condition is not None:
             missing.append(scenario)
             continue
 

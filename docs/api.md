@@ -139,6 +139,32 @@ scenario = Scenario(
 result = scenario.run()
 ```
 
+#### Scenario YAML schema API
+
+**Status:** Provisional
+
+**Import:** `from abmforge.experiment import SCENARIO_SCHEMA_VERSION, ScenarioSchemaV1, ScenarioValidationError, StopConditionV1`
+
+`ScenarioSchemaV1` is the strict validator and normalized representation for
+`abmforge.scenario.v1` YAML documents.
+
+`ScenarioValidationError` is the field-oriented validation exception used by
+Python and CLI workflows.
+
+`StopConditionV1` represents the safe declarative `run.stop` contract. It
+supports scalar comparisons without evaluating arbitrary Python expressions.
+
+`ScenarioSchemaV1` also supports the optional `inputs` mapping with
+`inputs.root` and `inputs.artifacts`. `Scenario.from_yaml(...)` resolves these
+portable paths relative to the Scenario YAML file and passes them to the
+runtime `Scenario` as `input_root` and `input_artifacts`. The declared files
+therefore participate in `DeclaredInputIdentityV1` and
+`ExecutionFingerprintV3`.
+
+Programmatic `Scenario(...)` construction remains available and does not require
+a YAML schema declaration. `schema_version` identifies the serialized YAML
+contract.
+
 ### `Experiment`
 
 **Status:** Provisional  

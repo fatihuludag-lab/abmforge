@@ -70,6 +70,15 @@ Current development version: `0.3.0a2.dev0`.
 
 ### Added
 
+- Add safe declarative Scenario stop conditions with `eq`, `ne`, `lt`, `le`,
+  `gt`, and `ge` operators while keeping recovery fail-closed until the
+  condition is included in the execution fingerprint.
+
+- Add strict `abmforge.scenario.v1` Scenario YAML validation with explicit
+  schema versioning, unknown-field rejection, an `extensions` namespace,
+  portable declared-input configuration bound to `ExecutionFingerprintV3`,
+  and migrated built-in/example baseline scenarios.
+
 - Add `source-repository-provenance-v1` so run-result manifests discover Git
   metadata from the executed model's defining source file rather than the
   process current working directory.

@@ -91,3 +91,32 @@ def test_scenario_stop_condition_sets_stopped_inactive_state() -> None:
     assert result.model is not None
     assert result.model.status == "stopped"
     assert result.model.running is False
+
+
+def test_scenario_yaml_declarative_stop_condition_stops_run(
+    tmp_path,
+) -> None:
+    scenario_path = tmp_path / "scenario.yaml"
+    scenario_path.write_text(
+        """
+schema_version: abmforge.scenario.v1
+model: tests.test_scenario_stop_semantics.LifecycleObservationModel
+run:
+  steps: 5
+  stop:
+    field: steps
+    operator: ge
+    value: 1
+""".lstrip(),
+        encoding="utf-8",
+    )
+
+    scenario = Scenario.from_yaml(scenario_path)
+    result = scenario.run()
+
+    assert result.status == "stopped"
+    assert result.steps == 1
+    assert result.stop_reason == "stop_condition"
+    assert result.model is not None
+    assert result.model.steps == 1
+    assert result.model.running is False

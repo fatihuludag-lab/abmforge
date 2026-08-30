@@ -55,6 +55,7 @@ class ToyModel(Model):
     scenario_file = tmp_path / "scenario.yaml"
     scenario_file.write_text(
         """
+schema_version: abmforge.scenario.v1
 name: toy_cli
 model: toy_model.ToyModel
 run:
@@ -121,6 +122,7 @@ class FailingWriteModel(Model):
     scenario_file = tmp_path / "scenario.yaml"
     scenario_file.write_text(
         """
+schema_version: abmforge.scenario.v1
 name: transactional_overwrite
 model: failing_write_model.FailingWriteModel
 run:
@@ -181,6 +183,7 @@ class SuccessfulOverwriteModel(Model):
     scenario_file = tmp_path / "scenario.yaml"
     scenario_file.write_text(
         """
+schema_version: abmforge.scenario.v1
 name: successful_overwrite
 model: successful_overwrite_model.SuccessfulOverwriteModel
 run:
@@ -235,6 +238,7 @@ class SummaryFailureModel(Model):
     scenario_file = tmp_path / "scenario.yaml"
     scenario_file.write_text(
         """
+schema_version: abmforge.scenario.v1
 name: summary_failure
 model: summary_failure_model.SummaryFailureModel
 run:

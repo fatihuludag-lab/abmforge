@@ -1,3 +1,4 @@
+schema_version: abmforge.scenario.v1
 name: wealth-inequality-baseline
 model: model.WealthInequalityModel
 parameters:

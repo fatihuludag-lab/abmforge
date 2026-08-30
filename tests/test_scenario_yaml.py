@@ -25,6 +25,7 @@ def test_scenario_from_yaml(tmp_path, monkeypatch):
     scenario_file = tmp_path / "scenario.yaml"
     scenario_file.write_text(
         f"""
+schema_version: abmforge.scenario.v1
 name: yaml_test
 model: {module_name}
 
@@ -57,6 +58,7 @@ def test_scenario_from_yaml_requires_model(tmp_path):
     scenario_file = tmp_path / "scenario.yaml"
     scenario_file.write_text(
         """
+schema_version: abmforge.scenario.v1
 name: missing_model
 run:
   steps: 1
@@ -72,6 +74,7 @@ def test_scenario_from_yaml_rejects_invalid_parameters(tmp_path):
     scenario_file = tmp_path / "scenario.yaml"
     scenario_file.write_text(
         """
+schema_version: abmforge.scenario.v1
 model: tests.test_scenario_yaml.YamlTestModel
 parameters:
   - invalid
@@ -87,6 +90,7 @@ def test_scenario_from_yaml_rejects_invalid_steps(tmp_path):
     scenario_file = tmp_path / "scenario.yaml"
     scenario_file.write_text(
         """
+schema_version: abmforge.scenario.v1
 model: tests.test_scenario_yaml.YamlTestModel
 run:
   steps: invalid
