@@ -57,3 +57,18 @@ for experiment tracking and downstream tooling. It does not replace `data/runs.j
 it provides a small discovery layer before loading full dataset tables.
 
 Older alpha archives may not contain this file.
+
+
+## Explicit declared inputs in the local R7 correction
+
+`write_run_outputs(dataset, input_artifacts=paths, input_root=root)` and
+`write_manifest(dataset, input_artifacts=paths, input_root=root)` forward the
+same declarations used by `Scenario` to manifest construction. Existing calls
+without declared inputs remain valid. Wrong or omitted declarations for a run
+that declares files continue to raise an identity mismatch.
+
+Input copies are a separate caller responsibility. Copy files under `configs`
+before writing the outputs so the final artifact inventory includes them. The
+methods do not discover dependencies, guarantee atomic publication, or repair
+corrupted archives. Validate archives before passing their run index to reuse
+planning. This correction is supplied as a local patch and wheel.

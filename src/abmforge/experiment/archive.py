@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
@@ -19,7 +19,7 @@ from abmforge.experiment.archive_summary import (
 )
 from abmforge.experiment.registry import ExperimentRegistry
 from abmforge.experiment.run_index import RunIndex
-from abmforge.repro.manifest import describe_file_artifact, sha256_file
+from abmforge.repro.manifest import ReproducibilityManifest, describe_file_artifact, sha256_file
 
 ArchiveFormat = Literal["json", "parquet"]
 ARCHIVE_FORMAT_VERSION = "experiment-archive-v1"
@@ -281,9 +281,21 @@ class ExperimentArchive:
         """Write the dataset schema into the archive root."""
         return dataset.write_schema(self.dataset_schema_path)
 
-    def write_manifest(self, dataset: Dataset) -> Path:
-        """Write a reproducibility manifest into the archive root."""
-        dataset.write_manifest(self.manifest_path)
+    def write_manifest(
+        self,
+        dataset: Dataset,
+        *,
+        input_artifacts: Sequence[str | Path] | None = None,
+        input_root: str | Path | None = None,
+    ) -> Path:
+        """Write a manifest using the same input declarations as the Scenario.
+
+        Input declarations are explicit; source files are not copied by this method.
+        """
+        manifest = ReproducibilityManifest.from_dataset(
+            dataset, input_artifacts=input_artifacts, input_root=input_root
+        )
+        manifest.write(self.manifest_path)
         return self.finalize_manifest()
 
     def finalize_manifest(self) -> Path:
@@ -402,8 +414,13 @@ class ExperimentArchive:
         dataset: Dataset,
         *,
         format: ArchiveFormat = "json",
+        input_artifacts: Sequence[str | Path] | None = None,
+        input_root: str | Path | None = None,
     ) -> None:
-        """Write minimum reproducible run outputs."""
+        """Write outputs, forwarding explicit Scenario input declarations.
+
+        Callers remain responsible for copying input files before finalization.
+        """
         dataset.validate()
 
         if format == "json":
@@ -415,7 +432,7 @@ class ExperimentArchive:
 
         self.write_dataset_schema(dataset)
         self.write_run_index(dataset)
-        self.write_manifest(dataset)
+        self.write_manifest(dataset, input_artifacts=input_artifacts, input_root=input_root)
 
     def validate(self) -> list[str]:
         """Return archive validation errors.
