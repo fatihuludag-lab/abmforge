@@ -108,7 +108,7 @@ def collect_version_values() -> list[MetadataValue]:
 
 
 def is_development_version(version: str) -> bool:
-    return re.search(r"\.dev[0-9]+$", version) is not None
+    return re.search(r"\.dev[0-9]+(?:\+[A-Za-z0-9]+(?:[._-][A-Za-z0-9]+)*)?$", version) is not None
 
 
 def validate_metadata(*, strict: bool = False) -> list[str]:

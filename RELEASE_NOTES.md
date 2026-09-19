@@ -1,11 +1,11 @@
 # ABMForge Alpha Development Notes
 
-Current development version: `0.3.0a2.dev0`.
+Current development version: `0.3.0a2.dev0+r7`.
 
 ABMForge is currently alpha-stage research software. Version `0.3.0a1` was
 published as the first production PyPI alpha release on 2026-06-30. The current
 `main` branch contains post-release changes and is intentionally versioned
-`0.3.0a2.dev0` so that source checkouts cannot be confused with the immutable
+`0.3.0a2.dev0+r7` so that source checkouts cannot be confused with the immutable
 `0.3.0a1` release artifact.
 
 ## Current main branch highlights

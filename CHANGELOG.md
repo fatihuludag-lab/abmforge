@@ -66,7 +66,7 @@ behavior, and research-workflow guarantees may change before a stable release.
 
 ## Unreleased
 
-Current development version: `0.3.0a2.dev0`.
+Current development version: `0.3.0a2.dev0+r7`.
 
 ### Added
 

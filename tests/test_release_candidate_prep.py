@@ -19,7 +19,7 @@ def test_changelog_tracks_current_declared_version() -> None:
     version = current_pyproject_version()
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
 
-    if re.search(r"\.dev[0-9]+$", version):
+    if re.search(r"\.dev[0-9]+(?:\+[A-Za-z0-9]+(?:[._-][A-Za-z0-9]+)*)?$", version):
         assert re.search(r"^##\s+Unreleased\s*$", changelog, flags=re.MULTILINE)
         assert f"Current development version: `{version}`." in changelog
     else:

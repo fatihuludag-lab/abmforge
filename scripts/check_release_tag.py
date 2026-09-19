@@ -46,16 +46,32 @@ def _read_runtime_version() -> str:
 def validate_release_tag(tag: str) -> list[str]:
     errors: list[str] = []
 
+    tag_version = tag.removeprefix("v") if tag.startswith("v") else ""
+    pyproject_version = _read_pyproject_version()
+    runtime_version = _read_runtime_version()
+
+    # Development builds may carry a PEP 440 local identifier (for example
+    # ``+r7``). They are still development versions and must be rejected as
+    # release tags before the formal release-tag syntax check.
+    if tag.startswith("v") and tag_version == pyproject_version and ".dev" in tag_version:
+        errors.append(
+            f"Release tag {tag!r} targets a development version {tag_version!r}. "
+            "Bump package metadata to a non-development version before creating "
+            "a release tag."
+        )
+        if pyproject_version != runtime_version:
+            errors.append(
+                "Package version metadata is inconsistent: "
+                f"pyproject.toml={pyproject_version}, runtime={runtime_version}"
+            )
+        return errors
+
     if not _RELEASE_TAG_PATTERN.fullmatch(tag):
         errors.append(
             "Release tag must use the form vMAJOR.MINOR.PATCH with an optional "
             "PEP 440 pre-release, post-release, or development suffix."
         )
         return errors
-
-    tag_version = tag.removeprefix("v")
-    pyproject_version = _read_pyproject_version()
-    runtime_version = _read_runtime_version()
 
     if ".dev" in tag_version:
         errors.append(
